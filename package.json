@@ -1,0 +1,45 @@
+{
+  "name": "kekbot",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "pnpm@10.26.0",
+  "engines": { "node": ">=24.21.0 <25", "pnpm": "10.26.0" },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env.local scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "node --env-file-if-exists=.env.local scripts/start.mjs",
+    "kekbot": "node --env-file-if-exists=.env.local src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:container": "node scripts/container-smoke.mjs",
+    "test:standalone": "node scripts/standalone-cli-smoke.mjs",
+    "docs:check": "node scripts/check-docs.mjs",
+    "db:generate": "drizzle-kit generate",
+    "check": "pnpm docs:check && pnpm typecheck && pnpm lint && pnpm test"
+  },
+  "dependencies": {
+    "better-sqlite3": "13.0.3",
+    "drizzle-orm": "0.45.3",
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "24.19.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "drizzle-kit": "0.31.11",
+    "eslint": "9.39.1",
+    "eslint-config-next": "16.3.8",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  },
+  "pnpm": { "onlyBuiltDependencies": ["better-sqlite3", "esbuild", "sharp"] }
+}

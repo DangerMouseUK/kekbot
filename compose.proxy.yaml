@@ -1,0 +1,16 @@
+services:
+  proxy:
+    image: caddy:2.10.2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      KEKBOT_DOMAIN: ${KEKBOT_DOMAIN:?Set KEKBOT_DOMAIN to your public hostname}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  caddy_data:
+  caddy_config:

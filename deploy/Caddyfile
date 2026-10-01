@@ -1,0 +1,8 @@
+{$KEKBOT_DOMAIN} {
+    request_body {
+        max_size 64KB
+    }
+    reverse_proxy kekbot:3000 {
+        flush_interval -1
+    }
+}
