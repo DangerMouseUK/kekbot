@@ -2,7 +2,7 @@
 
 An MIT-licensed, self-hosted Kick and Discord bot and stream control room.
 
-**Current stage: foundation harness.** The runtime, SQLite persistence, signed Kick intake, OAuth, and recovery tools have local test coverage. Live Kick acceptance and Linux container verification are pending. This is not a v0.1 release; Discord, editable commands/timers, accounts, OBS overlays, and YouTube media are subsequent increments.
+**Current stage: foundation harness.** The runtime, SQLite persistence, signed Kick intake, OAuth, and recovery tools have local test coverage. Linux build/container checks pass in GitHub CI; live Kick acceptance is pending. This is not a v0.1 release; Discord, editable commands/timers, accounts, OBS overlays, and YouTube media are subsequent increments.
 
 ## Start locally
 

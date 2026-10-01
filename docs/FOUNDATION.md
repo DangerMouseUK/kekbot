@@ -110,10 +110,12 @@ For containers, stop Compose and use a one-off `node src/cli.ts backup` or `rest
 | Standalone build and browser proof | Production build passed without warnings; three Playwright tests passed against built standalone output |
 | Packaged host CLI | Initialization, diagnostics, and backup passed outside the checkout without development dependencies |
 | Dependency advisory check | `pnpm audit --prod`: no known vulnerabilities reported |
-| Linux image/non-root container smoke | Not run locally: Docker unavailable; CI path supplied |
+| Linux image/non-root container smoke | Passed in [GitHub CI](https://github.com/DangerMouseUK/kekbot/actions/runs/36932520021) on source commit `4d04db5`; Docker remains unavailable locally |
 | Live Kick OAuth/events/reply and identity | Not run: owner credentials and public HTTPS ingress not supplied |
 | Separate independent owner/app/channel | Not run: independent operators required |
 | Live restore to another host | Not run: second host/operator required; local real-database restoration tested |
+
+The initial public commit's CI also passed documentation/migration checks, the production dependency audit, and the redacted full-history secret scan on 2026-10-01. Container evidence includes initialization as the non-root user, readiness, rejection of unauthorized mutations, signed fixture processing without a dashboard, clean shutdown, and diagnostics against persisted storage.
 
 Record future live evidence with date, source commit, app/runtime/schema versions, independent operator, redacted scopes/identity, event type/delivery ID, actual reply/message ID, replay outcome, failure/recovery result, and backup/restore host details. Do not mark the foundation gate complete until live and container evidence exists.
 

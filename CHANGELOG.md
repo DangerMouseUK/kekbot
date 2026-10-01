@@ -9,4 +9,4 @@
 - Added test fixtures, real SQLite/provider/runtime tests, browser checks, container examples, and CI configuration.
 - Prepared public contribution/security guidance, issue and pull-request templates, consistent line endings, ignored private artifacts, pinned CI actions, documentation checks, and a redacted Git-history secret scan.
 
-Live provider acceptance, independent-owner trials, and Linux container verification remain pending. This version does not implement the remaining v0.1 modules.
+Linux build/container verification passed in GitHub CI. Live provider acceptance and independent-owner trials remain pending. This version does not implement the remaining v0.1 modules.
