@@ -50,7 +50,15 @@ jobs:
           cp .env.example .env.local
           docker compose --env-file .env.example config --quiet
           docker compose --env-file .env.example -f compose.yaml -f compose.proxy.yaml config --quiet
+          docker compose --env-file .env.example -f compose.yaml -f compose.ip.yaml config --quiet
+          KEKBOT_ENV_FILE="$PWD/.env.local" KEKBOT_HOST_DATA_DIR="$RUNNER_TEMP/kekbot-data" docker compose --env-file .env.example -f compose.yaml -f compose.ip.yaml config --quiet
         env:
           KEKBOT_DOMAIN: kekbot.example
+          KEKBOT_PUBLIC_IP: 203.0.113.10
+      - name: Check pinned Caddy configurations without issuing certificates
+        run: |
+          docker build --file deploy/Caddy.Dockerfile --tag kekbot-caddy:2.11.6 .
+          docker run --rm --env KEKBOT_DOMAIN=kekbot.example --volume "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" kekbot-caddy:2.11.6 caddy adapt --config /etc/caddy/Caddyfile > /dev/null
+          docker run --rm --env KEKBOT_PUBLIC_IP=203.0.113.10 --volume "$PWD/deploy/Caddyfile.ip:/etc/caddy/Caddyfile:ro" kekbot-caddy:2.11.6 caddy adapt --config /etc/caddy/Caddyfile > /dev/null
       - run: docker build -t kekbot:ci .
       - run: pnpm test:container

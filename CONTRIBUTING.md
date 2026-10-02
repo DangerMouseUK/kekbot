@@ -6,7 +6,7 @@ Keep UI/HTTP code separate from domain decisions, provider clients, storage, and
 
 For a change, explain the behavior and relevant evidence. Run `pnpm check`; run `pnpm build` and relevant browser/container checks when their behavior changes. Use real SQLite for persistence evidence. Add meaningful tests for behavior and failure cases; do not write tests solely to mirror trivial implementation details.
 
-`pnpm check` includes local Markdown-link and PRD consistency checks. CI also checks migration metadata, audits production dependencies, scans Git history for secrets, and builds/tests the Linux container. GitHub Actions are pinned to commit hashes; update those pins deliberately when changing tooling. All CI fixtures are generated locally and require no integration secrets.
+`pnpm check` includes publication-policy, local Markdown-link and PRD consistency checks. Publication policy rejects private runtime/config/evidence files even if force-added, private key material, personal paths and populated provider examples. Git and Docker ignore rules also exclude these artifacts. CI checks migration metadata, audits production dependencies, scans Git history for secrets, and builds/tests the Linux container. GitHub Actions are pinned to commit hashes; update those pins deliberately when changing tooling. All CI fixtures are generated locally and require no integration secrets.
 
 Never commit provider tokens, `.env.local`, encryption keys, proof tokens, local data, or raw operator history. Fixtures must be synthetic or redacted, isolated from live mode, and unable to perform provider mutations. Theme and media contributions need distributable licenses and attribution.
 

@@ -1,0 +1,19 @@
+services:
+  proxy:
+    build:
+      context: .
+      dockerfile: deploy/Caddy.Dockerfile
+    image: kekbot-caddy:2.11.6
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      KEKBOT_PUBLIC_IP: ${KEKBOT_PUBLIC_IP:?Set KEKBOT_PUBLIC_IP to your public IPv4 address}
+    volumes:
+      - ./deploy/Caddyfile.ip:/etc/caddy/Caddyfile:ro
+      - caddy_ip_data:/data
+      - caddy_ip_config:/config
+volumes:
+  caddy_ip_data:
+  caddy_ip_config:

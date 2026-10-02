@@ -1,6 +1,9 @@
 services:
   proxy:
-    image: caddy:2.10.2
+    build:
+      context: .
+      dockerfile: deploy/Caddy.Dockerfile
+    image: kekbot-caddy:2.11.6
     restart: unless-stopped
     ports:
       - "80:80"

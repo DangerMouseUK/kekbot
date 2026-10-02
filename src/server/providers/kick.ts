@@ -119,13 +119,19 @@ export class KickService {
     return parsed.data;
   }
 
-  async accessToken(): Promise<string> {
+  async accessToken(forceRefresh = false): Promise<string> {
+    if (this.refreshFlight) return this.refreshFlight;
     const current = this.load();
-    if (current.expiresAt > Date.now() + 60000) return current.access_token;
+    if (!forceRefresh && current.expiresAt > Date.now() + 60000) return current.access_token;
     if (!this.refreshFlight) {
       this.refreshFlight = this.refresh(current).finally(() => { this.refreshFlight = undefined; });
     }
     return this.refreshFlight;
+  }
+
+  async refreshProof() {
+    await this.accessToken(true);
+    return this.status();
   }
 
   private async refresh(current: Tokens) {
@@ -137,6 +143,7 @@ export class KickService {
         body: new URLSearchParams({ grant_type: "refresh_token", client_id: config.clientId, client_secret: config.clientSecret, refresh_token: current.refresh_token })
       }));
       this.save({ ...token, expiresAt: Date.now() + token.expires_in * 1000, userId: current.userId, username: current.username });
+      this.repository.set("kick_last_refresh_at", String(Date.now()));
       return token.access_token;
     } catch (error) {
       if (!(error instanceof DeliveryError && error.outcome === "retry")) this.repository.set("kick_auth_error", "kick_refresh_failed_reauthorize");
@@ -170,7 +177,7 @@ export class KickService {
           body: JSON.stringify({ method: "webhook", events: missing.map(name => ({ name, version: 1 })) })
         }, true)
       );
-      if (!result.success || missing.some(name => !result.data.data.some(item => item.name === name && !item.error && item.subscription_id))) {
+      if (!result.success || missing.some(name => !result.data.data.some(item => item.name === name && item.version === 1 && !item.error && item.subscription_id))) {
         throw new AppError("kick_subscription_not_confirmed", 502);
       }
     }
@@ -198,6 +205,7 @@ export class KickService {
       return { authorized: true, authorizedUsername: token.username, broadcasterId: token.userId, chatType: this.config.chatType,
         scopes: token.scope.split(" "), expiresAt: token.expiresAt, error: this.repository.setting("kick_auth_error") || null,
         subscriptionsCheckedAt: this.repository.setting("kick_subscriptions_checked_at") ?? null,
+        lastRefreshAt: this.repository.setting("kick_last_refresh_at") ?? null,
         lastConfirmedReply: this.repository.setting("kick_last_confirmed_reply") ?? null };
     } catch (error) {
       return { authorized: false, error: error instanceof AppError ? error.code : "kick_configuration_invalid" };

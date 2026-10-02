@@ -2,7 +2,7 @@
 
 Version: 1.1 draft for the fresh repository
 Date: 2026-10-01
-Status: Product specification; foundation implementation in progress; live acceptance pending
+Status: Product specification; single-owner foundation live gate passed 2026-10-02; installation/accounts next
 License: MIT for newly authored KekBot code
 Audience: Individual Kick creators, their moderators, and open-source contributors
 

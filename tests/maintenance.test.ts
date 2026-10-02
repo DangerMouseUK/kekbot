@@ -1,6 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import Database from "better-sqlite3";
 import { readConfig, readPaths } from "../src/server/config.ts";
 import { backup, initialize, restore } from "../src/server/maintenance.ts";
 import { environment, repository } from "./helpers.ts";
@@ -23,9 +24,17 @@ describe("portable recovery", () => {
     repo.enqueue("recover-job", "proof.record", {});
     repo.store.close();
     writeFileSync(join(context.config.assets, "test-image.png"), "fixture-asset");
+    mkdirSync(join(context.config.directory, "secrets/proof-captures"));
+    writeFileSync(join(context.config.directory, "secrets/proof-captures/private.capture"), "encrypted proof evidence");
     const output = join(context.root, "backup");
     await backup(context.config, output);
+    const snapshot = new Database(join(output, "kekbot.sqlite"), { readonly: true });
+    try { expect(snapshot.pragma("journal_mode", { simple: true })).toBe("delete"); }
+    finally { snapshot.close(); }
+    expect(existsSync(join(output, "kekbot.sqlite-wal"))).toBe(false);
+    expect(existsSync(join(output, "kekbot.sqlite-shm"))).toBe(false);
     expect(existsSync(join(output, "secrets"))).toBe(false);
+    expect(existsSync(join(output, "proof-captures"))).toBe(false);
     const target = restoreConfig(context);
     restore(target, output);
     const restored = repository(target);

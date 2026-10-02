@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
-import { KickService, KICK_SCOPES } from "../src/server/providers/kick.ts";
+import { KickService, KICK_EVENTS, KICK_SCOPES } from "../src/server/providers/kick.ts";
 import { connections, oauthStates } from "../src/server/storage/schema.ts";
 import { decrypt, encrypt } from "../src/server/crypto.ts";
 import { environment, repository } from "./helpers.ts";
@@ -16,8 +16,8 @@ function setup() {
   const service = new KickService(config, repo, request);
   return { config, repo, request, service };
 }
-function saveExpired(context: ReturnType<typeof setup>) {
-  context.repo.store.orm.insert(connections).values({ provider: "kick", secret: encrypt(JSON.stringify({ ...token, expiresAt: 0, userId: 123, username: "creator" }), context.config.key, "kick.tokens"), updatedAt: 0 }).run();
+function saveExpired(context: ReturnType<typeof setup>, expiresAt = 0) {
+  context.repo.store.orm.insert(connections).values({ provider: "kick", secret: encrypt(JSON.stringify({ ...token, expiresAt, userId: 123, username: "creator" }), context.config.key, "kick.tokens"), updatedAt: 0 }).run();
 }
 
 describe("Kick contract", () => {
@@ -69,6 +69,60 @@ describe("Kick contract", () => {
     await expect(context.service.accessToken()).rejects.toThrow("kick_refresh_failed_reauthorize");
     expect(context.request).toHaveBeenCalledTimes(1);
     expect(JSON.stringify(context.service.status())).not.toContain("provider-debug-secret");
+  });
+
+  it("shares a forced proof refresh with background work and returns sanitized status", async () => {
+    const context = setup(); saveExpired(context, Date.now() + 3600000);
+    let completeRefresh!: (response: Response) => void;
+    context.request.mockImplementationOnce(() => new Promise(resolve => { completeRefresh = resolve; }));
+    const first = context.service.refreshProof();
+    const background = context.service.accessToken();
+    const second = context.service.refreshProof();
+    expect(context.request).toHaveBeenCalledTimes(1);
+    completeRefresh(Response.json({ ...token, access_token: "fresh-access", refresh_token: "fresh-refresh" }));
+    const [status, access, repeated] = await Promise.all([first, background, second]);
+    expect(access).toBe("fresh-access");
+    expect(status).toEqual(repeated);
+    expect(status.lastRefreshAt).toBeTruthy();
+    expect(JSON.stringify(status)).not.toMatch(/fresh-access|fresh-refresh|test-client-secret/);
+  });
+
+  it("reconciles only missing channel subscriptions and does not repeat confirmed subscriptions", async () => {
+    const context = setup(); saveExpired(context, Date.now() + 3600000);
+    const existing = { event: KICK_EVENTS[0], version: 1, broadcaster_user_id: 123 };
+    context.request.mockResolvedValueOnce(Response.json({ data: [existing, { ...existing, event: KICK_EVENTS[1], broadcaster_user_id: 999 }] }))
+      .mockResolvedValueOnce(Response.json({ data: KICK_EVENTS.slice(1).map(name => ({ name, version: 1, error: "", subscription_id: `fixture-${name}` })) }))
+      .mockResolvedValueOnce(Response.json({ data: KICK_EVENTS.map(event => ({ event, version: 1, broadcaster_user_id: 123 })) }));
+    expect(await context.service.subscribe()).toEqual({ events: KICK_EVENTS });
+    const posted = JSON.parse(context.request.mock.calls[1][1]?.body as string);
+    expect(posted).toEqual({ method: "webhook", events: KICK_EVENTS.slice(1).map(name => ({ name, version: 1 })) });
+    await context.service.subscribe();
+    expect(context.request.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+    expect(context.repo.setting("kick_subscriptions_checked_at")).toBeTruthy();
+  });
+
+  it("does not report complete subscriptions when Kick partially fails or confirms another version", async () => {
+    const context = setup(); saveExpired(context, Date.now() + 3600000);
+    context.request.mockResolvedValueOnce(Response.json({ data: [] }))
+      .mockResolvedValueOnce(Response.json({ data: KICK_EVENTS.map((name, index) => ({ name, version: 1, subscription_id: index ? `fixture-${name}` : undefined, error: index ? "" : "private provider detail" })) }));
+    await expect(context.service.subscribe()).rejects.toThrow("kick_subscription_not_confirmed");
+    expect(context.repo.setting("kick_subscriptions_checked_at")).toBeUndefined();
+    expect(JSON.stringify(context.service.status())).not.toContain("private provider detail");
+    context.request.mockResolvedValueOnce(Response.json({ data: [] }))
+      .mockResolvedValueOnce(Response.json({ data: KICK_EVENTS.map(name => ({ name, version: 2, subscription_id: `fixture-${name}` })) }));
+    await expect(context.service.subscribe()).rejects.toThrow("kick_subscription_not_confirmed");
+  });
+
+  it("records only confirmed replies and keeps ambiguous or rejected replies explicit", async () => {
+    const context = setup(); saveExpired(context, Date.now() + 3600000);
+    context.request.mockResolvedValueOnce(Response.json({ data: { message_id: "fixture-reply", is_sent: true } }));
+    await context.service.reply();
+    expect(JSON.parse(context.repo.setting("kick_last_confirmed_reply")!).messageId).toBe("fixture-reply");
+    context.request.mockResolvedValueOnce(Response.json({ data: { message_id: "rejected", is_sent: false } }));
+    await expect(context.service.reply()).rejects.toMatchObject({ outcome: "failed" });
+    context.request.mockResolvedValueOnce(Response.json({ data: { private: "provider-secret" } }));
+    await expect(context.service.reply()).rejects.toMatchObject({ outcome: "uncertain" });
+    expect(context.repo.setting("kick_last_confirmed_reply")).not.toContain("provider-secret");
   });
 
   it("only fetches verification trust from the official endpoint", async () => {

@@ -21,5 +21,26 @@ backups/
 *.pfx
 *.sqlite*
 *.db
+# Private installation inputs and evidence, including files outside data/.
+secrets/
+proof-captures/
+.ssh/
+.config/
+*.env
+*.capture
+*.enc
+*.pub
+kick-client-id
+kick-client-secret
+kick-creator.json
+kick-live-evidence.json
+restore-evidence.json
+live-recovery-paths.json
+KekBot-Test-Setup.md
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
 .DS_Store
 Thumbs.db

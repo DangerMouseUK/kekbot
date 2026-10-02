@@ -13,6 +13,9 @@ test("operator controls are protected and the browser shows real fixture state",
   expect(denied.status()).toBe(401);
   const mutation = await request.post("/api/foundation/probe");
   expect(mutation.status()).toBe(401);
+  for (const path of ["refresh", "capture"]) {
+    expect((await request.post(`/api/foundation/kick/${path}`)).status()).toBe(401);
+  }
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "KekBot", exact: true })).toBeVisible();
   await page.getByLabel("Foundation proof token").fill(secrets().token);
@@ -20,6 +23,8 @@ test("operator controls are protected and the browser shows real fixture state",
   await expect(page.locator("pre")).toContainText('"mode": "fixture"');
   await expect(page.locator("pre")).toContainText('"runtimeHealthy": true');
   await page.getByRole("button", { name: "Authorize Kick", exact: true }).click();
+  await expect(page.locator("pre")).toContainText("live_actions_disabled_in_fixture_mode");
+  await page.getByRole("button", { name: "Refresh Kick grant", exact: true }).click();
   await expect(page.locator("pre")).toContainText("live_actions_disabled_in_fixture_mode");
 });
 
@@ -35,12 +40,19 @@ test("standalone jobs run without a dashboard and signed deliveries cannot repea
   const body = JSON.stringify({ message_id: "e2e-message", broadcaster: { user_id: 123 }, sender: { user_id: 456 }, content: "!kekbot" });
   const headers = { "Content-Type": "application/json", "Kick-Event-Message-Id": eventId, "Kick-Event-Message-Timestamp": timestamp,
     "Kick-Event-Type": "chat.message.sent", "Kick-Event-Version": "1", "Kick-Event-Signature": sign("RSA-SHA256", Buffer.from(`${eventId}.${timestamp}.${body}`), privateKey).toString("base64") };
+  const capture = await request.post("/api/foundation/kick/capture", { headers: authorization });
+  expect(capture.status()).toBe(200);
+  expect((await capture.json()).armedUntil).toBeGreaterThan(Date.now());
   const accepted = await request.post("/api/providers/kick/events", { headers, data: body });
   expect(accepted.status()).toBe(200);
   expect((await accepted.json()).accepted).toBe(true);
   const replay = await request.post("/api/providers/kick/events", { headers, data: body });
   expect((await replay.json()).duplicate).toBe(true);
   await expect.poll(async () => (await (await request.get("/api/foundation/status", { headers: authorization })).json()).fixtureLastReply).toBe(`reply:${eventId}`);
+  const status = await (await request.get("/api/foundation/status", { headers: authorization })).json();
+  expect(status.capture.lastCapture.deliveryId).toBe(eventId);
+  expect(status.capture.armedUntil).toBeNull();
+  expect(readFileSync(join(readFileSync("output/playwright/e2e-data-path.txt", "utf8"), "fixture/secrets/proof-captures", `${eventId}.capture`), "utf8")).not.toContain("!kekbot");
   const tampered = await request.post("/api/providers/kick/events", { headers, data: body.replace("!kekbot", "forged") });
   expect(tampered.status()).toBe(401);
 });

@@ -27,7 +27,10 @@ export default function ProofControls() {
       <button disabled={busy || !token} onClick={() => run("/api/foundation/probe", "POST")}>Queue persistence probe</button>
       <button disabled={busy || !token} onClick={() => run("/api/foundation/kick/authorize", "POST")}>Authorize Kick</button>
       <button disabled={busy || !token} onClick={() => run("/api/foundation/kick/subscribe", "POST")}>Subscribe to Kick events</button>
+      <button disabled={busy || !token} onClick={() => run("/api/foundation/kick/refresh", "POST")}>Refresh Kick grant</button>
+      <button disabled={busy || !token} onClick={() => run("/api/foundation/kick/capture", "POST")}>Capture next proof event</button>
     </div>
+    <p className="help">Capture arms for five minutes and saves one verified !kekbot event encrypted on the host. Refresh uses the same token rotation as background work.</p>
     <pre aria-live="polite">{result}</pre>
   </section>;
 }

@@ -1,4 +1,7 @@
+const appErrorBrand = Symbol.for("kekbot.appError");
+
 export class AppError extends Error {
+  readonly [appErrorBrand] = true;
   readonly code: string;
   readonly status: number;
   constructor(code: string, status = 400) {
@@ -6,6 +9,12 @@ export class AppError extends Error {
     this.code = code;
     this.status = status;
   }
+}
+
+// Instrumentation and route handlers can contain separate copies of this class.
+// Recognize our sanitized errors across those Next.js bundle boundaries.
+export function isAppError(error: unknown): error is AppError {
+  return error instanceof Error && (error as AppError)[appErrorBrand] === true;
 }
 
 export class DeliveryError extends AppError {

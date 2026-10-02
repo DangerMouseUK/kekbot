@@ -18,8 +18,9 @@
     "test:container": "node scripts/container-smoke.mjs",
     "test:standalone": "node scripts/standalone-cli-smoke.mjs",
     "docs:check": "node scripts/check-docs.mjs",
+    "publication:check": "node scripts/check-publication.mjs",
     "db:generate": "drizzle-kit generate",
-    "check": "pnpm docs:check && pnpm typecheck && pnpm lint && pnpm test"
+    "check": "pnpm publication:check && pnpm docs:check && pnpm typecheck && pnpm lint && pnpm test"
   },
   "dependencies": {
     "better-sqlite3": "13.0.3",

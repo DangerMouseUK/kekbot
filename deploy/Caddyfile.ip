@@ -1,0 +1,19 @@
+{
+	# IP clients omit SNI; the container's local address is not the public IP.
+	default_sni {$KEKBOT_PUBLIC_IP}
+}
+
+https://{$KEKBOT_PUBLIC_IP} {
+	tls {
+		issuer acme {
+			dir https://acme-v02.api.letsencrypt.org/directory
+			profile shortlived
+		}
+	}
+	request_body {
+		max_size 64KB
+	}
+	reverse_proxy kekbot:3000 {
+		flush_interval -1
+	}
+}

@@ -10,6 +10,8 @@ export async function POST(request: Request) {
     if (!app.healthy()) throw new AppError("runtime_unavailable", 503);
     if (!app.config.broadcasterId) throw new AppError("broadcaster_not_configured", 503);
     const body = await boundedBody(request);
-    return json(acceptKickWebhook(app.repository, body, request.headers, await app.kick.verificationKey(), app.config.broadcasterId));
+    const result = acceptKickWebhook(app.repository, body, request.headers, await app.kick.verificationKey(), app.config.broadcasterId);
+    app.proofCapture.observe(body, request.headers, result.accepted);
+    return json(result);
   } catch (error) { return failure(error); }
 }

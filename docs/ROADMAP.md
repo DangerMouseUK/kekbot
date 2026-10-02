@@ -1,6 +1,6 @@
 # KekBot build roadmap
 
-Updated: 2026-10-01. MIT, Next.js, one self-hosted installation per creator.
+Updated: 2026-10-02. MIT, Next.js, one self-hosted installation per creator.
 
 This is the executable roadmap for both PRDs. They currently contain the same specification; update them together. Discord and YouTube are optional integrations to enable, but their complete supported workflows are required v0.1 capabilities.
 
@@ -14,12 +14,14 @@ This is the executable roadmap for both PRDs. They currently contain the same sp
 | --- | --- | --- | --- |
 | F01 | Correct KekBot naming, MIT license, Next.js decisions, and v0.1 media boundaries in both PRDs; publish local roadmap and contribution guidance. | None | Implemented: PRDs, LICENSE, ARCHITECTURE.md, README, CONTRIBUTING.md. |
 | F02 | Pin toolchain, SQLite/Drizzle migrations, encrypted secrets, separate fixture mode, transactional receipt/outbox pipeline, leased bounded processing. | F01 | Fixture-tested: real SQLite/provider/runtime tests. |
-| F03 | Owner-created Kick OAuth/PKCE, identity/scopes, trusted signed callbacks, refresh, subscription reconciliation, and actual chat reply. | F02; owner app and HTTPS ingress | Implemented and fixture-tested; live acceptance blocked on operator credentials/ingress. |
-| F04 | Initialization/diagnostics and consistent database + asset backup/restore on new storage, without exporting keys. | F02 | Fixture-tested: real snapshot/restore, checksum/key validation, restart, maintenance lease checks. |
-| F05 | Standalone startup processing with no dashboard, build isolation, authenticated proof controls, signed fixture intake, and non-root container/CI path. | F02–F04 | Fixture-tested: production build, three Playwright checks, packaged CLI outside the checkout, and Linux/non-root container smoke. [GitHub CI evidence](https://github.com/DangerMouseUK/kekbot/actions/runs/36932520021). |
-| F06 | Owner-created app/channel; live chat/follow events, real reply, replay, refresh repair, and public HTTPS proof. Record further independent owners during R01. | F03–F05 | Blocked: no live credentials or public ingress configured locally. |
+| F03 | Owner-created Kick OAuth/PKCE, identity/scopes, trusted signed callbacks, refresh, subscription reconciliation, and actual chat reply. | F02; owner app and HTTPS ingress | Live-tested 2026-10-02: OAuth/IP callback, scopes, signed chat, confirmed account-mode reply/identity, repeated reconciliation, real refresh, missing-subscription repair, revocation and successful browser reauthorization with a new reply. Supporting fixture tests passed. |
+| F04 | Initialization/diagnostics and consistent database + asset backup/restore on new storage, without exporting keys. | F02 | Fixture-tested: snapshot/restore, checksum/key validation, restart and maintenance leases. Live-record same-host backup/read-only restore, asset, encrypted grant and original-signature duplicate protection passed 2026-10-02. Another-host restoration remains R01 scope. |
+| F05 | Standalone startup processing with no dashboard, build isolation, authenticated proof controls, signed fixture intake, and non-root container/CI path. | F02–F04 | Fixture-tested: production build, three Playwright checks, packaged CLI outside the checkout, and Linux/non-root container smoke. Real chat/reply with the foundation page closed passed 2026-10-02. [GitHub CI evidence](https://github.com/DangerMouseUK/kekbot/actions/runs/36932520021). |
+| F06 | Owner-created app/channel; live chat/follow events, real reply, replay, refresh repair, and public HTTPS proof. Record further independent owners during R01. | F03–F05 | Live-tested 2026-10-02: all required single-owner scenarios passed, including OAuth, signed chat/follow/reply/identity, closed-dashboard processing, cooldown/restart duplicate replay, refresh, subscription repair, separate-storage restoration and revoked-grant recovery. Controlled stream-state delivery was not tested because no test stream was available. |
 
-**Foundation gate:** F03/F06 live evidence, F04 recovery, and F05 lifecycle/container evidence must pass before expanding into the operational dashboard. Local fixtures cannot satisfy the provider gate. The foundation UI and proof bearer token are temporary operator tools; they do not satisfy v0.1 account requirements.
+Live acceptance adds generic public-IP HTTPS deployment, external runtime configuration/data paths, protected shared refresh, and opt-in encrypted one-event capture/replay. The application snapshot is recorded in FOUNDATION.md; operator host/app details and raw captures stay outside the repository. IP-based OAuth callbacks and real chat webhook delivery passed on 2026-10-02.
+
+**Foundation gate: passed 2026-10-02.** F03/F06 live evidence, F04 recovery, and F05 lifecycle/container evidence satisfy the required single-owner foundation proof. A01 installation and accounts is the next increment. The foundation UI and proof bearer token remain temporary operator tools; they do not satisfy v0.1 account requirements. Independent-owner trials and another-host restoration remain R01 requirements.
 
 ## v0.1 — connected personal bot
 

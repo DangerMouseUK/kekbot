@@ -5,8 +5,9 @@ import Database from "better-sqlite3";
 import { readConfig, readPaths } from "./server/config.ts";
 import { AppError } from "./server/errors.ts";
 import { backup, initialize, restore } from "./server/maintenance.ts";
+import { replayCapture } from "./server/proof-capture.ts";
 
-const [command, argument] = process.argv.slice(2);
+const [command, argument, flag, ...extra] = process.argv.slice(2);
 process.umask(0o077);
 const print = (value: unknown) => process.stdout.write(JSON.stringify(value, null, 2) + "\n");
 
@@ -27,6 +28,14 @@ try {
     print(await backup(readConfig(), argument));
   } else if (command === "restore" && argument) {
     print(restore(readConfig(), argument));
+  } else if (command === "proof-replay") {
+    if (!argument || flag !== "--live" || extra.length) throw new AppError("usage_proof_replay_delivery_id_live_flag");
+    const config = readConfig();
+    const db = new Database(config.database, { readonly: true, fileMustExist: true });
+    try {
+      print(await replayCapture(config, argument, { live: true,
+        committed: id => Boolean(db.prepare("SELECT id FROM receipts WHERE id=? AND event_type='chat.message.sent'").get(id)) }));
+    } finally { db.close(); }
   } else if (command === "fixture-event") {
     const paths = readPaths();
     if (paths.mode !== "fixture") throw new AppError("fixture_command_requires_explicit_fixture_mode");
@@ -41,7 +50,7 @@ try {
     print({ status: result.status, result: await result.json() });
     if (!result.ok) process.exitCode = 1;
   } else {
-    process.stdout.write("KekBot foundation CLI\n\n  init\n  doctor\n  backup <new-backup-directory>  (stop the application first)\n  restore <backup-directory>     (new data directory; original encryption key)\n  fixture-event                  (fixture mode only)\n\nOwner recovery arrives with the accounts milestone.\n");
+    process.stdout.write("KekBot foundation CLI\n\n  init\n  doctor\n  backup <new-backup-directory>  (stop the application first)\n  restore <backup-directory>     (new data directory; original encryption key)\n  fixture-event                  (fixture mode only)\n  proof-replay <delivery-id> --live (previously captured and committed event only)\n\nOwner recovery arrives with the accounts milestone.\n");
     if (command && command !== "help") process.exitCode = 1;
   }
 } catch (error) {

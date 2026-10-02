@@ -67,6 +67,11 @@ export async function backup(config: Config, destination: string) {
     mkdirSync(join(output, "assets"));
     const database = join(output, "kekbot.sqlite");
     await store.sqlite.backup(database, { progress: () => { repository.acquireLease(owner); return 100; } });
+    // A standalone WAL-mode snapshot needs writable sidecar storage to open.
+    // Normalize only the new snapshot so read-only recovery media works.
+    const snapshot = new Database(database);
+    try { snapshot.pragma("journal_mode = DELETE"); }
+    finally { snapshot.close(); }
     const assets = readdirSync(config.assets).sort().map(name => {
       if (!assetName.safeParse(name).success) throw new AppError("invalid_asset_filename");
       const source = join(config.assets, name);

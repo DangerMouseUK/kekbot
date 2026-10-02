@@ -1,6 +1,6 @@
 # KekBot architecture decisions
 
-Date: 2026-10-01. Status: implementation decisions selected; foundation live gate pending.
+Date: 2026-10-01. Status: implementation decisions selected; single-owner foundation live gate passed 2026-10-02.
 
 ## ADR 001 — One self-hosted application
 

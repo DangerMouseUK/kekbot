@@ -10,6 +10,7 @@ export function GET(request: Request) {
       stage: "foundation", mode: app.config.mode, schemaVersion: SCHEMA_VERSION,
       runtimeHealthy: app.healthy(), publicUrl: app.config.publicUrl ?? null,
       kick: app.kick.status(), ...app.repository.diagnostics(),
+      capture: app.proofCapture.status(),
       proofLastRecord: app.repository.setting("proof_last_record") ?? null,
       fixtureLastReply: app.config.mode === "fixture" ? app.repository.setting("fixture_last_reply") ?? null : undefined
     });

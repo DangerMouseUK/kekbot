@@ -5,12 +5,14 @@ import { openStore } from "./storage/database.ts";
 import { Repository, type Job } from "./storage/repository.ts";
 import { KickService } from "./providers/kick.ts";
 import { processEvent } from "./domain/process-event.ts";
+import { ProofCapture } from "./proof-capture.ts";
 import { setTimeout as delay } from "node:timers/promises";
 
 export class Runtime {
   readonly config: Config;
   readonly repository: Repository;
   readonly kick: KickService;
+  readonly proofCapture: ProofCapture;
   private readonly owner = randomUUID();
   private timer?: NodeJS.Timeout;
   private active?: Promise<void>;
@@ -21,6 +23,7 @@ export class Runtime {
     this.config = config;
     this.repository = new Repository(openStore(config));
     this.kick = new KickService(config, this.repository);
+    this.proofCapture = new ProofCapture(config, this.repository);
   }
 
   start() {
@@ -46,6 +49,7 @@ export class Runtime {
     this.repository.set("worker_heartbeat", String(Date.now()));
     if (Date.now() >= this.nextRetention) {
       this.repository.retain();
+      this.proofCapture.prune();
       this.nextRetention = Date.now() + 3600000;
     }
     for (let index = 0; index < 10 && !this.stopped; index++) {
