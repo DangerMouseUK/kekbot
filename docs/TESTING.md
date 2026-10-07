@@ -52,7 +52,7 @@ Actions and toolchain versions are pinned. Browser dependency installation uses 
 
 GitHub CLI users can inspect a run with `gh run view <RUN_ID>` and failed job logs with `gh run view <RUN_ID> --log-failed`. Keep trace/debug exports private. The CI summary and milestone record must distinguish passing, failing and unrun scenarios.
 
-Dispatch `gh workflow run ci.yml --ref <BRANCH_OR_COMMIT> --field soak=true --field package=true` for the full hosted fixture soak and optional audited candidate archive upload. The new `package` option uploads only versioned public source/image/notices/checksum bundles after audits; no databases, logs, credentials, raw workload reports or browser artifacts. All other runs keep artifacts on ephemeral runners. These unaccepted bundles neither publish a release nor establish a reference benchmark. See [RELEASING.md](RELEASING.md) for identities, privacy boundaries and stable sign-off.
+Dispatch `gh workflow run ci.yml --ref <BRANCH_OR_COMMIT> --field soak=true --field package=true` for the full hosted fixture soak and optional audited candidate archive upload. The new `package` option uploads only versioned public source/image/notices/checksum bundles after audits and a fresh-volume installation from the exported image without network access; no databases, logs, credentials, raw workload reports or browser artifacts. All other runs keep artifacts on ephemeral runners. These unaccepted bundles neither publish a release nor establish a reference benchmark. See [RELEASING.md](RELEASING.md) for identities, privacy boundaries and stable sign-off.
 
 ## Coverage and limits
 
