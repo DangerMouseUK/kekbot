@@ -19,6 +19,8 @@ The root README is the public entry point. Keep it, CONTRIBUTING.md, operator/AP
 
 Keep planned, implemented, fixture-tested and live-tested evidence distinct. Record exact commands and source/candidate identity. CI timings are not reference-host benchmark results. Real OBS/provider checks, certificate renewal and independent-owner trials require live evidence. Never mark an unavailable scenario passed.
 
+Maintain the [requirement crosswalk](docs/RELEASE_READINESS.md) and [release procedure](docs/RELEASING.md) for release-affecting changes. The 33 live/operator gates in `docs/release-evidence.json` remain pending until dated evidence exists. Validate with `pnpm release:check`; stable checks must fail closed on missing acceptance or mismatched source/image. Candidate packaging never authorizes deployment, tags, registry writes or release publication. Only audited public release bundles may be uploaded; raw test/runtime artifacts stay private.
+
 ## Verification and publication
 
 Run `pnpm check` and relevant targeted tests. For runtime/UI/package changes, run `pnpm build`, `pnpm test:standalone` and `pnpm test:e2e`. Linux container, proxy and storage-fault checks run in GitHub Actions; see [testing guidance](docs/TESTING.md). Do not ask the user to run local tests that the agent or CI can run.

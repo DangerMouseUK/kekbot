@@ -4,7 +4,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { AuthService } from "../src/server/auth.ts";
 import { BotService } from "../src/server/domain/bot.ts";
-import { digest } from "../src/server/crypto.ts";
+import { decrypt, digest, encrypt } from "../src/server/crypto.ts";
 import { backup, recoverOwner, restore } from "../src/server/maintenance.ts";
 import { seedFixture } from "../src/server/fixture-seed.ts";
 import { openStore, SCHEMA_VERSION } from "../src/server/storage/database.ts";
@@ -28,6 +28,37 @@ it("upgrades the actual v1 schema while preserving records and refuses a future 
     expect(upgraded.sqlite.prepare("SELECT value FROM settings WHERE key='schema_version'").get()).toEqual({ value: String(SCHEMA_VERSION) });
     expect(upgraded.sqlite.prepare("SELECT count(*) AS n FROM accounts").get()).toEqual({ n: 0 });
   } finally { upgraded.close(); }
+});
+
+it("restores a real foundation-schema snapshot before upgrading and preserves encrypted grants, assets and replay protection", async () => {
+  const { config, root } = setup(), snapshot = join(root, "legacy-backup");
+  mkdirSync(join(snapshot, "assets"), { recursive: true });
+  const legacy = new Database(join(root, "legacy.sqlite"));
+  legacy.exec(readFileSync("drizzle/0000_dizzy_grandmaster.sql", "utf8"));
+  legacy.exec("CREATE TABLE __drizzle_migrations(id INTEGER PRIMARY KEY,hash TEXT NOT NULL,created_at NUMERIC)");
+  const journal = JSON.parse(readFileSync("drizzle/meta/_journal.json", "utf8"));
+  legacy.prepare("INSERT INTO __drizzle_migrations(hash,created_at) VALUES(?,?)").run("historical-migration", journal.entries[0].when);
+  for (const [key, value] of [["schema_version", "1"], ["mode", "fixture"], ["key_fingerprint", digest(config.key)]]) legacy.prepare("INSERT INTO settings(key,value) VALUES(?,?)").run(key, value);
+  const grant = encrypt(JSON.stringify({ access: "generated fixture grant" }), config.key, "kick");
+  legacy.prepare("INSERT INTO connections(provider,secret,updated_at) VALUES('kick',?,?)").run(grant, Date.now());
+  legacy.prepare("INSERT INTO receipts(id,event_type,payload,received_at) VALUES('preserved','chat.message.sent',NULL,?)").run(Date.now());
+  legacy.prepare("INSERT INTO jobs(id,kind,payload,status,due_at,created_at) VALUES('reply:preserved','kick.reply','{}','succeeded',?,?)").run(Date.now(), Date.now());
+  await legacy.backup(join(snapshot, "kekbot.sqlite")); legacy.close();
+  const image = Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), Buffer.alloc(32)]);
+  writeFileSync(join(snapshot, "assets", "fixture.png"), image);
+  writeFileSync(join(snapshot, "manifest.json"), JSON.stringify({ format: 1, schemaVersion: 1, mode: "fixture", createdAt: new Date().toISOString(), keyFingerprint: digest(config.key), databaseHash: digest(readFileSync(join(snapshot, "kekbot.sqlite"))), assets: [{ name: "fixture.png", bytes: image.length, sha256: digest(image) }] }));
+  const target = { ...config, directory: join(root, "upgrade"), database: join(root, "upgrade/kekbot.sqlite"), assets: join(root, "upgrade/assets") };
+  expect(restore(target, snapshot)).toMatchObject({ schemaVersion: 1, upgradeOnStart: true, assets: 1 });
+  const upgraded = repository(target);
+  try {
+    expect(upgraded.setting("schema_version")).toBe("2");
+    expect(upgraded.acceptReceipt("preserved", "chat.message.sent", {})).toBe(false);
+    expect(upgraded.store.sqlite.prepare("SELECT status FROM jobs WHERE id='reply:preserved'").get()).toEqual({ status: "succeeded" });
+    expect(decrypt((upgraded.store.sqlite.prepare("SELECT secret FROM connections WHERE provider='kick'").get() as { secret: string }).secret, config.key, "kick")).toContain("generated fixture grant");
+    expect(readFileSync(join(target.assets, "fixture.png"))).toEqual(image);
+    expect(upgraded.store.sqlite.pragma("integrity_check", { simple: true })).toBe("ok");
+    expect(digest(readFileSync(join(snapshot, "kekbot.sqlite")))).toBe(JSON.parse(readFileSync(join(snapshot, "manifest.json"), "utf8")).databaseHash);
+  } finally { upgraded.store.close(); }
 });
 
 it("recovers an owner only on a stopped host and preserves all module state through backup/restore", async () => {

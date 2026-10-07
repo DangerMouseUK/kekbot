@@ -68,6 +68,8 @@ export class BotService {
       this.state.db.prepare("INSERT INTO documents(id,kind,data,version,updated_at) VALUES('instance','settings',?,1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data,version=documents.version+1,updated_at=excluded.updated_at").run(JSON.stringify({ ...this.state.settings, moderationPaused: action === "moderation.pause" }), Date.now());
       this.state.audit(actor.id, action, "instance"); return { paused: action === "moderation.pause" };
     }
+    if (action === "moderation.incident.start") return this.moderation.incident(actor, input);
+    if (action === "moderation.incident.stop") return this.moderation.stopIncident(actor);
     if (action === "moderation.bulk") {
       this.state.assertActor(actor, "moderate");
       if (input.acknowledge !== true) throw new AppError("operator_acknowledgement_required", 409);

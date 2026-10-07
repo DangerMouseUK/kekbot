@@ -86,12 +86,18 @@ export class MediaService {
           this.state.observe(`media:${id}`, "media.requests");
           new PresentationService(this.state).goal("media", 1, id);
           new PresentationService(this.state).alert("media", { name: metadata.title, user: item.requester, title: metadata.title }, `media:${id}`);
+          if (!moderator) this.state.effect(`media-result:${id}`, "kick.reply", { text: `Request ${id}: ${metadata.title} — ${status === "pending" ? "awaiting moderator approval" : "accepted into the queue"}.`.slice(0, 500) });
         }
       }).immediate();
     } catch (error) {
       const code = error instanceof AppError ? error.code : "youtube_response_invalid";
-      this.state.db.prepare("UPDATE media SET status='failed',error=?,version=version+1 WHERE id=? AND status='validating'").run(code, id);
-      this.state.audit("worker", "media.validation", id, "failed");
+      this.state.db.transaction(() => {
+        const changed = this.state.db.prepare("UPDATE media SET status='failed',error=?,version=version+1 WHERE id=? AND status='validating'").run(code, id);
+        if (changed.changes) {
+          this.state.audit("worker", "media.validation", id, "failed");
+          if (!moderator) this.state.effect(`media-result:${id}`, "kick.reply", { text: `Request ${id} rejected: ${code}.` });
+        }
+      }).immediate();
     }
   }
 

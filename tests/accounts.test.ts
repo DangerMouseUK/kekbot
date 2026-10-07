@@ -41,4 +41,24 @@ describe("local accounts", () => {
     expect(() => auth.session(session.token)).toThrow("login_required");
     expect((await auth.login({ username: "owner", password: "a replacement password" })).token).toBeTruthy();
   });
+  it("permits owner-granted admin invitations without expanding authority and rechecks grants at acceptance", async () => {
+    const { auth, repo, token } = setup();
+    const login = await auth.setup(token, { username: "owner", password: "a strong test password" }), owner = auth.session(login.token);
+    const limited = await auth.acceptInvite(auth.invite(owner, "admin", ["invite", "configure"]).token, { username: "admin", password: "a strong admin password" });
+    const admin = auth.session(limited.token);
+    expect(() => auth.invite(admin, "admin", ["moderate"])).toThrow("invitation_exceeds_admin_grant");
+    expect(() => auth.invite(admin, "admin", ["invite"])).toThrow("invitation_exceeds_admin_grant");
+    expect(() => auth.invite(admin, "moderator")).toThrow("invitation_exceeds_admin_grant");
+    expect(() => auth.invite(admin, "owner")).toThrow();
+    const reader = auth.invite(admin, "readonly");
+    await expect(auth.acceptInvite(reader.token, { username: "reader", password: "a strong reader password" })).resolves.toHaveProperty("token");
+    const narrower = auth.invite(admin, "admin", ["configure"]);
+    repo.store.sqlite.prepare("UPDATE accounts SET permissions='[]' WHERE id=?").run(admin.id);
+    await expect(auth.acceptInvite(narrower.token, { username: "narrower", password: "a strong invited password" })).rejects.toThrow("permission_denied");
+    expect(() => auth.invite(admin, "readonly")).toThrow("permission_denied");
+    repo.store.sqlite.prepare("UPDATE accounts SET permissions=? WHERE id=?").run(JSON.stringify(["invite", "operate", "moderate", "media", "engage"]), admin.id);
+    const moderator = auth.invite(auth.session(limited.token), "moderator");
+    auth.disable(owner, admin.id, true);
+    await expect(auth.acceptInvite(moderator.token, { username: "moderator", password: "a strong moderator password" })).rejects.toThrow("invitation_creator_unavailable");
+  });
 });

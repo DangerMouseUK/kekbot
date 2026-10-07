@@ -93,7 +93,7 @@ describe("assembled provider and authority boundaries", () => {
   });
 
   it("enforces the complete role permission matrix, including owner-only operations", () => {
-    const all: Permission[] = ["configure", "operate", "moderate", "media", "engage", "accounts", "maintenance", "integrations", "tokens"];
+    const all: Permission[] = ["configure", "operate", "moderate", "media", "engage", "invite", "accounts", "maintenance", "integrations", "tokens"];
     for (const role of ["owner", "admin", "moderator", "readonly"] as const) for (const permission of all) {
       const actor: Actor = { id: "synthetic", role, permissions: ["configure", "operate", "media"] };
       const allowed = role === "owner" || role === "admin" && actor.permissions.includes(permission) || role === "moderator" && ["operate", "moderate", "media", "engage"].includes(permission);

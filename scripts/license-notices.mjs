@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join, resolve, relative } from "node:path";
 
@@ -6,6 +6,8 @@ import { join, resolve, relative } from "node:path";
 // Do not put local package paths or package-author contact metadata in the index.
 export function writeNotices() {
   const root = resolve("."), destination = resolve("output/licenses"), visited = new Set(), inventory = [];
+  if (destination !== join(root, "output", "licenses")) throw new Error("invalid_notice_destination");
+  rmSync(destination, { recursive: true, force: true });
   mkdirSync(destination, { recursive: true });
   function visit(directory, isRoot = false) {
     directory = realpathSync(directory);
@@ -24,6 +26,15 @@ export function writeNotices() {
         }
       }
       copyNotices(directory);
+      // These locked npm packages omit their upstream license text. Copy only
+      // reviewed, version-matched upstream notices; never invent attribution.
+      if (!notices.length) {
+        let fallback;
+        if ((pkg.name === "@next/env" || pkg.name.startsWith("@next/swc-")) && pkg.version === "16.3.8" && pkg.license === "MIT" || pkg.name === "client-only" && pkg.version === "0.0.1" && pkg.license === "MIT") fallback = join(root, "node_modules/next/license.md");
+        if (pkg.name === "drizzle-orm" && pkg.version === "0.45.3" && pkg.license === "Apache-2.0") fallback = join(root, "licenses/drizzle-orm-0.45.3/LICENSE");
+        if (!fallback) throw new Error(`Production license notice missing: ${pkg.name}@${pkg.version}`);
+        mkdirSync(target, { recursive: true }); cpSync(fallback, join(target, "LICENSE")); notices.push("LICENSE");
+      }
       inventory.push({ name: pkg.name, version: pkg.version, license: pkg.license ?? "See bundled notices", notices });
     }
     const require = createRequire(join(directory, "package.json"));

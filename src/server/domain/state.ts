@@ -136,6 +136,7 @@ export class State {
       leaderboard: this.db.prepare("SELECT viewer,sum(amount) AS balance FROM ledger GROUP BY viewer ORDER BY balance DESC LIMIT 100").all(),
       redemptions: this.db.prepare("SELECT * FROM redemptions ORDER BY created_at DESC LIMIT 100").all(),
       incidents: this.db.prepare("SELECT i.*,j.status AS outcome,j.last_error AS error FROM incidents i LEFT JOIN jobs j ON j.id=i.job_id ORDER BY i.at DESC LIMIT 100").all(),
+      incidentMode: (() => { const mode = JSON.parse(this.repository.setting("incident_mode") ?? "null"); return mode?.endsAt > Date.now() ? mode : null; })(),
       activities: this.db.prepare("SELECT activity,choice,count(*) AS count FROM participation GROUP BY activity,choice").all(),
       diagnostics: { ...this.repository.diagnostics(), version: APP_VERSION, schemaVersion: this.repository.setting("schema_version"), stream: this.repository.setting("stream_is_live") ?? "unavailable", callbacksConfigured: Boolean(this.config.publicUrl), kickRepairError: this.repository.setting("kick_repair_error") || null, streamSampleError: this.repository.setting("stream_sample_error") || null, diskFreeBytes: (() => { try { const disk = statfsSync(this.config.directory); return disk.bavail * disk.bsize; } catch { return null; } })() }, mode: this.config.mode,
       integrations: { kick: Boolean(this.secret("kick") || this.config.clientId), discord: Boolean(this.secret("discord")), youtube: Boolean(this.secret("youtube")) }

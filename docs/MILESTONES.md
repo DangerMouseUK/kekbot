@@ -60,7 +60,7 @@ The default order is numerical. The dependencies identify the capabilities each 
 | 16 | Distribution, maintenance and complete documentation | 2–15 | Build complete — source/package and Linux image/proxy/recovery checks passed; live acceptance pending |
 | 17 | Bulk automated testing and candidate hardening | 2–16 build complete | Accepted — automated candidate campaign passed 2026-10-07; live acceptance remains Milestone 18 |
 | 18 | New deployment, live trials and operational acceptance | 17; test hosts and operators | Prepared — runbook/harness ready; deployment deferred by owner |
-| 19 | Stable v1 release and project completion | 17–18 accepted | Planned |
+| 19 | Stable v1 release and project completion | 17–18 accepted | In progress — requirement audit, release gates and candidate packaging; final acceptance/publication pending |
 
 ### Relationship to release versions
 
@@ -416,6 +416,8 @@ Use synthetic traffic for sustained/burst load; do not flood real provider chat 
 
 **Outcome:** the declared self-hosted product is ready for independent public use.
 
+**Current status:** in progress for autonomous preparation; stable sign-off is pending Milestone 18. The [complete requirement audit](RELEASE_READINESS.md) covers R01–R60 and all declared widgets/journeys. [Release tooling and instructions](RELEASING.md) prepare clean versioned source/image/notices/checksum bundles and reject stable sign-off while required evidence is absent. All 33 live/operator entries in [release-evidence.json](release-evidence.json) remain pending. No deployment, provider consent, tag, registry upload or GitHub release is authorized by candidate preparation.
+
 Finish:
 
 - Reconcile every v1 PRD requirement with an implementation and evidence record, including the complete widget inventory and all user journeys.
@@ -540,8 +542,8 @@ The latest short workload completed 400/400 decisions and fixture replies with z
 
 Earlier CI attempts exposed missing public-origin configuration and an incorrect HTTP Host header in the container driver. The driver was corrected without changing application permissions or TLS verification, and the full campaign above passed afterwards. The workload also led to the lease/batching/update fixes described above; their regression checks passed. No unresolved automated gate failure remains for this candidate.
 
-Physical host failure, real provider/OBS behaviour, public certificate renewal, reference-host targets and independent operators have no new acceptance result. Deployment is explicitly deferred by the owner; Milestone 18 is prepared, not accepted. Milestone 19 remains planned.
+Physical host failure, real provider/OBS behaviour, public certificate renewal, reference-host targets and independent operators have no new acceptance result. Deployment is explicitly deferred by the owner; Milestone 18 is prepared, not accepted. Milestone 19's autonomous audit/tooling preparation is now in progress; final sign-off remains pending.
 
 ## Next work
 
-The build gate for Milestone 16 and the automated campaign for Milestone 17 are complete. When the owner authorises deployment, schedule Milestone 18 on fresh infrastructure using the live runbook, isolated provider apps, verified host identity and protected runtime storage. Do not reuse old host details or infer missing live outcomes from automation. Stable release publication waits for Milestone 19 and explicit authorisation.
+The build gate for Milestone 16 and the automated campaign for Milestone 17 are complete. Finish and verify Milestone 19's requirement audit/release tooling while deployment is deferred. When the owner authorises deployment, run Milestone 18 on fresh infrastructure using the live runbook, isolated provider apps, verified host identity and protected runtime storage. Do not reuse old host details or infer missing live outcomes from automation. Stable release publication waits for complete acceptance and explicit authorisation.

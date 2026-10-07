@@ -45,6 +45,8 @@ pnpm start
 - [HTTP API and configuration interfaces](docs/API.md)
 - [Automated testing and GitHub CI](docs/TESTING.md)
 - [Live acceptance and reference benchmarks](docs/LIVE_ACCEPTANCE.md)
+- [Complete v1 requirement coverage and outstanding acceptance](docs/RELEASE_READINESS.md)
+- [Candidate packages, checksums and release procedure](docs/RELEASING.md)
 - [Foundation setup, live proof, backup and restore](docs/FOUNDATION.md)
 - [Ordered build roadmap and evidence](docs/ROADMAP.md)
 - [Architecture decisions](docs/ARCHITECTURE.md)
@@ -55,6 +57,6 @@ pnpm start
 - [Changelog](CHANGELOG.md)
 - [Production dependency licenses](docs/DEPENDENCIES.md)
 
-GitHub Actions runs publication/docs/types/lint checks, real SQLite/provider/concurrency/storage-fault tests, migrations, production dependency audit, packaged recovery, Chromium/Firefox/WebKit browser checks, accessibility, a short synthetic workload, and Linux image/proxy/recovery checks. Checksum-pinned Gitleaks scans candidate files and complete Git history. Workflows run on pushes to `main`, pull requests and manual invocation with read-only repository permissions and no provider credentials. Private traces, screenshots and generated data are not uploaded. See the [testing guide](docs/TESTING.md) for commands, coverage and limits.
+GitHub Actions runs publication/docs/release-gate/types/lint checks, real SQLite/provider/concurrency/storage-fault tests, migrations, production dependency audit, packaged recovery, Chromium/Firefox/WebKit browser checks, accessibility, a short synthetic workload, and Linux image/proxy/recovery checks. Checksum-pinned Gitleaks scans candidate files, complete Git history and every image application layer. Manual invocation can also run a one-hour fixture soak and upload audited versioned source/image/notices/checksum bundles; these are unaccepted candidates. Workflows use read-only repository permissions and no provider credentials. Private traces, screenshots and generated runtime data are not uploaded. See the [testing guide](docs/TESTING.md) and [release procedure](docs/RELEASING.md) for coverage, commands and limits.
 
 One installation serves one creator. The runtime requires no KekBot account, central relay, billing service, or default telemetry. Enabled provider integrations still depend on their official services. MIT covers newly authored KekBot code; dependencies retain their own licenses.

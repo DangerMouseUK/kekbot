@@ -1,4 +1,5 @@
 import { randomInt } from "node:crypto";
+import type { z } from "zod";
 import type { Actor } from "../auth.ts";
 import { AppError } from "../errors.ts";
 import { State } from "./state.ts";
@@ -108,24 +109,36 @@ export class AutomationService {
   recoverTimers(now = Date.now()) {
     for (const timer of this.state.list("timer")) this.state.repository.set(`timer:${timer.id}`, JSON.stringify({ next: now + timer.data.interval * 1000, count: Number(this.state.repository.setting("chat_count") ?? 0), index: 0 }));
   }
+  private timerEnabled(timer: z.infer<typeof configSchemas.timer>, now: number) {
+    const hour = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: timer.timezone }).format(now));
+    const quiet = timer.quietStart !== null && timer.quietEnd !== null && (timer.quietStart < timer.quietEnd ? hour >= timer.quietStart && hour < timer.quietEnd : hour >= timer.quietStart || hour < timer.quietEnd);
+    return timer.enabled && !this.state.settings.timersPaused && (!timer.streamOnly || this.state.repository.setting("stream_is_live") === "true") && !quiet;
+  }
+  timerDeliveryAllowed(input: { timerId?: string; timerVersion?: number; scheduledAt?: number }, now = Date.now()) {
+    if (!input.timerId || !Number.isSafeInteger(input.scheduledAt)) return false;
+    const doc = this.state.document(input.timerId);
+    if (!doc || doc.kind !== "timer" || doc.version !== input.timerVersion) return false;
+    const timer = configSchemas.timer.parse(doc.data);
+    const schedule = JSON.parse(this.state.repository.setting(`timer:${doc.id}`) ?? "{}");
+    return schedule.lastQueued === input.scheduledAt && now >= input.scheduledAt! && now - input.scheduledAt! <= timer.interval * 1000 && this.timerEnabled(timer, now);
+  }
   timers(now = Date.now()) {
     const count = Number(this.state.repository.setting("chat_count") ?? 0);
-    for (const doc of this.state.list("timer")) {
+    for (const doc of this.state.list("timer")) this.state.db.transaction(() => {
       const timer = doc.data;
-      const schedule = JSON.parse(this.state.repository.setting(`timer:${doc.id}`) ?? JSON.stringify({ next: now + timer.interval * 1000, count, index: 0 })) as { next: number; count: number; index: number };
-      const hour = Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: timer.timezone }).format(now));
-      const quiet = timer.quietStart !== null && timer.quietEnd !== null && (timer.quietStart < timer.quietEnd ? hour >= timer.quietStart && hour < timer.quietEnd : hour >= timer.quietStart || hour < timer.quietEnd);
-      const disabled = !timer.enabled || this.state.settings.timersPaused || timer.streamOnly && this.state.repository.setting("stream_is_live") !== "true" || quiet;
-      if (disabled) { schedule.next = now + timer.interval * 1000; schedule.count = count; }
+      const schedule = JSON.parse(this.state.repository.setting(`timer:${doc.id}`) ?? JSON.stringify({ next: now + timer.interval * 1000, count, index: 0 })) as { next: number; count: number; index: number; lastQueued?: number };
+      const disabled = !this.timerEnabled(timer, now);
+      if (disabled) { schedule.next = now + timer.interval * 1000; schedule.count = count; schedule.lastQueued = undefined; }
       else if (schedule.next <= now) {
         if (count - schedule.count >= timer.minMessages) {
           const text = renderTemplate(timer.messages[schedule.index % timer.messages.length], { channel: this.state.settings.name });
-          this.state.effect(`timer:${doc.id}:${schedule.next}`, "kick.reply", { text });
+          this.state.effect(`timer:${doc.id}:${schedule.next}`, "kick.reply", { text, timerId: doc.id, timerVersion: doc.version, scheduledAt: schedule.next });
+          schedule.lastQueued = schedule.next;
           schedule.index++; schedule.count = count;
         }
         schedule.next = now + timer.interval * 1000;
       }
       this.state.repository.set(`timer:${doc.id}`, JSON.stringify(schedule));
-    }
+    }).immediate();
   }
 }

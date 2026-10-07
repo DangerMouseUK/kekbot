@@ -7,7 +7,7 @@ export const examples: Record<Kind, Record<string, unknown>> = {
   timer: { name: "Community reminder", enabled: true, messages: ["Thanks for being here."], interval: 300, minMessages: 5, streamOnly: true, timezone: "UTC", quietStart: null, quietEnd: null },
   alert: { name: "Follow alert", enabled: true, event: "channel.followed", template: "Thanks for following, {user}!", duration: 5, priority: 0, image: null, sound: null, volume: 0.5, animation: "fade" },
   widget: { name: "Chat overlay", enabled: true, type: "chat", theme: "mint", width: 800, height: 400, limit: 10, target: "", text: "", endsAt: null, reducedMotion: false },
-  rule: { name: "Link rule", enabled: false, type: "link", patterns: [], allowedDomains: [], threshold: 5, windowSeconds: 30, trustedRoles: ["moderator", "broadcaster"], action: "warn", duration: 10, startsAt: null, endsAt: null, escalation: false },
+  rule: { name: "Link rule", enabled: false, type: "link", patterns: [], allowedDomains: [], threshold: 5, windowSeconds: 30, trustedRoles: ["moderator", "broadcaster"], action: "warn", duration: 10, startsAt: null, endsAt: null, escalation: false, escalationAfter: 2, escalationWindowSeconds: 3600, escalationAction: "timeout" },
   goal: { name: "Follower goal", enabled: true, metric: "follow", target: 100, value: 0, completed: false },
   reward: { name: "Community reward", enabled: true, cost: 100, description: "Fulfilled by a moderator", fulfillment: "manual" },
   poll: { name: "Choose our next game", enabled: true, options: ["Option one", "Option two"], status: "open", endsAt: 0, allowChange: false },
@@ -17,7 +17,7 @@ export const examples: Record<Kind, Record<string, unknown>> = {
   settings: defaults
 };
 const choices: Record<string, string[]> = {
-  "command.condition": ["always", "live", "offline"], "rule.type": ["link", "phrase", "repetition", "caps", "burst"], "rule.action": ["warn", "delete", "timeout", "ban"],
+  "command.condition": ["always", "live", "offline"], "rule.type": ["link", "phrase", "repetition", "caps", "burst"], "rule.action": ["warn", "delete", "timeout", "ban"], "rule.escalationAction": ["warn", "delete", "timeout", "ban"],
   "alert.event": ["channel.followed", "channel.subscription.new", "channel.subscription.renewal", "channel.subscription.gifts", "manual", "goal", "media"], "alert.animation": ["fade", "slide", "none"],
   "widget.type": ["alerts", "chat", "player", "nowplaying", "queue", "eventfeed", "supporter", "goal", "multigoal", "status", "counter", "leaderboard", "poll", "raffle", "countdown", "shoutout", "socials", "activity"],
   "widget.theme": ["mint", "midnight", "paper"], "goal.metric": ["manual", "follow", "subscription", "points", "media"], "reward.fulfillment": ["manual", "alert"], "poll.status": ["open", "closed"], "raffle.status": ["open", "closed", "drawn"]

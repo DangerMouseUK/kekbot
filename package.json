@@ -24,8 +24,10 @@
     "benchmark": "node scripts/workload.mjs --reference",
     "docs:check": "node scripts/check-docs.mjs",
     "publication:check": "node scripts/check-publication.mjs",
+    "release:check": "node scripts/check-release.mjs",
+    "release:prepare": "node scripts/release-package.mjs",
     "db:generate": "drizzle-kit generate",
-    "check": "pnpm publication:check && pnpm docs:check && pnpm typecheck && pnpm lint && pnpm test"
+    "check": "pnpm publication:check && pnpm docs:check && pnpm release:check && pnpm typecheck && pnpm lint && pnpm test"
   },
   "dependencies": {
     "better-sqlite3": "13.0.3",

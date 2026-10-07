@@ -13,7 +13,7 @@ Owner API tokens are separate, individually named, shown once and stored hashed.
 | `read` | `GET /api/v1/control` operational snapshot; protected moderator notes are excluded without `moderate` |
 | `configure` | `config.save/delete` for allowed domain documents; settings/guild mappings still require owner-only integration authority |
 | `operate` | `status`, `timers.pause/resume`, `alert.manual`, `goal.adjust` |
-| `moderate` | `moderation.warn/delete/timeout/ban/pause/resume/bulk/test`; moderator notes additionally use `configure` for API editing |
+| `moderate` | `moderation.warn/delete/timeout/ban/pause/resume/bulk/test/incident.start/incident.stop`; moderator notes additionally use `configure` for API editing |
 | `media` | Request/approve/reject/remove/reorder/clear; player pause/resume/skip/volume |
 | `engage` | Points adjustments, reward complete/reject, activity close, raffle draw/reroll |
 
@@ -57,6 +57,8 @@ POST this JSON to `/api/v1/control` with the appropriate bearer token. Updates i
 ```
 
 IDs in these examples must be replaced with actual values obtained privately. Ban/delete/bulk require explicit acknowledgement; a bulk input uses numeric `targets` (up to 20 unique viewers), `operation`, `reason` and `acknowledge:true`. The API does not automatically retry arbitrary caller POSTs with a new ID; query current state before retrying a response whose outcome is unknown.
+
+Temporary incident mode uses `moderation.incident.start` with `preset` (`links`, `burst`, `combined`), integer `minutes` (1–120) and `acknowledge:true`; stop with `moderation.incident.stop`. Presets warn, exempt moderators/broadcaster, expire durably, preserve normal rules and respect emergency pause. Rule configuration supports `escalationAfter` previous matching-rule incidents, `escalationWindowSeconds` and `escalationAction`, with existing defaults of 2 / 3600 / timeout. Media validation queues one final chat outcome for viewer requests; source snapshots include only a requester display name. Dashboard-only `invite` grants cannot be issued through integration API tokens.
 
 ## Route inventory
 

@@ -14,6 +14,9 @@
 - Expanded assembled-product verification with separate-connection races, abrupt process termination, real SQLite capacity/read-only failures, migration rollback, provider permission/retry boundaries, production HTTP/SSE checks and development-only axe accessibility scans.
 - Added Chromium/Firefox/WebKit CI, read-only image/TLS/SSE proxy/restart checks, a fixture-only signed workload harness and complete testing/live acceptance guides. Added root coding-agent instructions and aligned public documentation.
 - Bounded job processing by count/time, committed completion/audit/live events together, and renewed the installation lease independently of slow provider requests.
+- Audited all stable-v1 requirements and added configurable rule-scoped escalation, reviewed expiring incident presets, final media validation replies, requester labels and owner-granted restricted admin invitations with acceptance-time revocation checks.
+- Added a foundation-schema backup restore/upgrade drill, complete upstream notice fallbacks, all-application-layer image scans, versioned candidate source/image/notices/checksum packages and an opt-in one-hour GitHub fixture soak. Stable evidence checks fail closed while any of the 33 live/operator gates remain unaccepted. No release or deployment is published by preparation.
+- Timer outbox work now commits with its schedule and rechecks current enablement, stream/quiet-hour state, version and schedule after pause/restart before sending; superseded or stale reminders cannot form a catch-up burst.
 
 Exact automated results and remaining acceptance are tracked in [MILESTONES.md](docs/MILESTONES.md). New live deployment, independent trials and reference benchmarks remain required and deferred; this entry does not announce a stable release.
 

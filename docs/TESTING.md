@@ -24,7 +24,7 @@ pnpm test:e2e
 pnpm test:workload
 ```
 
-`pnpm check` runs publication policy, local documentation links and matching PRDs, TypeScript, ESLint, and the complete Vitest suite. The browser suite starts the production standalone build on loopback with fresh isolated data. Run a build after changing application code; otherwise browser tests exercise the previous build.
+`pnpm check` runs publication policy, local documentation links and matching PRDs, release-evidence validity, TypeScript, ESLint, and the complete Vitest suite. The browser suite starts the production standalone build on loopback with fresh isolated data. Run a build after changing application code; otherwise browser tests exercise the previous build.
 
 Linux container checks additionally require Docker Engine/Compose:
 
@@ -45,11 +45,14 @@ Pushes to `main`, pull requests and manual workflow runs execute the read-only C
 | `secrets` | Checksum-pinned Gitleaks scans candidate files and complete fetched Git history with redacted output |
 | `verify` | Publication/docs/types/lint, real SQLite/provider/fault/concurrency tests, migration metadata, production audit, build and packaged CLI recovery |
 | `browser` matrix | Production browser flows, accessibility and responsive checks in Chromium, Firefox and WebKit; Chromium also runs the short workload profile |
-| `container` | Compose examples, both pinned Caddy configurations, source-labelled image, non-root/read-only image, TLS/SSE proxy, abrupt restart and read-only backup restore |
+| `container` | Compose/Caddy examples, source-labelled non-root/read-only image, TLS/SSE/restart/restore, every application-layer secret scan, versioned source/image/notices packages and checksums |
+| Opt-in `soak` | One-hour 25/s sustained + 60-second 100/s burst with five Chromium sources, backlog drainage, restart and allowlisted public aggregate summary |
 
 Actions and toolchain versions are pinned. Browser dependency installation uses Ubuntu's official HTTPS archive mirror with an eight-minute step limit; package signature verification remains enabled. This avoids the hosted runner's observed Azure HTTP mirror stalls. No image is published, server deployed, provider grant used or repository content modified by these jobs. A successful run identifies the candidate commit; a failure must be investigated and rerun after its fix. Do not change tests to conceal a required failure. Fixture browser coverage in Firefox/WebKit is useful compatibility evidence, not evidence that real YouTube playback works in those browsers or OBS.
 
 GitHub CLI users can inspect a run with `gh run view <RUN_ID>` and failed job logs with `gh run view <RUN_ID> --log-failed`. Keep trace/debug exports private. The CI summary and milestone record must distinguish passing, failing and unrun scenarios.
+
+Dispatch `gh workflow run ci.yml --ref <BRANCH_OR_COMMIT> --field soak=true --field package=true` for the full hosted fixture soak and optional audited candidate archive upload. The new `package` option uploads only versioned public source/image/notices/checksum bundles after audits; no databases, logs, credentials, raw workload reports or browser artifacts. All other runs keep artifacts on ephemeral runners. These unaccepted bundles neither publish a release nor establish a reference benchmark. See [RELEASING.md](RELEASING.md) for identities, privacy boundaries and stable sign-off.
 
 ## Coverage and limits
 
@@ -72,7 +75,7 @@ The SQLite page-limit test produces a genuine SQLite full error without filling 
 
 `pnpm test:workload` starts a fresh local production fixture instance, opens five real Chromium widget clients, delivers signed chat at 25 requests/second for eight seconds and 100/second for two seconds, then waits for the queue to drain and checks persisted results after restart. Every request is a custom command with a reply and counter increment. This intentionally exercises more work than passive chat. Output is `output/workload/report.json`, ignored by Git and Docker.
 
-`pnpm benchmark` selects the opt-in one-hour sustained / 60-second burst / 120-second drain profile. It is not part of ordinary CI. Do not run synthetic load against real provider chat or live mode. The driver checks the target's fixture mode before authenticating or submitting traffic.
+`pnpm benchmark` selects the opt-in one-hour sustained / 60-second burst / 120-second drain profile. It is not part of ordinary CI; a manual CI dispatch with `soak=true` runs it on an isolated hosted runner. Only the allowlisted aggregate summary is public, and it cannot establish reference-host acceptance. Do not run synthetic load against real provider chat or live mode. The driver checks the target's fixture mode before authenticating or submitting traffic.
 
 For reference-host work, run the driver and its five browsers on a separate machine against a dedicated fixture installation using the candidate image. Enable proof tools only for that isolated campaign, configure synthetic broadcaster ID `123`, run `init`/`fixture-seed`, and transfer the generated fixture signing key, proof token and account file over a protected channel. Never use live signing material or provider credentials. Restrict test ingress to the driver and destroy/revoke fixture credentials afterwards.
 
