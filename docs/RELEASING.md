@@ -20,11 +20,13 @@ Provider support is capability/scope-dependent. Follow/subscription variants, ch
 
 Ordinary [CI](../.github/workflows/ci.yml) builds/tests the Linux image, checks every application layer plus image metadata with checksum-pinned Gitleaks, and prepares source/image/notices archives with SHA256 checksums. It has read-only repository permissions, no provider credentials and no registry login. It creates no tag or GitHub release and deploys nothing.
 
-For a full-duration soak and downloadable **unaccepted** candidate artifacts, dispatch the existing workflow against an exact review commit:
+For a full-duration soak and downloadable **unaccepted** candidate artifacts, dispatch the existing workflow on the review branch:
 
 ```sh
-gh workflow run ci.yml --ref <BRANCH_OR_COMMIT> --field soak=true --field package=true
+gh workflow run ci.yml --ref <REVIEW_BRANCH> --field soak=true --field package=true
 ```
+
+GitHub accepts a branch or tag name for `--ref`. Verify the returned run's `headSha` with `gh run view <RUN_ID> --json headSha` and compare it with the intended full source SHA before treating the results as evidence. The checkout and candidate metadata use that captured run identity.
 
 The soak uses isolated generated fixtures, 25 signed commands/second for one hour, a 100/second burst for one minute, five Chromium sources, backlog drainage and restart. Only allowlisted aggregate measurements enter its public step summary. It shares hosted-runner resources with its driver/browsers, so it cannot pass the PRD reference-host gates. Raw workload data, private credentials, browser traces and screenshots are never uploaded.
 

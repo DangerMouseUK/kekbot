@@ -1,6 +1,6 @@
 # Stable v1 requirements and release readiness
 
-Updated: 2026-10-07. Application `0.1.0-dev.0`; SQLite schema 2; backup format 1; native configuration format 1. This is an unreleased candidate. Milestone 18 is prepared with deployment deferred. Milestone 19's audit and packaging can proceed; stable acceptance and publication remain pending.
+Updated: 2026-10-07. Application `0.1.0-dev.0`; SQLite schema 2; backup format 1; native configuration format 1. This is an unreleased candidate. Milestone 18 is prepared with deployment deferred. Milestone 19's audit, release guards and candidate packaging are prepared and automatically tested; stable acceptance and publication remain pending.
 
 This crosswalk covers the normative scope in both identical [PRDs](PRD.md). It links implementation and behavioural checks rather than counting routes. **Automated** means synthetic/SQLite/browser/container evidence exists; it does not mean that all live scenarios have passed. **Pending** means required external acceptance or publication has no result. Historical Milestone 1 evidence applies only to that older foundation snapshot. The [milestones](MILESTONES.md) record exact tested commits and runs.
 
