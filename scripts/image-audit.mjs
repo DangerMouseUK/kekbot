@@ -1,9 +1,19 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 
 const run = (command, args) => execFileSync(command, args, { encoding: "utf8", windowsHide: true, maxBuffer: 32 * 1024 * 1024 }).trim();
+export function frameworkGeneratedFinding(finding, directory) {
+  if (finding.RuleID !== "generic-api-key" || finding.StartLine !== finding.EndLine) return false;
+  const path = resolve(finding.File), file = relative(resolve(directory), path).replaceAll("\\", "/");
+  if (![".next/prerender-manifest.json", ".next/server/server-reference-manifest.json"].includes(file)) return false;
+  try {
+    const source = readFileSync(path, "utf8"), line = source.split(/\r?\n/)[finding.StartLine - 1], metadata = JSON.parse(source);
+    if (file === ".next/prerender-manifest.json") return /^\s*"previewMode(?:Signing|Encryption)Key": "[a-f0-9]{64}",?\s*$/.test(line) && Object.keys(metadata.preview).sort().join() === "previewModeEncryptionKey,previewModeId,previewModeSigningKey";
+    return /^\s*"encryptionKey": "[A-Za-z0-9+/]{43}=",?\s*$/.test(line) && Object.keys(metadata).sort().join() === "edge,encryptionKey,node" && !Object.keys(metadata.node).length && !Object.keys(metadata.edge).length;
+  } catch { return false; }
+}
 export function auditImage(image, scanner, { sourceRef, version }) {
   if (process.platform !== "linux" || !scanner || !/^[a-zA-Z0-9./:_-]+$/.test(image)) throw new Error("image_audit_requires_linux_docker_and_gitleaks");
   const inspection = JSON.parse(run("docker", ["image", "inspect", image]))[0];
@@ -13,12 +23,25 @@ export function auditImage(image, scanner, { sourceRef, version }) {
   if (inspection.Config.Env.some(value => !allowedEnv.has(value.split("=")[0]))) throw new Error("unexpected_release_image_environment");
   const temporary = mkdtempSync(join(tmpdir(), "kekbot-image-audit-"));
   function scan(path) {
-    const result = spawnSync(scanner, ["dir", "--redact", "--no-banner", path], { encoding: "utf8", windowsHide: true });
-    if (result.status !== 0) { process.stderr.write(result.stderr ?? ""); throw new Error("release_image_secret_scan_failed"); }
+    const actions = join(path, ".next/server/server-reference-manifest.json");
+    if (existsSync(actions)) {
+      const metadata = JSON.parse(readFileSync(actions, "utf8"));
+      if (Object.keys(metadata.node).length || Object.keys(metadata.edge).length) throw new Error("server_actions_require_image_key_review");
+    }
+    const report = join(temporary, "findings.json");
+    const result = spawnSync(scanner, ["dir", "--redact", "--no-banner", "--report-format", "json", "--report-path", report, path], { encoding: "utf8", windowsHide: true });
+    if (result.status === 0) return;
+    const findings = result.status === 1 && existsSync(report) ? JSON.parse(readFileSync(report, "utf8")) : [];
+    if (findings.length && findings.every(finding => frameworkGeneratedFinding(finding, path))) {
+      process.stdout.write(`Reviewed ${findings.length} Next.js generated metadata keys; no Server Actions are enabled. Provider/application findings are never excepted.\n`); return;
+    }
+    process.stderr.write(result.stderr ?? "");
+    for (const finding of findings.filter(finding => !frameworkGeneratedFinding(finding, path))) process.stderr.write(`${finding.RuleID}: ${relative(path, finding.File).replaceAll("\\", "/")}:${finding.StartLine}\n`);
+    throw new Error("release_image_secret_scan_failed");
   }
   function inspectFiles(directory) {
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
-      if (/^\.env(?:\.|$)|^(?:data|secrets|proof-captures|backups|\.ssh)$|\.(?:sqlite.*|db|key|pem|token|capture|enc|p12|pfx)$|^KekBot-Test-Setup\.md$/i.test(entry.name)) throw new Error("private_file_in_release_image_layer");
+      if (/^\.env(?:\.|$)|^(?:data|secrets|proof-captures|backups|\.ssh|\.config)$|\.(?:sqlite.*|db|env|key|pem|token|capture|enc|p12|pfx|pub)$|^(?:kick-client-(?:id|secret)|kick-creator\.json|kick-live-evidence\.json|restore-evidence\.json|live-recovery-paths\.json|workload-driver\.json|workload-report\.json|KekBot-Test-Setup\.md)$/i.test(entry.name)) throw new Error("private_file_in_release_image_layer");
       if (entry.isDirectory()) inspectFiles(join(directory, entry.name));
     }
   }

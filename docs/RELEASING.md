@@ -44,7 +44,7 @@ docker build --build-arg VCS_REF=<FULL_SOURCE_SHA> --build-arg VERSION=<PACKAGE_
 pnpm release:prepare --image kekbot:candidate --gitleaks /path/to/verified/gitleaks
 ```
 
-Use checksum-verified Gitleaks 8.30.1. Preparation rejects dirty source, incorrect image platform/user/source/version/license, unexpected baked environment names, private application-layer files and a failing secret scan. It scans files removed by later layers as well as the final application files. This complements source/history scanning and review; it is not a vulnerability audit or proof that every upstream package is safe.
+Use checksum-verified Gitleaks 8.30.1. Preparation rejects dirty source, incorrect image platform/user/source/version/license, unexpected baked environment names, private application-layer files and a failing secret scan. It scans files removed by later layers as well as the final application files. The only reviewed exceptions are the exact generated preview-key fields in Next's prerender manifest and its generated action encryption field when both action maps are empty. Provider/application secrets have no exception; enabling Server Actions fails the audit until key handling is reviewed. This complements source/history scanning and review; it is not a vulnerability audit or proof that every upstream package is safe.
 
 Output is named with the application version and first twelve source-SHA characters:
 
