@@ -13,7 +13,8 @@ const extraVolumes = [];
 const network = `${name}-network`, proxy = `${name}-proxy`;
 const temporary = mkdtempSync(join(tmpdir(), "kekbot-proxy-fixture-"));
 const docker = args => execFileSync("docker", args, { encoding: "utf8", windowsHide: true }).trim();
-const options = ["--env", "KEKBOT_MODE=fixture", "--env", "KEKBOT_ENABLE_PROOF=1", "--env", "KICK_BROADCASTER_USER_ID=123", "--volume", `${volume}:/data`];
+const publicOrigin = "https://kekbot.example";
+const options = ["--env", "KEKBOT_MODE=fixture", "--env", "KEKBOT_ENABLE_PROOF=1", "--env", `KEKBOT_PUBLIC_URL=${publicOrigin}`, "--env", "KICK_BROADCASTER_USER_ID=123", "--volume", `${volume}:/data`];
 let created = false;
 let started = false;
 let networkCreated = false, proxyStarted = false;
@@ -50,8 +51,11 @@ try {
   // The image root is read-only; only /data and the bounded temporary mount write.
   docker(["exec", name, "node", "-e", "try {require('node:fs').writeFileSync('/app/forbidden','x'); process.exit(1)} catch(e) {if(!['EROFS','EACCES'].includes(e.code)) process.exit(1)}"]);
   const credentials = JSON.parse(docker(["exec", name, "node", "-e", "process.stdout.write(require('node:fs').readFileSync('/data/fixture/secrets/fixture-account.json','utf8'))"]));
-  const login = await fetch(`${origin}/api/auth`, { method: "POST", headers: { "Content-Type": "application/json", Origin: origin }, body: JSON.stringify({ action: "login", ...credentials }) });
+  // Mutations use the configured public origin even when this driver reaches the
+  // loopback Docker binding directly. Do not relax the application's CSRF check.
+  const login = await fetch(`${origin}/api/auth`, { method: "POST", headers: { "Content-Type": "application/json", Origin: publicOrigin }, body: JSON.stringify({ action: "login", ...credentials }) });
   if (!login.ok) throw new Error("container_account_login_failed");
+  if (!login.headers.get("set-cookie")?.includes("; Secure")) throw new Error("container_https_session_not_secure");
   const cookie = login.headers.get("set-cookie")?.split(";")[0];
   const state = await fetch(`${origin}/api/control`, { headers: { Cookie: cookie } });
   if (!state.ok || (await state.json()).documents.filter(doc => doc.kind === "widget").length !== 18) throw new Error("container_modules_missing");
@@ -60,7 +64,7 @@ try {
   const token = docker(["exec", name, "node", "-e", "process.stdout.write(require('node:fs').readFileSync('/data/fixture/secrets/proof.token','utf8').trim())"]);
   const capture = await fetch(`${origin}/api/foundation/kick/capture`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
   if (!capture.ok) throw new Error("container_capture_arm_failed");
-  docker(["exec", name, "node", "src/cli.ts", "fixture-event"]);
+  docker(["exec", "--env", "KEKBOT_PUBLIC_URL=http://127.0.0.1:3000", name, "node", "src/cli.ts", "fixture-event"]);
   let processed = false;
   for (let attempt = 0; attempt < 20; attempt++) {
     const status = await (await fetch(`${origin}/api/foundation/status`, { headers: { Authorization: `Bearer ${token}` } })).json();
