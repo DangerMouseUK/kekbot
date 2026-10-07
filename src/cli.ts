@@ -4,8 +4,9 @@ import { randomBytes, sign } from "node:crypto";
 import Database from "better-sqlite3";
 import { readConfig, readPaths } from "./server/config.ts";
 import { AppError } from "./server/errors.ts";
-import { backup, initialize, restore } from "./server/maintenance.ts";
+import { backup, initialize, restore, recoverOwner } from "./server/maintenance.ts";
 import { replayCapture } from "./server/proof-capture.ts";
+import { seedFixture } from "./server/fixture-seed.ts";
 
 const [command, argument, flag, ...extra] = process.argv.slice(2);
 process.umask(0o077);
@@ -14,6 +15,8 @@ const print = (value: unknown) => process.stdout.write(JSON.stringify(value, nul
 try {
   if (command === "init") {
     print(initialize());
+  } else if (command === "fixture-seed") {
+    print(await seedFixture(readConfig()));
   } else if (command === "doctor") {
     const config = readConfig();
     if (!existsSync(config.database)) throw new AppError("database_missing_run_init");
@@ -22,12 +25,17 @@ try {
       print({ mode: config.mode, database: config.database, integrity: db.pragma("quick_check", { simple: true }),
         schemaVersion: db.prepare("SELECT value FROM settings WHERE key='schema_version'").get(),
         instanceLease: db.prepare("SELECT expires_at AS expiresAt FROM leases WHERE name='instance'").get() ?? null,
-        credentialsConfigured: Boolean(config.clientId && config.clientSecret && config.broadcasterId && config.publicUrl) });
+        accounts: db.prepare("SELECT role,count(*) AS count FROM accounts GROUP BY role").all(),
+        jobs: db.prepare("SELECT status,count(*) AS count FROM jobs GROUP BY status").all(),
+        callbackConfigured: Boolean(config.publicUrl),
+        credentialsConfigured: Boolean(config.publicUrl && (config.clientId && config.clientSecret && config.broadcasterId || db.prepare("SELECT 1 FROM connections WHERE provider='config:kick'").get())) });
     } finally { db.close(); }
   } else if (command === "backup" && argument) {
     print(await backup(readConfig(), argument));
   } else if (command === "restore" && argument) {
     print(restore(readConfig(), argument));
+  } else if (command === "recover-owner" && argument && flag && !extra.length) {
+    print(await recoverOwner(readConfig(), argument, flag));
   } else if (command === "proof-replay") {
     if (!argument || flag !== "--live" || extra.length) throw new AppError("usage_proof_replay_delivery_id_live_flag");
     const config = readConfig();
@@ -50,7 +58,7 @@ try {
     print({ status: result.status, result: await result.json() });
     if (!result.ok) process.exitCode = 1;
   } else {
-    process.stdout.write("KekBot foundation CLI\n\n  init\n  doctor\n  backup <new-backup-directory>  (stop the application first)\n  restore <backup-directory>     (new data directory; original encryption key)\n  fixture-event                  (fixture mode only)\n  proof-replay <delivery-id> --live (previously captured and committed event only)\n\nOwner recovery arrives with the accounts milestone.\n");
+    process.stdout.write("KekBot CLI\n\n  init                           (creates or renews unclaimed setup token)\n  doctor\n  backup <new-backup-directory>  (stop the application first)\n  restore <backup-directory>     (empty target; original encryption key)\n  recover-owner <username> <protected-password-file> (stopped host only)\n  fixture-seed                   (fixture mode; stopped application)\n  fixture-event                  (fixture mode only)\n  proof-replay <delivery-id> --live (previously captured and committed event only)\n");
     if (command && command !== "help") process.exitCode = 1;
   }
 } catch (error) {

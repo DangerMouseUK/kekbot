@@ -1,12 +1,17 @@
 name: CI
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 jobs:
   secrets:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
@@ -22,8 +27,10 @@ jobs:
           tar -xzf "$RUNNER_TEMP/gitleaks/archive.tar.gz" -C "$RUNNER_TEMP/gitleaks"
       - name: Scan complete Git history with redacted output
         run: '"$RUNNER_TEMP/gitleaks/gitleaks" git --redact --no-banner --log-opts="--all" .'
+      - name: Scan candidate files with redacted output
+        run: '"$RUNNER_TEMP/gitleaks/gitleaks" dir --redact --no-banner .'
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
       NEXT_TELEMETRY_DISABLED: "1"
@@ -43,8 +50,54 @@ jobs:
       - run: pnpm audit --prod
       - run: pnpm build
       - run: pnpm test:standalone
-      - run: pnpm exec playwright install --with-deps chromium
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      KEKBOT_RUN_JOBS: "0"
+      KEKBOT_TEST_BROWSER: ${{ matrix.browser }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Use the official HTTPS Ubuntu package mirror
+        # The runner's Azure HTTP mirror can stall apt before tests start.
+        run: printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
+      - run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+        timeout-minutes: 8
       - run: pnpm test:e2e
+      # Traces, screenshots, databases and generated credentials stay on the
+      # ephemeral runner. Never upload them as public workflow artifacts.
+      - if: matrix.browser == 'chromium'
+        run: pnpm test:workload
+  container:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      KEKBOT_RUN_JOBS: "0"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Validate deployment examples using empty example credentials
         run: |
           cp .env.example .env.local
@@ -60,5 +113,5 @@ jobs:
           docker build --file deploy/Caddy.Dockerfile --tag kekbot-caddy:2.11.6 .
           docker run --rm --env KEKBOT_DOMAIN=kekbot.example --volume "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" kekbot-caddy:2.11.6 caddy adapt --config /etc/caddy/Caddyfile > /dev/null
           docker run --rm --env KEKBOT_PUBLIC_IP=203.0.113.10 --volume "$PWD/deploy/Caddyfile.ip:/etc/caddy/Caddyfile:ro" kekbot-caddy:2.11.6 caddy adapt --config /etc/caddy/Caddyfile > /dev/null
-      - run: docker build -t kekbot:ci .
+      - run: docker build --build-arg VCS_REF="$GITHUB_SHA" -t kekbot:ci .
       - run: pnpm test:container

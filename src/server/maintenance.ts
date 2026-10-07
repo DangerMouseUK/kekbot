@@ -8,6 +8,7 @@ import { digest, randomToken } from "./crypto.ts";
 import { AppError } from "./errors.ts";
 import { openStore, SCHEMA_VERSION } from "./storage/database.ts";
 import { Repository } from "./storage/repository.ts";
+import { hashPassword } from "./auth.ts";
 
 function newSecret(path: string, value: () => string) {
   if (existsSync(path)) return;
@@ -28,15 +29,29 @@ export function initialize(env: Environment = process.env) {
     newSecret(fixturePrivateKey, () => pair.privateKey);
     newSecret(paths.fixturePublicKeyFile, () => pair.publicKey);
   }
+  if (paths.mode === "fixture") {
+    const privateFile = join(paths.directory, "secrets", "fixture-discord-private.pem");
+    if (existsSync(paths.fixtureDiscordPublicKeyFile) !== existsSync(privateFile)) throw new AppError("fixture_discord_key_pair_incomplete");
+    if (!existsSync(privateFile)) {
+      const pair = generateKeyPairSync("ed25519", { publicKeyEncoding: { type: "spki", format: "pem" }, privateKeyEncoding: { type: "pkcs8", format: "pem" } });
+      newSecret(privateFile, () => pair.privateKey); newSecret(paths.fixtureDiscordPublicKeyFile, () => pair.publicKey);
+    }
+  }
   const config = readConfig(env);
   const store = openStore(config);
+  const repository = new Repository(store);
+  if (!store.sqlite.prepare("SELECT 1 FROM accounts WHERE role='owner'").get()) {
+    newSecret(paths.setupTokenFile, randomToken);
+    repository.set("setup_token_hash", digest(readFileSync(paths.setupTokenFile, "utf8").trim()));
+    repository.set("setup_expires", String(Date.now() + 3600000));
+  }
   store.close();
-  return { mode: config.mode, database: config.database, keyFile: config.keyFile, proofTokenFile: config.proofTokenFile };
+  return { mode: config.mode, database: config.database, keyFile: config.keyFile, proofTokenFile: config.proofTokenFile, setupTokenFile: paths.setupTokenFile };
 }
 
 const assetName = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/);
 const manifestSchema = z.object({
-  format: z.literal(1), schemaVersion: z.literal(SCHEMA_VERSION), mode: z.enum(["live", "fixture"]),
+  format: z.literal(1), schemaVersion: z.number().int().min(1).max(SCHEMA_VERSION), mode: z.enum(["live", "fixture"]),
   createdAt: z.string(), keyFingerprint: z.string().regex(/^[a-f0-9]{64}$/),
   databaseHash: z.string().regex(/^[a-f0-9]{64}$/),
   assets: z.array(z.object({ name: assetName, bytes: z.number().int().nonnegative(), sha256: z.string().regex(/^[a-f0-9]{64}$/) }))
@@ -106,7 +121,7 @@ export function restore(config: Config, source: string) {
     const fingerprint = check.prepare("SELECT value FROM settings WHERE key='key_fingerprint'").get() as { value: string };
     const version = check.prepare("SELECT value FROM settings WHERE key='schema_version'").get() as { value: string };
     const mode = check.prepare("SELECT value FROM settings WHERE key='mode'").get() as { value: string };
-    if (fingerprint.value !== manifest.keyFingerprint || Number(version.value) !== SCHEMA_VERSION || mode.value !== config.mode) throw new AppError("backup_database_metadata_mismatch");
+    if (fingerprint.value !== manifest.keyFingerprint || Number(version.value) !== manifest.schemaVersion || mode.value !== config.mode) throw new AppError("backup_database_metadata_mismatch");
   } finally { check.close(); }
   const seen = new Set<string>();
   for (const asset of manifest.assets) {
@@ -126,5 +141,27 @@ export function restore(config: Config, source: string) {
   try { restored.prepare("DELETE FROM leases").run(); }
   finally { restored.close(); }
   renameSync(staged, config.database);
-  return { database: config.database, assets: manifest.assets.length, schemaVersion: SCHEMA_VERSION };
+  return { database: config.database, assets: manifest.assets.length, schemaVersion: manifest.schemaVersion, upgradeOnStart: manifest.schemaVersion < SCHEMA_VERSION };
+}
+
+export async function recoverOwner(config: Config, username: string, passwordFile: string) {
+  z.string().regex(/^[a-z0-9][a-z0-9_.-]{2,31}$/).parse(username);
+  regularFile(passwordFile);
+  const password = readFileSync(passwordFile, "utf8").trim();
+  const store = openStore(config), repository = new Repository(store), lease = randomUUID();
+  try {
+    repository.acquireLease(lease);
+    const encoded = await hashPassword(password);
+    repository.acquireLease(lease);
+    store.sqlite.transaction(() => {
+      const owner = store.sqlite.prepare("SELECT id FROM accounts WHERE role='owner' AND username=?").get(username) as { id: string } | undefined;
+      if (!owner) throw new AppError("owner_not_found", 404);
+      store.sqlite.prepare("UPDATE accounts SET password=?,disabled=0 WHERE id=?").run(encoded, owner.id);
+      store.sqlite.prepare("DELETE FROM sessions WHERE account_id=?").run(owner.id);
+      store.sqlite.prepare("DELETE FROM access_tokens WHERE account_id=?").run(owner.id);
+      store.sqlite.prepare("DELETE FROM oauth_states").run();
+      store.sqlite.prepare("INSERT INTO audit(actor,action,target,outcome,at) VALUES('host','account.recover_owner',?,'confirmed',?)").run(owner.id, Date.now());
+    }).immediate();
+    return { recovered: true, sessionsRevoked: true, accessTokensRevoked: true };
+  } finally { repository.releaseLease(lease); store.close(); }
 }

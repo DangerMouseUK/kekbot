@@ -1,10 +1,10 @@
 # Foundation harness and acceptance
 
-The foundation proves provider contracts, local durability, and the Next.js job lifecycle before a broad dashboard build. It is pre-release: the only chat utility is the fixed `!kekbot` proof response with a ten-second global cooldown. There are no local accounts, Discord controls, OBS widgets, or media features yet.
+This document preserves Milestone 1's historical provider/durability proof and its reusable diagnostic workflow. That live gate passed on 2026-10-02; the original droplet was destroyed before the local product build. The current development build adds accounts and modules documented in [OPERATIONS.md](OPERATIONS.md), [API.md](API.md) and [MILESTONES.md](MILESTONES.md). Historical evidence below applies to the identified foundation snapshot, not to untested later features.
 
 ## Local fixture proof
 
-Copy `.env.example` to `.env.local`, select `KEKBOT_MODE=fixture`, set `KICK_BROADCASTER_USER_ID=123`, keep `KEKBOT_RUN_JOBS=1`, and leave all live Kick credentials unset.
+Copy `.env.example` to `.env.local`, select `KEKBOT_MODE=fixture`, set `KICK_BROADCASTER_USER_ID=123`, keep `KEKBOT_RUN_JOBS=1`, explicitly enable `KEKBOT_ENABLE_PROOF=1` for this diagnostic workflow, and leave all live Kick credentials unset.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -17,7 +17,7 @@ pnpm kekbot doctor
 
 Initialization preserves existing secrets and prints paths, never token/key contents. It generates the fixture signing pair under `data/fixture/secrets`. The fixture sender signs a synthetic event and the runtime records an explicitly labelled fixture reply; it cannot send a real Kick request.
 
-The private file `data/fixture/secrets/proof.token` authorizes foundation controls at `/`. Read it locally and enter it in the password field. The page keeps it only in memory. Status contains confirmed stored state, no decrypted provider credentials. The persistence probe becomes a durable job and is processed without an open browser.
+The private file `data/fixture/secrets/proof.token` authorizes explicitly enabled fixture foundation controls at `/foundation`. Read it locally and enter it in the password field. The page keeps it only in memory. Status contains confirmed stored state, no decrypted provider credentials. The persistence probe becomes a durable job and is processed without an open browser.
 
 ```sh
 pnpm check
@@ -42,7 +42,7 @@ Sign in to the Kick account whose channel this installation will serve. Click yo
 1. Use your own Kick account and developer application. Configure your own public HTTPS origin and enable webhooks in the provider application. Keep account/app setup and scopes under your control.
 2. In `.env.local`, select live mode and supply `KEKBOT_PUBLIC_URL`, `KICK_CLIENT_ID`, `KICK_CLIENT_SECRET` (or its secret-file alternative), and your `KICK_BROADCASTER_USER_ID`. Select `KICK_CHAT_TYPE=bot` or `user`. This controls official API delivery type; it does not promise an arbitrary custom bot identity.
 3. Register the exact redirect URL `https://YOUR-HOST/api/providers/kick/callback` and webhook URL `https://YOUR-HOST/api/providers/kick/events`. URLs derive from the configured origin, not forwarded headers.
-4. Run `pnpm kekbot init`, then start the runtime. Supply the private live proof token to the foundation page using that same public origin. Click **Authorize Kick**. The HttpOnly OAuth binding cookie must be in the browser making the callback.
+4. Explicitly enable proof tools, run `pnpm kekbot init`, start the runtime and claim/sign into the owner account using the setup token. Supply the private live proof token at `/foundation` using that same public origin. Click **Authorize Kick**. The HttpOnly OAuth binding cookie must be in the browser making the callback.
 5. Confirm the grant belongs to the configured creator and contains the required scopes. Click **Subscribe to Kick events**. This reconciles chat/follow/stream-state subscriptions with Kick and sends a subscription mutation for missing events.
 6. Send `!kekbot` in actual channel chat. Confirm the reply in Kick, its actual visible identity, the signed receipt, and the protected status's confirmed provider message ID. Cause a real follow and verify its receipt. Observe stream-state events when available.
 7. Wait beyond the ten-second command cooldown, click **Capture next proof event**, then send a new `!kekbot` message within five minutes. Capture is off by default, consumes one verified and committed proof command, and stores exact bytes and original signature headers encrypted under the mode's `secrets/proof-captures` directory. Status shows its delivery ID and expiry, never its body. Altering or redacting a signed body makes its original signature unusable.
@@ -74,9 +74,9 @@ docker compose run --rm kekbot node src/cli.ts init
 docker compose up -d
 ```
 
-Keep `.env.local` private. Compose overrides the container data directory to `/data` and binds its direct HTTP port to host loopback. Initialization must precede server startup. The source build is currently `kekbot:0.0.1`, unreleased; published release images arrive after acceptance and are pinned explicitly.
+Keep `.env.local` private. Compose overrides the container data directory to `/data` and binds its direct HTTP port to host loopback. Initialization must precede server startup. The current source build is `kekbot:0.1.0-dev.0`, unreleased; published release images arrive after acceptance and are pinned explicitly.
 
-For an existing reverse proxy, forward your public hostname to `127.0.0.1:3000`, limit request bodies to 64 KiB for this harness, and disable streaming buffering. Alternatively use the optional Caddy example:
+For an existing reverse proxy, forward your public hostname to `127.0.0.1:3000`, limit provider requests to 64 KiB, permit up to 12 MiB for authenticated assets/configuration, and disable streaming buffering. Alternatively use the optional Caddy example:
 
 ```sh
 KEKBOT_DOMAIN=your-host.example docker compose -f compose.yaml -f compose.proxy.yaml up -d --build
@@ -114,7 +114,7 @@ docker build -t kekbot:ci .
 pnpm test:container
 ```
 
-The smoke script creates and cleans up only its own named test container/volume. CI does not push images. Core operation does not contact project infrastructure; live Kick mode contacts `id.kick.com` and `api.kick.com`. Discord/YouTube provider contacts will be documented when those modules are enabled. Framework telemetry is disabled in build/start/container paths; set the included flag during development.
+The smoke script creates and cleans up only its own named test container/volume. CI does not push images. Core operation does not contact project infrastructure; live Kick mode contacts `id.kick.com` and `api.kick.com`. Enabled Discord uses `discord.com` API endpoints; YouTube metadata uses `www.googleapis.com` and its visible player uses official YouTube embed resources. Current module setup is in OPERATIONS.md. Framework telemetry is disabled in build/start/container paths; set the included flag during development.
 
 ## Backup and restore
 
@@ -126,7 +126,7 @@ pnpm kekbot backup ./backups/foundation-2026-10-01
 
 Backups contain a consistent SQLite snapshot, local assets, and a versioned checksum manifest written last. The new snapshot uses a rollback journal so restoration can read it from a read-only mount without creating WAL sidecars; the application database remains in WAL mode. They exclude the encryption key, proof token, environment configuration, fixture private key, and encrypted proof captures. A failed backup remains visibly incomplete and never replaces an earlier backup. Keep the original encryption key securely with separate recovery material; the database fingerprint cannot recover it.
 
-Restore to a **new** data root. Copy the original encryption key separately to the target mode's `secrets/encryption.key`, and provide a new random proof token at `secrets/proof.token` (or mount the corresponding original secret files). Fixture restoration also needs its signing pair. Do not run `init` before restoring: it would create an empty database that restoration intentionally refuses to overwrite.
+Restore to a **new** data root. Copy the original encryption key separately to the target mode's `secrets/encryption.key`, and provide a new random proof token at `secrets/proof.token` (or mount the corresponding original secret files). Fixture restoration also needs its RSA and Ed25519 signing pairs. Do not run `init` before restoring: it would create an empty database that restoration intentionally refuses to overwrite.
 
 Set `KEKBOT_DATA_DIR` to the new root, keep the same mode, and run:
 
@@ -136,11 +136,11 @@ pnpm kekbot doctor
 pnpm start
 ```
 
-Restore validates mode/schema/key/integrity/checksums, removes stale runtime leases, and publishes the restored database only after validation. Supported schema is currently 1 and backup format 1. Future migration/upgrade gates must preserve earlier backups. Reconfigure provider applications and reauthorize when moving callback addresses.
+Restore validates mode/schema/key/integrity/checksums, removes stale runtime leases, and publishes the restored database only after validation. Current code supports schema 1–2 backups and backup format 1. Restored schema 1 storage upgrades on the next writable open; run stopped-host `init` after restore before `doctor` if an upgrade/setup is required. Reconfigure provider applications and reauthorize when moving callback addresses.
 
-For containers, stop Compose and use a one-off `node src/cli.ts backup` or `restore` command with an additional host-mounted backup directory. The backup destination must be outside `/data/live` or `/data/fixture`. Prepare the new data root **and its mode directory** as writable by UID/GID 1000; manually creating only a nested `secrets` directory can leave its parent root-owned. Keep secret files readable only by the application user. No restore overwrites existing data. `recover-owner` is deliberately absent until the accounts increment provides audited session revocation and recovery.
+For containers, stop Compose and use a one-off `node src/cli.ts backup` or `restore` command with an additional host-mounted backup directory. The backup destination must be outside `/data/live` or `/data/fixture`. Prepare the new data root **and its mode directory** as writable by UID/GID 1000; manually creating only a nested `secrets` directory can leave its parent root-owned. Keep secret files readable only by the application user. No restore overwrites existing data. `recover-owner` is now available with audited revocation in the account build; follow OPERATIONS.md for protected-password-file recovery.
 
-## Acceptance evidence
+## Historical foundation acceptance evidence
 
 | Evidence | Current result |
 | --- | --- |
@@ -163,7 +163,7 @@ For containers, stop Compose and use a one-off `node src/cli.ts backup` or `rest
 | Separate independent owner/app/channel | Not run: independent operators required |
 | Live restore to another host | Not run: second host/operator required; local real-database restoration tested |
 
-The single-owner foundation gate passed on 2026-10-02. Installation and accounts is the next build increment. Controlled stream-state delivery was not tested because no test stream was available; independent-owner trials and another-host restoration remain release-candidate requirements. Certificate renewal is configured and scheduled, but an actual renewal has not yet been observed.
+The single-owner foundation gate passed on 2026-10-02. Accounts and subsequent local modules have since been implemented; their separate evidence is tracked in MILESTONES.md. Controlled stream-state delivery was not tested because no test stream was available; independent-owner trials and another-host restoration remain release-candidate requirements. Certificate renewal is configured and scheduled, but an actual renewal has not yet been observed.
 
 The initial public commit's CI also passed documentation/migration checks, the production dependency audit, and the redacted full-history secret scan on 2026-10-01. Container evidence includes initialization as the non-root user, readiness, rejection of unauthorized mutations, signed fixture processing without a dashboard, clean shutdown, and diagnostics against persisted storage. The latest foundation additions have local and Linux-host verification; their GitHub CI run is still pending.
 

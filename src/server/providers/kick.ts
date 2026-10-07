@@ -22,19 +22,27 @@ type Tokens = z.infer<typeof storedTokenSchema>;
 type Fetch = typeof fetch;
 
 export class KickService {
-  readonly config: Config;
+  private readonly baseConfig: Config;
   readonly repository: Repository;
   private readonly request: Fetch;
   private refreshFlight?: Promise<string>;
   private cachedKey?: { pem: string; until: number };
+  private generation = 0;
 
   constructor(config: Config, repository: Repository, request: Fetch = fetch) {
-    this.config = config;
+    this.baseConfig = config;
     this.repository = repository;
     this.request = request;
   }
 
-  async http(url: string, init: RequestInit, mutation = false) {
+  get config(): Config {
+    const row = this.repository.store.sqlite.prepare("SELECT secret FROM connections WHERE provider='config:kick'").get() as { secret: string } | undefined;
+    if (!row) return this.baseConfig;
+    const saved = z.object({ clientId: z.string(), clientSecret: z.string(), broadcasterId: z.number().int().positive() }).parse(JSON.parse(decrypt(row.secret, this.baseConfig.key, "config:kick")));
+    return { ...this.baseConfig, ...saved };
+  }
+
+  async http(url: string, init: RequestInit, mutation = false, noContent = false) {
     let response: Response;
     try {
       response = await this.request(url, { ...init, signal: AbortSignal.timeout(10000), redirect: "error" });
@@ -46,11 +54,12 @@ export class KickService {
       throw new DeliveryError("kick_rate_limited", "retry", Math.min(300000, Math.max(1000, Number.isFinite(delay) ? delay : 10000)));
     }
     if (!response.ok) throw new DeliveryError(`kick_http_${response.status}`, mutation && response.status >= 500 ? "uncertain" : "failed");
+    if (noContent && response.status === 204) return null;
     try { return await response.json() as unknown; }
     catch { throw new DeliveryError("kick_invalid_response", mutation ? "uncertain" : "failed"); }
   }
 
-  authorize(browserBinding: string) {
+  authorize(browserBinding: string, moderation = false) {
     const config = requireKick(this.config);
     const state = randomToken();
     const verifier = randomToken();
@@ -62,13 +71,14 @@ export class KickService {
     const url = new URL(`${ID}/oauth/authorize`);
     url.search = new URLSearchParams({
       client_id: config.clientId, response_type: "code", redirect_uri: `${config.publicUrl}/api/providers/kick/callback`,
-      scope: KICK_SCOPES.join(" "), state,
+      scope: [...KICK_SCOPES, ...(moderation ? ["moderation:ban", "moderation:chat_message:manage"] : [])].join(" "), state,
       code_challenge: createHash("sha256").update(verifier).digest("base64url"), code_challenge_method: "S256"
     }).toString();
     return url.toString();
   }
 
   async complete(code: string, state: string, browserBinding: string) {
+    const generation = this.generation;
     const config = requireKick(this.config);
     const pending = this.repository.store.sqlite.transaction(() => {
       const row = this.repository.store.orm.select().from(oauthStates).where(and(
@@ -91,6 +101,7 @@ export class KickService {
     if (!users.success) throw new AppError("kick_identity_response_invalid", 502);
     const user = users.data.data[0];
     if (user.user_id !== config.broadcasterId) throw new AppError("authorize_configured_channel_owner", 403);
+    if (generation !== this.generation) throw new AppError("kick_connection_changed_retry", 409);
     this.save({ ...token, expiresAt: Date.now() + token.expires_in * 1000, userId: user.user_id, username: user.name });
     return { broadcasterId: user.user_id, authorizedUsername: user.name, chatType: this.config.chatType };
   }
@@ -135,6 +146,7 @@ export class KickService {
   }
 
   private async refresh(current: Tokens) {
+    const generation = this.generation;
     const config = requireKick(this.config);
     if (this.repository.setting("kick_auth_error")) throw new AppError("kick_refresh_failed_reauthorize", 503);
     try {
@@ -142,6 +154,7 @@ export class KickService {
         method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ grant_type: "refresh_token", client_id: config.clientId, client_secret: config.clientSecret, refresh_token: current.refresh_token })
       }));
+      if (generation !== this.generation) throw new AppError("kick_connection_changed_retry", 409);
       this.save({ ...token, expiresAt: Date.now() + token.expires_in * 1000, userId: current.userId, username: current.username });
       this.repository.set("kick_last_refresh_at", String(Date.now()));
       return token.access_token;
@@ -162,14 +175,14 @@ export class KickService {
     return this.cachedKey.pem;
   }
 
-  async subscribe() {
+  async subscribe(events = KICK_EVENTS) {
     requireKick(this.config);
     const token = await this.accessToken();
     const existing = z.object({ data: z.array(z.object({ event: z.string(), version: z.number(), broadcaster_user_id: z.number() })) }).safeParse(
       await this.http(`${API}/events/subscriptions`, { headers: { Authorization: `Bearer ${token}` } })
     );
     if (!existing.success) throw new AppError("kick_subscription_response_invalid", 502);
-    const missing = KICK_EVENTS.filter(event => !existing.data.data.some(item => item.event === event && item.version === 1 && item.broadcaster_user_id === this.config.broadcasterId));
+    const missing = events.filter(event => !existing.data.data.some(item => item.event === event && item.version === 1 && item.broadcaster_user_id === this.config.broadcasterId));
     if (missing.length) {
       const result = z.object({ data: z.array(z.object({ name: z.string(), version: z.number(), error: z.string().optional(), subscription_id: z.string().optional() })) }).safeParse(
         await this.http(`${API}/events/subscriptions`, {
@@ -182,21 +195,69 @@ export class KickService {
       }
     }
     this.repository.set("kick_subscriptions_checked_at", String(Date.now()));
-    return { events: KICK_EVENTS };
+    return { events };
   }
 
-  async reply() {
+  async reply(text = "KekBot foundation proof: verified event, durable receipt, real reply.") {
     requireKick(this.config);
+    const content = z.string().min(1).max(500).parse(text);
+    const safeContent = content.trimStart().startsWith("!") ? `KekBot: ${content}`.slice(0, 500) : content;
     const token = await this.accessToken();
     const result = z.object({ data: z.object({ message_id: z.string().min(1), is_sent: z.boolean() }) }).safeParse(
       await this.http(`${API}/chat`, {
         method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ broadcaster_user_id: this.config.broadcasterId, type: this.config.chatType, content: "KekBot foundation proof: verified event, durable receipt, real reply." })
+        body: JSON.stringify({ broadcaster_user_id: this.config.broadcasterId, type: this.config.chatType, content: safeContent })
       }, true)
     );
     if (!result.success) throw new DeliveryError("kick_reply_confirmation_invalid", "uncertain");
     if (!result.data.data.is_sent) throw new DeliveryError("kick_reply_not_sent", "failed");
     this.repository.set("kick_last_confirmed_reply", JSON.stringify({ messageId: result.data.data.message_id, at: Date.now(), chatType: this.config.chatType }));
+    this.repository.set(`sent:${result.data.data.message_id}`, String(Date.now()));
+  }
+
+  async moderate(input: { action: string; userId: number; messageId?: string; reason: string; duration?: number }) {
+    requireKick(this.config);
+    if (input.action === "warn") return this.reply(`Warning for user ${input.userId}: ${input.reason}`.slice(0, 500));
+    const required = input.action === "delete" ? "moderation:chat_message:manage" : "moderation:ban";
+    if (!this.load().scope.split(" ").includes(required)) throw new AppError("kick_moderation_scope_missing_reauthorize", 403);
+    const token = await this.accessToken();
+    const path = input.action === "delete" ? `/chat/${encodeURIComponent(input.messageId ?? "")}` : "/moderation/bans";
+    await this.http(`${API}${path}`, { method: input.action === "delete" ? "DELETE" : "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, ...(input.action === "delete" ? {} : { body: JSON.stringify({ broadcaster_user_id: this.config.broadcasterId, user_id: input.userId, reason: input.reason.slice(0, 100), ...(input.action === "timeout" ? { duration: input.duration ?? 10 } : {}) }) }) }, true, input.action === "delete");
+  }
+
+  async disconnect() {
+    let token: Tokens | undefined;
+    try { token = this.load(); } catch { /* local disconnect also works after revocation */ }
+    this.generation++;
+    this.repository.store.sqlite.prepare("DELETE FROM connections WHERE provider='kick'").run();
+    this.repository.store.sqlite.prepare("DELETE FROM oauth_states").run();
+    this.repository.set("kick_auth_error", "disconnected");
+    if (token) {
+      const outcomes = await Promise.allSettled((["access_token", "refresh_token"] as const).map(async kind => {
+        const url = new URL(`${ID}/oauth/revoke`);
+        url.search = new URLSearchParams({ token: token![kind], token_hint_type: kind }).toString();
+        const response = await this.request(url, { method: "POST", redirect: "error", signal: AbortSignal.timeout(10000), headers: { "Content-Type": "application/x-www-form-urlencoded" } });
+        return response.ok;
+      }));
+      return { disconnected: true, revocation: outcomes.some(outcome => outcome.status === "rejected") ? "uncertain" : outcomes.every(outcome => outcome.status === "fulfilled" && outcome.value) ? "confirmed" : "failed" };
+    }
+    return { disconnected: true, revocation: "not_available" };
+  }
+
+  invalidate() {
+    this.generation++;
+    this.repository.store.sqlite.prepare("DELETE FROM connections WHERE provider='kick'").run();
+    this.repository.store.sqlite.prepare("DELETE FROM oauth_states").run();
+    this.repository.set("kick_auth_error", "connection_settings_changed_reauthorize");
+  }
+
+  async streamSample() {
+    requireKick(this.config);
+    const token = await this.accessToken();
+    const response = z.object({ data: z.array(z.object({ broadcaster_user: z.object({ id: z.number().int().positive() }), viewer_count: z.number().int().nonnegative(), started_at: z.string(), title: z.string().max(500) })) }).safeParse(await this.http(`${API}/users/livestreams?user_id=${this.config.broadcasterId}`, { headers: { Authorization: `Bearer ${token}` } }));
+    if (!response.success) throw new AppError("kick_stream_sample_invalid", 502);
+    const stream = response.data.data.find(item => item.broadcaster_user.id === this.config.broadcasterId);
+    return stream ? { viewers: stream.viewer_count, startedAt: stream.started_at, title: stream.title } : null;
   }
 
   status() {

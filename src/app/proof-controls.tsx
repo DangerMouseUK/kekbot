@@ -10,7 +10,8 @@ export default function ProofControls() {
   async function run(path: string, method = "GET") {
     setBusy(true);
     try {
-      const response = await fetch(path, { method, headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+      const session = await (await fetch("/api/auth", { cache: "no-store" })).json();
+      const response = await fetch(path, { method, headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "X-CSRF-Token": session.csrf ?? "" }, cache: "no-store", ...(method === "POST" ? { body: "{}" } : {}) });
       const body = await response.json();
       if (response.ok && typeof body.url === "string") window.location.assign(body.url);
       else setResult(JSON.stringify(body, null, 2));

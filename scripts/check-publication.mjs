@@ -7,7 +7,7 @@ const files = [...new Set(execFileSync("git", ["ls-files", "--cached", "--others
   encoding: "utf8", windowsHide: true
 }).split("\0").filter(Boolean))];
 const privateDirectory = /(?:^|\/)(?:data|backups|secrets|proof-captures|\.ssh|\.config|\.next|node_modules|test-results|playwright-report|output|coverage|\.codex|\.vscode|\.idea|\.playwright-cli)(?:\/|$)/i;
-const privateName = /^(?:kick-client-(?:id|secret)|kick-creator\.json|kick-live-evidence\.json|restore-evidence\.json|live-recovery-paths\.json|KekBot-Test-Setup\.md)$/i;
+const privateName = /^(?:kick-client-(?:id|secret)|kick-creator\.json|kick-live-evidence\.json|restore-evidence\.json|live-recovery-paths\.json|workload-driver\.json|workload-report\.json|KekBot-Test-Setup\.md)$/i;
 const privateExtension = /\.(?:env|key|pem|token|p12|pfx|db|capture|enc|pub|tsbuildinfo|log|zip|tar|tar\.gz|tgz|7z)$|\.sqlite[^/]*$/i;
 const privateKey = /-----BEGIN (?:OPENSSH|RSA|EC|DSA|ENCRYPTED|PGP)? ?PRIVATE KEY(?: BLOCK)?-----/;
 const personalPath = /\b[a-z]:[\\/]Users[\\/]|(?:^|[\s"'])\/(?:Users|home)\/[a-z0-9_.-]+\//im;
@@ -19,11 +19,14 @@ for (const file of files) {
     problems.push(`${file}: private artifact cannot be published`);
     continue;
   }
-  if (lstatSync(file).isSymbolicLink()) {
+  const entry = lstatSync(file, { throwIfNoEntry: false });
+  if (entry?.isSymbolicLink()) {
     problems.push(`${file}: symbolic links require an explicit publication policy`);
     continue;
   }
-  const content = readFileSync(file, "utf8");
+  // Unstaged deletions remain in the index. Inspect their indexed content until
+  // the deletion is staged, rather than failing an otherwise valid local check.
+  const content = entry ? readFileSync(file, "utf8") : execFileSync("git", ["show", `:${file}`], { encoding: "utf8", windowsHide: true });
   if (privateKey.test(content) || personalPath.test(content)) problems.push(`${file}: private key or personal path detected`);
   if (name === ".env.example") {
     for (const line of content.split(/\r?\n/)) {

@@ -1,11 +1,14 @@
 {
   "name": "kekbot",
-  "version": "0.0.1",
+  "version": "0.1.0-dev.0",
   "private": true,
   "type": "module",
   "license": "MIT",
   "packageManager": "pnpm@10.26.0",
-  "engines": { "node": ">=24.21.0 <25", "pnpm": "10.26.0" },
+  "engines": {
+    "node": ">=24.21.0 <25",
+    "pnpm": "10.26.0"
+  },
   "scripts": {
     "dev": "node --env-file-if-exists=.env.local scripts/dev.mjs",
     "build": "node scripts/build.mjs",
@@ -17,6 +20,8 @@
     "test:e2e": "playwright test",
     "test:container": "node scripts/container-smoke.mjs",
     "test:standalone": "node scripts/standalone-cli-smoke.mjs",
+    "test:workload": "node scripts/workload.mjs --smoke",
+    "benchmark": "node scripts/workload.mjs --reference",
     "docs:check": "node scripts/check-docs.mjs",
     "publication:check": "node scripts/check-publication.mjs",
     "db:generate": "drizzle-kit generate",
@@ -31,6 +36,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.63.0",
     "@types/better-sqlite3": "9.6.0",
     "@types/node": "24.19.0",
@@ -42,5 +48,11 @@
     "typescript": "6.0.3",
     "vitest": "5.0.3"
   },
-  "pnpm": { "onlyBuiltDependencies": ["better-sqlite3", "esbuild", "sharp"] }
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild",
+      "sharp"
+    ]
+  }
 }

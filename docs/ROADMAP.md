@@ -1,6 +1,6 @@
 # KekBot build roadmap
 
-Updated: 2026-10-02. MIT, Next.js, one self-hosted installation per creator.
+Updated: 2026-10-07. MIT, Next.js, one self-hosted installation per creator.
 
 This is the executable roadmap for both PRDs. They currently contain the same specification; update them together. Discord and YouTube are optional integrations to enable, but their complete supported workflows are required v0.1 capabilities.
 
@@ -21,7 +21,7 @@ This is the executable roadmap for both PRDs. They currently contain the same sp
 
 Live acceptance adds generic public-IP HTTPS deployment, external runtime configuration/data paths, protected shared refresh, and opt-in encrypted one-event capture/replay. The application snapshot is recorded in FOUNDATION.md; operator host/app details and raw captures stay outside the repository. IP-based OAuth callbacks and real chat webhook delivery passed on 2026-10-02.
 
-**Foundation gate: passed 2026-10-02.** F03/F06 live evidence, F04 recovery, and F05 lifecycle/container evidence satisfy the required single-owner foundation proof. A01 installation and accounts is the next increment. The foundation UI and proof bearer token remain temporary operator tools; they do not satisfy v0.1 account requirements. Independent-owner trials and another-host restoration remain R01 requirements.
+**Foundation gate: passed 2026-10-02.** F03/F06 live evidence, F04 recovery, and F05 lifecycle/container evidence satisfy the required single-owner foundation proof. The local account/module build now replaces normal foundation operator access with sessions/permissions. Retained proof tools are disabled by default and additionally owner-protected in live mode. Independent-owner trials and another-host restoration remain R01 requirements.
 
 ## v0.1 — connected personal bot
 
@@ -29,13 +29,13 @@ Work in this dependency order. Each increment must preserve the preceding workfl
 
 | ID | Increment | Depends on | Required scenario | State |
 | --- | --- | --- | --- | --- |
-| A01 | Installation and accounts: deployable setup, owner creation, Argon2id login, revocable sessions, invites/roles, secret controls, diagnostics, backup/restore, audited owner recovery. Replace foundation operator access. | Foundation gate | Fresh operator can securely claim, delegate, revoke, restart, and restore. Unauthorized effects fail. | Planned |
-| K01 | Kick commands/timers: CRUD, aliases, role restrictions, cooldowns, declarative variables, previews, utilities, cadence/chat activity/timezone/quiet hours, pause and stream gating. | A01 | Actual response and timer; edits apply immediately; restricted/offline/cooldown/restart cases are safe. | Planned |
-| D01 | Discord owner app, allowed guilds/channels, role/identity authorization, signed HTTP interactions, routing, status, timer/manual-alert controls, permitted manual Kick moderation. | A01, K01; controls activate with their domains | Two guilds receive only intended notifications. Authorized operators act; normal members/replays cannot. Initial ACK <3 seconds. | Planned |
-| O01 | Local alert assets/configuration and verified provider events; bounded alerts, chat overlay, previews, scoped/revocable source URLs, stored live state and reconnect recovery. | A01, K01 | Real event reaches OBS; reconnect and revocation work; tests do not enter live history. | Planned |
-| M01 | YouTube validation/rules and approval/auto-approval modes; transactional request/queue transitions; add/reject/remove/reorder/clear; one active player lease and explicit error/recovery state. | A01, K01; owner YouTube key | Valid/invalid/duplicate/over-limit requests behave correctly; concurrent actions and stale players cannot double-advance. | Planned |
-| M02 | Kick `!sr` and queue utilities, Discord/dashboard approval and playback controls, visible OBS player, now-playing/queue widgets, skip/pause/resume/volume. | D01, O01, M01 | Kick request -> Discord approval -> OBS playback -> exactly one local queue advance. | Planned |
-| R01 | Retention controls, redacted support diagnostics, complete setup/recovery guides, release notes, independent live trials and CI/container checks. | A01–M02 | Two independent owners run full sessions; restart and restore on another host preserve state. | Planned |
+| A01 | Installation and accounts: deployable setup, owner creation, Argon2id login, revocable sessions, invites/roles, secret controls, diagnostics, backup/restore, audited owner recovery. Replace foundation operator access. | Foundation gate | Fresh operator can securely claim, delegate, revoke, restart, and restore. Unauthorized effects fail. | Fixture-tested: local build; required live acceptance pending in Milestone 18. |
+| K01 | Kick commands/timers: CRUD, aliases, role restrictions, cooldowns, declarative variables, previews, utilities, cadence/chat activity/timezone/quiet hours, pause and stream gating. | A01 | Actual response and timer; edits apply immediately; restricted/offline/cooldown/restart cases are safe. | Fixture-tested: local build; required live acceptance pending in Milestone 18. |
+| D01 | Discord owner app, allowed guilds/channels, role/identity authorization, signed HTTP interactions, routing, status, timer/manual-alert controls, permitted manual Kick moderation. | A01, K01; controls activate with their domains | Two guilds receive only intended notifications. Authorized operators act; normal members/replays cannot. Initial ACK <3 seconds. | Fixture-tested: local build; required live acceptance pending in Milestone 18. |
+| O01 | Local alert assets/configuration and verified provider events; bounded alerts, chat overlay, previews, scoped/revocable source URLs, stored live state and reconnect recovery. | A01, K01 | Real event reaches OBS; reconnect and revocation work; tests do not enter live history. | Fixture-tested: local build; required live acceptance pending in Milestone 18. |
+| M01 | YouTube validation/rules and approval/auto-approval modes; transactional request/queue transitions; add/reject/remove/reorder/clear; one active player lease and explicit error/recovery state. | A01, K01; owner YouTube key | Valid/invalid/duplicate/over-limit requests behave correctly; concurrent actions and stale players cannot double-advance. | Fixture-tested: local build; required live acceptance pending in Milestone 18. |
+| M02 | Kick `!sr` and queue utilities, Discord/dashboard approval and playback controls, visible OBS player, now-playing/queue widgets, skip/pause/resume/volume. | D01, O01, M01 | Kick request -> Discord approval -> OBS playback -> exactly one local queue advance. | Fixture-tested: local build; required live acceptance pending in Milestone 18. |
+| R01 | Retention controls, redacted support diagnostics, complete setup/recovery guides, release notes, independent live trials and CI/container checks. | A01–M02 | Two independent owners run full sessions; restart and restore on another host preserve state. | Fixture-tested: retention, support, guides, packaged maintenance and Linux image/proxy/recovery CI. Independent/live acceptance remains pending. |
 
 Media recovery: preserve the queue/current item, pause after restart, require moderator resume, and restart the item from the beginning. A failed/disconnected/stale player never silently advances. Use official metadata and a compliant visible embedded YouTube player; show quota/autoplay/embedding restrictions.
 
@@ -43,9 +43,9 @@ Media recovery: preserve the queue/current item, pause after restart, require mo
 
 | Release | Ordered work | Dependencies and acceptance | State |
 | --- | --- | --- | --- |
-| v0.2 | Automated moderation rules/exceptions, incident history, mod notes, rule simulation/emergency pause; goals/status widgets and theme packs. | v0.1. Real moderation, permitted-message exceptions, permission denials, synchronized OBS and reconnect behavior. | Planned |
-| v0.3 | Append-only points ledger/accrual, estimated watchtime, atomic rewards/redemption/refunds, leaderboard, polls/raffles and Discord/widgets; command groups/random pools/counters/conditions. | v0.2. Durable balances, no overspending/double-awards/votes, eligibility and audited draws/refunds. | Planned |
-| v1.0 | Stream analytics/charts/CSV/JSON, versioned configuration import/conflict previews, remaining declared widgets, advanced moderation, scoped owner integration API, polished operator/contributor docs, upgrade/recovery quality. | v0.3. Complete PRD coverage, three unaided independent installations, reference-host benchmark, and upgrade/migration-failure recovery evidence. | Planned |
+| v0.2 | Automated moderation rules/exceptions, incident history, mod notes, rule simulation/emergency pause; goals/status widgets and theme packs. | v0.1. Real moderation, permitted-message exceptions, permission denials, synchronized OBS and reconnect behavior. | Fixture-tested local capabilities; full acceptance pending. |
+| v0.3 | Append-only points ledger/accrual, estimated watchtime, atomic rewards/redemption/refunds, leaderboard, polls/raffles and Discord/widgets; command groups/random pools/counters/conditions. | v0.2. Durable balances, no overspending/double-awards/votes, eligibility and audited draws/refunds. | Fixture-tested local capabilities; full acceptance pending. |
+| v1.0 | Stream analytics/charts/CSV/JSON, versioned configuration import/conflict previews, remaining declared widgets, advanced moderation, scoped owner integration API, polished operator/contributor docs, upgrade/recovery quality. | v0.3. Complete PRD coverage, three unaided independent installations, reference-host benchmark, and upgrade/migration-failure recovery evidence. | Local analytics/import/API/widget implementation; bulk/live/benchmark/release gates pending. |
 
 The complete v1 widget inventory remains PRD section 11.4: event feed, goals/multi-goal board, supporter labels, stream status/uptime, supported viewer counters, media/queue, leaderboard, polls, raffles, countdown, shoutout, and rotating social/activity text. Unknown provider values remain unavailable, never fixture numbers or invented zeroes.
 
@@ -60,4 +60,4 @@ After v1: ARM64, optional TTS, supported clip helpers, OBS scene control, declar
 - Preserve settings/balances/queue; default chat detail 7 days, operational receipts 30 days, aggregate summaries 90 days. Security audit retention is separate. Operator configuration/exports/privacy tools arrive with release capabilities.
 - Follow SECURITY.md for private reporting; never publish exploit details or operator data in issues. Images are versioned to source and include dependency/license information. CI verifies documentation, secrets, source/tests, and containers; registry publication waits for release acceptance.
 
-Detailed local results and live evidence fields are in FOUNDATION.md. A milestone is complete because its scenario and failures work, not because routes or schemas exist.
+Historical foundation evidence is in [FOUNDATION.md](FOUNDATION.md); current build/automated evidence and later acceptance are in [MILESTONES.md](MILESTONES.md). The assembled campaign is documented in [TESTING.md](TESTING.md), and the complete [live runbook](LIVE_ACCEPTANCE.md) is prepared with deployment deferred by the owner. A milestone is complete because its scenario and failures work, not because routes or schemas exist.

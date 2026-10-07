@@ -5,7 +5,7 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   outputDir: "output/playwright/results",
-  use: { baseURL: "http://127.0.0.1:3137", trace: "retain-on-failure" },
+  use: { baseURL: "http://127.0.0.1:3137", trace: "retain-on-failure", browserName: (process.env.KEKBOT_TEST_BROWSER ?? "chromium") as "chromium" | "firefox" | "webkit" },
   webServer: {
     command: "node scripts/e2e-server.mjs",
     url: "http://127.0.0.1:3137/api/health/ready",

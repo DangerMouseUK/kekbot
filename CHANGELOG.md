@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.0-dev.0 — Local product build, unreleased
+
+- Added one-time owner setup, Argon2id local accounts, invitations, role/grant checks, revocable sessions, CSRF protection and stopped-host owner recovery.
+- Added the shared dashboard, versioned configuration, authenticated durable SSE, audits, diagnostics and explicit opt-in foundation tools.
+- Added custom commands/aliases/response pools/counters/conditions, safe previews, utilities, restart-safe timers and owner Kick lifecycle controls.
+- Added signed deferred Discord interactions, configured guild/channel routing and role/user permissions through shared services.
+- Added bounded alerts, local image/audio assets, goals, three themes and 18 scoped OBS widget/player kinds.
+- Added official YouTube metadata validation, durable requests/approvals/queue, one player lease, bound acknowledgements and restart/error pause semantics.
+- Added moderation rules/safe tests/notes/escalation/temporary windows/reviewed bulk actions, points/rewards/refunds, polls and secure audited raffles.
+- Added observed-history analytics/CSV/JSON, retention/privacy controls, redacted support data, native configuration/asset portability and scoped owner API tokens.
+- Added schema 1→2 migration, account/module recovery checks, packaged CLI flows, production browser workflows, operator/API documentation, image source metadata and production license inventory. No new production dependencies were introduced.
+- Expanded assembled-product verification with separate-connection races, abrupt process termination, real SQLite capacity/read-only failures, migration rollback, provider permission/retry boundaries, production HTTP/SSE checks and development-only axe accessibility scans.
+- Added Chromium/Firefox/WebKit CI, read-only image/TLS/SSE proxy/restart checks, a fixture-only signed workload harness and complete testing/live acceptance guides. Added root coding-agent instructions and aligned public documentation.
+- Bounded job processing by count/time, committed completion/audit/live events together, and renewed the installation lease independently of slow provider requests.
+
+Exact automated results and remaining acceptance are tracked in [MILESTONES.md](docs/MILESTONES.md). New live deployment, independent trials and reference benchmarks remain required and deferred; this entry does not announce a stable release.
+
 ## 0.0.1 — Foundation work, unreleased
 
 - Corrected the project name to KekBot, selected MIT and Next.js, and moved the complete connected media workflow into v0.1.
@@ -13,4 +30,4 @@
 - Made new SQLite backup snapshots portable to read-only recovery mounts; added container restoration, asset and replay checks to fixture-only CI.
 - Added publication-policy checks and wider Git/Docker exclusions for private runtime configuration, credentials, captures, diagnostics and setup records.
 
-The single-owner live Kick foundation gate passed on 2026-10-02, supported by local and Linux/container verification. Independent-owner trials and another-host restoration remain release-candidate requirements. Installation and accounts is next; this version does not implement the remaining v0.1 modules.
+The single-owner live Kick foundation gate passed on 2026-10-02, supported by local and Linux/container verification. At that snapshot, installation/accounts and the remaining v0.1 modules were still future work. Independent-owner trials and another-host restoration remain release-candidate requirements.

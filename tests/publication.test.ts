@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync, unlinkSync } from "node:fs";
 import { generateKeyPairSync } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -21,6 +21,16 @@ function checkout() {
 }
 
 describe("publication boundary", () => {
+  it("handles unstaged deletions while still inspecting indexed private material", () => {
+    const repo = checkout(), path = join(repo.cwd, "obsolete.txt");
+    writeFileSync(path, "obsolete clean implementation"); repo.git(["add", "obsolete.txt"]); unlinkSync(path);
+    expect(repo.check().status).toBe(0);
+    const pair = generateKeyPairSync("ed25519", { privateKeyEncoding: { type: "pkcs8", format: "pem" }, publicKeyEncoding: { type: "spki", format: "pem" } });
+    writeFileSync(path, pair.privateKey); repo.git(["add", "obsolete.txt"]); unlinkSync(path);
+    const result = repo.check();
+    expect(result.status).toBe(1); expect(result.stderr).toContain("private key or personal path");
+    expect(result.stderr).not.toContain(pair.privateKey);
+  });
   it("allows reusable config and an empty provider example", () => {
     const repo = checkout();
     writeFileSync(join(repo.cwd, ".env.example"), "KEKBOT_MODE=fixture\nKICK_CLIENT_ID=\nKICK_CLIENT_SECRET=\n");

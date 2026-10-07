@@ -8,7 +8,7 @@ import { AppError } from "../errors.ts";
 import { digest } from "../crypto.ts";
 import type { Config } from "../config.ts";
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export type Store = ReturnType<typeof openStore>;
 
 export function openStore(config: Pick<Config, "database" | "directory" | "assets" | "key" | "mode">) {
@@ -22,15 +22,18 @@ export function openStore(config: Pick<Config, "database" | "directory" | "asset
     const hasSettings = sqlite.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='settings'").get();
     if (hasSettings) {
       const version = sqlite.prepare("SELECT value FROM settings WHERE key='schema_version'").get() as { value: string } | undefined;
-      if (version && Number(version.value) !== SCHEMA_VERSION) throw new AppError("unsupported_schema_version", 503);
+      if (version && (!Number.isInteger(Number(version.value)) || Number(version.value) < 1 || Number(version.value) > SCHEMA_VERSION)) throw new AppError("unsupported_schema_version", 503);
       const fingerprint = sqlite.prepare("SELECT value FROM settings WHERE key='key_fingerprint'").get() as { value: string } | undefined;
       if (fingerprint && fingerprint.value !== digest(config.key)) throw new AppError("encryption_key_does_not_match_database", 503);
+      const mode = sqlite.prepare("SELECT value FROM settings WHERE key='mode'").get() as { value: string } | undefined;
+      if (mode && mode.value !== config.mode) throw new AppError("database_mode_mismatch", 503);
+      if (version && Number(version.value) < SCHEMA_VERSION && sqlite.prepare("SELECT 1 FROM leases WHERE name='instance' AND expires_at>?").get(Date.now())) throw new AppError("stop_application_before_upgrade", 503);
     }
     const orm = drizzle(sqlite, { schema });
     const migrations = resolve("drizzle");
     if (!existsSync(migrations)) throw new AppError("migrations_directory_missing", 503);
     migrate(orm, { migrationsFolder: migrations });
-    sqlite.prepare("INSERT OR IGNORE INTO settings (key,value) VALUES (?,?)").run("schema_version", String(SCHEMA_VERSION));
+    sqlite.prepare("INSERT INTO settings (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run("schema_version", String(SCHEMA_VERSION));
     sqlite.prepare("INSERT OR IGNORE INTO settings (key,value) VALUES (?,?)").run("key_fingerprint", digest(config.key));
     sqlite.prepare("INSERT OR IGNORE INTO settings (key,value) VALUES (?,?)").run("mode", config.mode);
     const mode = sqlite.prepare("SELECT value FROM settings WHERE key='mode'").get() as { value: string };

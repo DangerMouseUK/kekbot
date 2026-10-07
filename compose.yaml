@@ -1,7 +1,10 @@
 services:
   kekbot:
-    build: .
-    image: kekbot:0.0.1
+    build:
+      context: .
+      args:
+        VCS_REF: ${KEKBOT_SOURCE_REF:-unknown}
+    image: kekbot:0.1.0-dev.0
     init: true
     restart: unless-stopped
     env_file: ${KEKBOT_ENV_FILE:-.env.local}

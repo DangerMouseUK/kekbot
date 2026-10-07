@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, realpathSync } from "node:fs";
 import { join } from "node:path";
+import { writeNotices } from "./license-notices.mjs";
 
 const result = spawnSync(process.execPath, ["node_modules/next/dist/bin/next", "build"], {
   stdio: "inherit",
@@ -26,3 +27,4 @@ for (const part of ["package.json", "LICENSE", "lib", "prebuilds", "build/Releas
   if (existsSync(source)) cpSync(source, join(sqliteTarget, part), { recursive: true, dereference: true });
 }
 if (existsSync("public")) cpSync("public", ".next/standalone/public", { recursive: true });
+writeNotices();

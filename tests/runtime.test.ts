@@ -6,6 +6,21 @@ import { environment, fixtureChat, repository } from "./helpers.ts";
 import { DeliveryError } from "../src/server/errors.ts";
 
 describe("bounded background runtime", () => {
+  it("renews its installation lease while a provider request outlasts the original lease", async () => {
+    vi.useFakeTimers();
+    const { config } = environment(), runtime = new Runtime(config);
+    Object.assign(runtime.config, { mode: "live" });
+    let complete!: () => void;
+    const reply = vi.spyOn(runtime.kick, "reply").mockImplementation(() => new Promise<void>(resolve => { complete = resolve; }));
+    try {
+      runtime.repository.enqueue("slow-provider", "kick.reply", {}, 0);
+      runtime.start(); await Promise.resolve();
+      expect(reply).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(35000);
+      expect(() => runtime.repository.acquireLease("competing-runtime")).toThrow("instance_already_running_or_in_maintenance");
+      expect(runtime.healthy()).toBe(true);
+    } finally { complete?.(); await runtime.stop(); vi.useRealTimers(); }
+  });
   it("processes persisted work without a dashboard and resumes after restart", async () => {
     const { config } = environment();
     const repo = repository(config);
