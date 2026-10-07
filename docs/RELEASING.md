@@ -28,6 +28,8 @@ gh workflow run ci.yml --ref <BRANCH_OR_COMMIT> --field soak=true --field packag
 
 The soak uses isolated generated fixtures, 25 signed commands/second for one hour, a 100/second burst for one minute, five Chromium sources, backlog drainage and restart. Only allowlisted aggregate measurements enter its public step summary. It shares hosted-runner resources with its driver/browsers, so it cannot pass the PRD reference-host gates. Raw workload data, private credentials, browser traces and screenshots are never uploaded.
 
+Use `--field soak=false --field package=true` for a packaging rehearsal alone. PR checks, ordinary manual runs and full-soak runs have separate concurrency groups, so packaging or a documentation push does not cancel an active hour-long soak. A newer run of the same profile/branch replaces its predecessor.
+
 The optional artifact is `kekbot-candidate-<source SHA>`, retained for 14 days. It contains only audited release archives/metadata/checksums under ignored `output/release`. Artifact upload runs only after container/recovery, image-layer scanning, checksum verification and an exported-image round trip pass. That round trip loads the archive, verifies its recorded image identity, and initializes/seeds/checks a fresh volume as the non-root user with a read-only root and no network access. It is a distribution rehearsal, not an accepted release. A manually dispatched run does not replace required PR checks.
 
 Local/source-only preparation needs a clean committed checkout and no Docker:
