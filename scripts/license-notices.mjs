@@ -32,7 +32,7 @@ export function writeNotices() {
         if (pkg.name.startsWith("@img/sharp-libvips-") && pkg.version === "1.3.4" && pkg.license === "LGPL-3.0-or-later") {
           const supplemental = join(root, "licenses/sharp-libvips-1.3.4");
           mkdirSync(target, { recursive: true });
-          for (const name of readdirSync(supplemental)) { cpSync(join(supplemental, name), join(target, name)); notices.push(name); }
+          for (const file of readdirSync(supplemental)) { const name = file === "README.md" ? "PROVENANCE.md" : file; cpSync(join(supplemental, file), join(target, name)); notices.push(name); }
           for (const name of ["README.md", "versions.json"]) { cpSync(join(directory, name), join(target, name)); notices.push(name); }
         }
         let fallback;
