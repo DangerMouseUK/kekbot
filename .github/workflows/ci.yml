@@ -72,7 +72,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - name: Use the official HTTPS Ubuntu package mirror
+        # The runner's Azure HTTP mirror can stall apt before tests start.
+        run: printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
       - run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+        timeout-minutes: 8
       - run: pnpm test:e2e
       # Traces, screenshots, databases and generated credentials stay on the
       # ephemeral runner. Never upload them as public workflow artifacts.
