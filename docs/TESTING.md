@@ -38,7 +38,7 @@ Run the Compose validation and Caddy adaptation commands from [.github/workflows
 
 ## GitHub Actions
 
-Pushes, pull requests and manual workflow runs execute the read-only CI workflow on Ubuntu 24.04:
+Pushes to `main`, pull requests and manual workflow runs execute the read-only CI workflow on Ubuntu 24.04. Feature-branch pushes use their pull request's campaign; before opening a PR, maintainers can invoke it manually. This avoids duplicate push/PR runs cancelling each other's checks. A new commit cancels only the superseded campaign for that branch.
 
 | Job | Evidence |
 | --- | --- |
