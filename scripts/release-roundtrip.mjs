@@ -22,7 +22,8 @@ try {
   const options = ["run", "--rm", "--network", "none", "--read-only", "--tmpfs", "/tmp:rw,nosuid,size=16m", "--env", "KEKBOT_MODE=fixture", "--env", "KICK_BROADCASTER_USER_ID=123", "--volume", `${volume}:/data`, imageId, "node", "src/cli.ts"];
   run([...options, "init"]);
   run([...options, "fixture-seed"]);
-  run([...options, "doctor"]);
+  const diagnosis = JSON.parse(run([...options, "doctor"]));
+  if (diagnosis.mode !== "fixture" || diagnosis.integrity !== "ok" || Number(diagnosis.schemaVersion?.value) !== metadata.schemaVersion || !diagnosis.accounts.some(account => account.role === "owner" && account.count === 1)) throw new Error("release_roundtrip_diagnostics_failed");
   process.stdout.write("Exported image archive loaded with its recorded identity; fresh non-root/read-only fixture installation and diagnostics passed without network access.\n");
 } catch { process.stderr.write("release_archive_roundtrip_failed; no runtime configuration or credential values printed.\n"); process.exitCode = 1; }
 finally { if (created) run(["volume", "rm", volume]); }
