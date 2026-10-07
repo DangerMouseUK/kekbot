@@ -57,8 +57,8 @@ The default order is numerical. The dependencies identify the capabilities each 
 | 13 | Expanded commands and complete widget set | 4, 8, 10–12 | Build complete — local fixtures; acceptance pending |
 | 14 | Analytics, privacy, retention and support diagnostics | 3–13 | Build complete — local fixtures; acceptance pending |
 | 15 | Configuration portability and owner integration API | 2–14 | Build complete — local fixtures; acceptance pending |
-| 16 | Distribution, maintenance and complete documentation | 2–15 | In progress — implementation/local checks complete; current container verification pending |
-| 17 | Bulk automated testing and candidate hardening | 2–16 build complete | In progress — expanded local campaign passing; candidate CI pending |
+| 16 | Distribution, maintenance and complete documentation | 2–15 | Build complete — source/package and Linux image/proxy/recovery checks passed; live acceptance pending |
+| 17 | Bulk automated testing and candidate hardening | 2–16 build complete | Accepted — automated candidate campaign passed 2026-10-07; live acceptance remains Milestone 18 |
 | 18 | New deployment, live trials and operational acceptance | 17; test hosts and operators | Prepared — runbook/harness ready; deployment deferred by owner |
 | 19 | Stable v1 release and project completion | 17–18 accepted | Planned |
 
@@ -475,7 +475,7 @@ These are separate future programmes, not hidden prerequisites for completing Mi
 
 ## Local implementation evidence — 2026-10-07
 
-Source: working-tree batch based on `72d14a1`; not yet committed or pushed. Application `0.1.0-dev.0`, Node 24.21.0, pnpm 10.26.0, Next.js 16.3.8, React 19.3.0, schema 2 / backup format 1. No production dependency was added. All generated fixtures, account credentials, signing keys, screenshots and databases stay in ignored temporary storage.
+Source: initial local build based on `72d14a1`, before the candidate commits recorded below. Application `0.1.0-dev.0`, Node 24.21.0, pnpm 10.26.0, Next.js 16.3.8, React 19.3.0, schema 2 / backup format 1. No production dependency was added. All generated fixtures, account credentials, signing keys, screenshots and databases stay in ignored temporary storage.
 
 Verification results:
 
@@ -502,9 +502,9 @@ Verification results:
 | 13 | Expanded utilities/templates/counters and all 18 widget kinds | Fixture seed includes all kinds; browser renders every family, protected player separately; safe pure response previews | Complete widget content/visual/a11y/reconnect campaign |
 | 14 | Observed summaries/date/stream filters, sample statistics/gaps, CSV/JSON, retention/privacy/support | Sample mean/gap/stale stream tests; disabled chat history and pending-erasure guard; preserved ledger/support redaction | Long-session aggregate comparison, storage faults, privacy/security campaign |
 | 15 | Versioned native config/assets, dry-run conflicts/merge/replace, scoped owner API | Invalid replacement preserves prior state; asset round trip remaps references; scope/revocation and browser API denials | Larger imports/crash/permission campaign; no third-party importer claimed |
-| 16 | Complete operator/API/contributor docs, dependency licenses, image metadata, maintenance across modules | Production source build and packaged init/seed/recover/doctor/backup/restore outside checkout; actual v1→v2 migration | Current Linux image/proxy/container checks need Docker or CI; no registry publication |
+| 16 | Complete operator/API/contributor docs, dependency licenses, image metadata, maintenance across modules | Production source build and packaged init/seed/recover/doctor/backup/restore outside checkout; actual v1→v2 migration; subsequent Linux image/proxy/recovery CI passed below | Independent installation/live acceptance remains pending; no registry publication |
 
-Local checks are recorded against this working tree, not a release artifact. Current Docker/container execution is unavailable on this Windows host. Existing fixture-only CI retains the image, proxy-adaptation, non-root runtime, account/module and read-only backup restore checks; its result for this batch is pending. Historical Milestone 1 container evidence does not establish that the expanded image passes.
+Local checks above were recorded against the working tree, not a release artifact. Docker/container execution is unavailable on this Windows host; the subsequent Linux image/proxy/recovery campaign below supplies current candidate evidence. Historical Milestone 1 container evidence alone does not establish that the expanded image passes.
 
 Known boundaries: configuration envelopes are bounded to 12 MiB (use a full backup for larger installations); moderator viewer search displays the latest 100 observed profiles; analytics reconstruct summaries from retained observations and never claim complete provider coverage. A crash while importing files can leave an unreferenced asset for host inspection. These constraints and recovery steps are documented in OPERATIONS.md. At this initial build checkpoint, the bulk failure/concurrency/accessibility campaign was pending; its additional results follow below. Reference benchmarks, physical power loss, assistive-technology review and independent live operators still require Milestone 18 evidence.
 
@@ -525,8 +525,23 @@ Final local verification passed: `pnpm check` (19 Markdown documents, matching P
 
 The latest short workload completed 400/400 decisions and fixture replies with zero failures and five browser clients. Local peak RSS was about 256 MiB, peak backlog 136 jobs, post-burst drainage 2.7 seconds and three visible-update probes 225–342 ms. Receipt-to-decision p95 was 1.54 seconds including burst queueing; Windows forced-termination restart readiness was 30.7 seconds including lease expiry. These results establish functionality, not reference-host performance acceptance; latency/restart targets still need the prescribed isolated host and full profile.
 
-Candidate GitHub CI is pending while this batch is prepared. Record its exact commit/run and outcomes here before sign-off. Deployment is explicitly deferred by the owner; Milestone 18 is prepared, not accepted. Milestone 19 remains planned.
+### Candidate CI acceptance
+
+**Milestone 17 accepted for its automated scope on 2026-10-07.** [GitHub Actions run 37661724236](https://github.com/DangerMouseUK/kekbot/actions/runs/37661724236) passed all six jobs for candidate head `d844566998283e4b35f01718a159abf584c9ce75`. The pull-request checkout/OCI revision was `b71dc6674c7fa32371a87c5ad477018cb70701d5`, combining that head with the unchanged foundation base. The tested application image ID was `sha256:57d73500893175542138548fa957123e398dfc2a5815fb04353c968612e39673`; this was an ephemeral CI build, not a published registry image.
+
+| Job | Passing evidence |
+| --- | --- |
+| `verify` | Publication/docs/types/lint, all 95 unit/integration tests including real SQLite/provider/fault/concurrency cases, migration metadata, production audit, production build and packaged CLI recovery |
+| `secrets` | Redacted checksum-pinned Gitleaks scans of candidate files and complete fetched history |
+| `browser (chromium)` | All 10 production browser tests; five-client workload completed 400/400 decisions and replies without failures |
+| `browser (firefox)` | All 10 production browser tests |
+| `browser (webkit)` | All 10 production browser tests; dependency installation was delayed but the job completed successfully |
+| `container` | Compose and pinned Caddy adaptation, source-labelled non-root/read-only image, hostname/CA-verified fixture TLS, Secure cookies, actual streamed SSE, persistent CA storage, abrupt restart, signed intake, database/assets/module restore from read-only backup and duplicate protection |
+
+Earlier CI attempts exposed missing public-origin configuration and an incorrect HTTP Host header in the container driver. The driver was corrected without changing application permissions or TLS verification, and the full campaign above passed afterwards. The workload also led to the lease/batching/update fixes described above; their regression checks passed. No unresolved automated gate failure remains for this candidate.
+
+Physical host failure, real provider/OBS behaviour, public certificate renewal, reference-host targets and independent operators have no new acceptance result. Deployment is explicitly deferred by the owner; Milestone 18 is prepared, not accepted. Milestone 19 remains planned.
 
 ## Next work
 
-Complete Milestone 16/17 candidate CI, investigate failures and record evidence. Then schedule Milestone 18 on fresh authorised infrastructure using the live runbook, isolated provider apps, verified host identity and protected runtime storage. Do not reuse old host details or infer missing live outcomes from automation. Stable release publication waits for Milestone 19 and explicit authorisation.
+The build gate for Milestone 16 and the automated campaign for Milestone 17 are complete. When the owner authorises deployment, schedule Milestone 18 on fresh infrastructure using the live runbook, isolated provider apps, verified host identity and protected runtime storage. Do not reuse old host details or infer missing live outcomes from automation. Stable release publication waits for Milestone 19 and explicit authorisation.

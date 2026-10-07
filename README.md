@@ -2,7 +2,7 @@
 
 An MIT-licensed, self-hosted Kick and Discord bot and stream control room.
 
-**Current stage: candidate hardening, `0.1.0-dev.0`.** Accounts, dashboard, commands/timers, Discord controls, alerts/OBS sources, media approval/playback, moderation, goals, engagement, analytics and configuration/API services are implemented. Automated fixture, SQLite, failure, concurrency and browser campaigns verify the assembled build; this is not an accepted stable release. Follow the [milestones](docs/MILESTONES.md) for exact evidence and outstanding gates. The [live acceptance campaign](docs/LIVE_ACCEPTANCE.md) is prepared; new deployment is deferred. The original test droplet has been destroyed; no running deployment is assumed.
+**Current stage: automated candidate verified, `0.1.0-dev.0`.** Accounts, dashboard, commands/timers, Discord controls, alerts/OBS sources, media approval/playback, moderation, goals, engagement, analytics and configuration/API services are implemented. Milestone 17's fixture, SQLite, failure, concurrency, browser and Linux container campaign passed; this is not an accepted stable release. Follow the [milestones](docs/MILESTONES.md) for exact evidence and outstanding gates. The [live acceptance campaign](docs/LIVE_ACCEPTANCE.md) is prepared; new deployment is deferred. The original test droplet has been destroyed; no running deployment is assumed.
 
 ## Start locally
 
