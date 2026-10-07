@@ -556,6 +556,25 @@ The optional GitHub artifact contains only public source/image/notices/checksum 
 
 Final publication checks cover the complete public file set, Git history and commit metadata, installation addresses/personal paths, empty provider examples, image layers and downloaded source. No provider credential or installation detail was found; public aliases/noreply identities and required upstream attribution are retained. Raw reports, fixture credentials, runtime data and private operator records stay outside the publication set. No test host, live provider action, registry image, tag or GitHub release was created.
 
+### Full-duration synthetic soak
+
+The [full-duration soak job](https://github.com/DangerMouseUK/kekbot/actions/runs/37678168180/job/112986957003) **passed** on 2026-10-07 for source `d269afa39214384669da80a46456ba4836d46bc0`. It submitted 25 signed commands/second for 3,600 seconds and 100/second for 60 seconds, with five Chromium sources, backlog drainage and application restart. All **96,000 requests produced 96,000 decisions and 96,000 fixture replies**, with zero failed operations or driver errors.
+
+| Hosted-CI measurement | Result |
+| --- | --- |
+| Peak sampled application RSS | 492.15 MiB |
+| Peak sampled pending decisions + replies | 16 |
+| Post-burst backlog drainage | 516.39 ms |
+| HTTP intake p95 | 60.57 ms |
+| Receipt-to-decision p95 | 120 ms |
+| Receipt-to-fixture-reply p95 | 151 ms |
+| Restart readiness | 956.99 ms |
+| Five-client visible-update probes | 305.04 / 291.15 / 285.08 ms |
+
+These are shared hosted-runner measurements, not reference-host or real-provider acceptance. Application source and the workload driver are unchanged between that soak and candidate `5305f202cddbdf100c835aa47a9f9ce8a5ab77da`; subsequent changes concern release tooling, license packaging, tests and documentation. The same initial workflow's packaging job failed on framework-generated key classification; the corrected packaging runs below passed. The passing soak job must not be described as an entirely passing initial workflow.
+
+[Final candidate rehearsal 37684049586](https://github.com/DangerMouseUK/kekbot/actions/runs/37684049586) passed all six ordinary jobs, including 107 unit/integration cases and all 11 browser cases in each engine. Its source is `5305f202cddbdf100c835aa47a9f9ce8a5ab77da` and retained Linux/amd64 image ID is `sha256:722d3727e9465d3a8e6e6cff8072fa94e71f89078a5caa578f60dc7ce521ee53`. The downloaded candidate's source/image/notices/metadata checksums all matched. The [PR verification run](https://github.com/DangerMouseUK/kekbot/actions/runs/37684054756) also passed all six ordinary jobs. These artifacts remain unaccepted; all 33 live/operator gates remain pending.
+
 ## Next work
 
 The build gate for Milestone 16, automated Milestone 17 campaign and autonomous Milestones 18–19 preparation are complete. When the owner authorises deployment, run Milestone 18 on fresh infrastructure using the live runbook, isolated provider apps, verified host identity and protected runtime storage. Complete reference-host measurements, independent owner/installer trials and another-host restoration; then finish Milestone 19's stable sign-off, authorized publication and published-artifact clean installation. Do not reuse old host details or infer missing live outcomes from automation.
