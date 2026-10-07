@@ -27,8 +27,8 @@ async function ready(origin) {
 }
 function trustedProxy(port, ca, token, protectedStatus = false) {
   return new Promise((resolve, reject) => {
-    const request = httpsRequest({ hostname: "127.0.0.1", port, servername: "kekbot.example", ca, rejectUnauthorized: true, path: protectedStatus ? "/api/foundation/status" : "/api/health/ready", headers: { Authorization: `Bearer ${token}` } }, response => {
-      if (response.statusCode !== 200 || !response.socket.authorized) { response.resume(); reject(new Error("proxy_tls_or_readiness_failed")); return; }
+    const request = httpsRequest({ hostname: "127.0.0.1", port, servername: "kekbot.example", ca, rejectUnauthorized: true, path: protectedStatus ? "/api/foundation/status" : "/api/health/ready", headers: { Host: "kekbot.example", Authorization: `Bearer ${token}` } }, response => {
+      if (response.statusCode !== 200 || !response.socket.authorized || !response.headers["content-type"]?.startsWith("application/json")) { response.resume(); reject(new Error("proxy_tls_or_readiness_failed")); return; }
       response.resume(); response.once("end", resolve);
     });
     request.setTimeout(10000, () => request.destroy(new Error("proxy_timeout"))); request.once("error", reject); request.end();
@@ -84,7 +84,7 @@ try {
   await waitProxy(proxyPort, ca, token);
   // Exercise an actual event stream through Caddy with hostname and CA validation.
   await new Promise((resolve, reject) => {
-    const req = httpsRequest({ hostname: "127.0.0.1", port: proxyPort, servername: "kekbot.example", ca, rejectUnauthorized: true, path: "/api/events", headers: { Cookie: cookie } }, res => {
+    const req = httpsRequest({ hostname: "127.0.0.1", port: proxyPort, servername: "kekbot.example", ca, rejectUnauthorized: true, path: "/api/events", headers: { Host: "kekbot.example", Cookie: cookie } }, res => {
       if (res.statusCode !== 200 || !res.headers["content-type"]?.startsWith("text/event-stream") || !res.socket.authorized) { res.resume(); reject(new Error("proxy_stream_headers_failed")); return; }
       res.once("data", chunk => { if (!chunk.toString().includes("event: snapshot")) reject(new Error("proxy_stream_buffered_or_invalid")); else resolve(); req.destroy(); });
     });
