@@ -19,7 +19,9 @@ export function readPaths(env: Environment = process.env) {
     assets: join(directory, "assets"),
     keyFile: resolve(/* turbopackIgnore: true */ env.KEKBOT_ENCRYPTION_KEY_FILE ?? join(directory, "secrets", "encryption.key")),
     proofTokenFile: resolve(/* turbopackIgnore: true */ env.KEKBOT_PROOF_TOKEN_FILE ?? join(directory, "secrets", "proof.token")),
-    fixturePublicKeyFile: join(directory, "secrets", "fixture-public.pem")
+    setupTokenFile: join(directory, "secrets", "setup.token"),
+    fixturePublicKeyFile: join(directory, "secrets", "fixture-public.pem"),
+    fixtureDiscordPublicKeyFile: join(directory, "secrets", "fixture-discord-public.pem")
   };
 }
 
@@ -56,8 +58,9 @@ export function readConfig(env: Environment = process.env) {
     ...paths, key: Buffer.from(rawKey, "hex"), proofToken, publicUrl, broadcasterId, chatType,
     clientId: env.KICK_CLIENT_ID,
     clientSecret: env.KICK_CLIENT_SECRET_FILE ? secretFile(env.KICK_CLIENT_SECRET_FILE, "kick_secret_missing") : env.KICK_CLIENT_SECRET,
-    runJobs: env.KEKBOT_RUN_JOBS === "1",
-    fixturePublicKey: paths.mode === "fixture" ? secretFile(paths.fixturePublicKeyFile, "fixture_key_missing_run_init") : undefined
+    runJobs: env.KEKBOT_RUN_JOBS === "1", enableProof: env.KEKBOT_ENABLE_PROOF === "1",
+    fixturePublicKey: paths.mode === "fixture" ? secretFile(paths.fixturePublicKeyFile, "fixture_key_missing_run_init") : undefined,
+    fixtureDiscordPublicKey: paths.mode === "fixture" ? secretFile(paths.fixtureDiscordPublicKeyFile, "fixture_discord_key_missing_run_init") : undefined
   };
 }
 

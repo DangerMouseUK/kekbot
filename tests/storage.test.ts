@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { environment, fixtureChat, repository } from "./helpers.ts";
 import { jobs, receipts } from "../src/server/storage/schema.ts";
-import { openStore } from "../src/server/storage/database.ts";
-import { processEvent } from "../src/server/domain/process-event.ts";
+import { openStore, SCHEMA_VERSION } from "../src/server/storage/database.ts";
+import { BotService } from "../src/server/domain/bot.ts";
 import type { Repository } from "../src/server/storage/repository.ts";
 
 const opened: Repository[] = [];
@@ -27,13 +27,13 @@ describe("real SQLite persistence", () => {
   });
 
   it("commits a unique receipt and its job together, suppressing replay", () => {
-    const { repo } = setup();
+    const { repo, config } = setup();
     expect(repo.acceptReceipt("delivery", "chat.message.sent", fixtureChat())).toBe(true);
     expect(repo.acceptReceipt("delivery", "chat.message.sent", fixtureChat())).toBe(false);
     expect(repo.store.orm.select().from(receipts).all()).toHaveLength(1);
     expect(repo.store.orm.select().from(jobs).all()).toHaveLength(1);
     const job = repo.claim()!;
-    processEvent(repo, job);
+    new BotService(repo, config).event(job);
     expect(repo.store.orm.select().from(jobs).where(eq(jobs.id, "reply:delivery")).get()?.status).toBe("pending");
     expect(repo.claim()?.kind).toBe("kick.reply");
   });
@@ -66,15 +66,15 @@ describe("real SQLite persistence", () => {
     expect(() => openStore({ ...config, key: Buffer.alloc(32, 4) })).toThrow("encryption_key_does_not_match_database");
     expect(() => openStore({ ...config, mode: "live" })).toThrow("database_mode_mismatch");
     const reopened = repository(config); opened.push(reopened);
-    reopened.set("schema_version", "2"); reopened.store.close();
+    reopened.set("schema_version", String(SCHEMA_VERSION + 1)); reopened.store.close();
     expect(() => openStore(config)).toThrow("unsupported_schema_version");
   });
 
   it("retains pending work while removing old chat text and expired state", () => {
-    const { repo } = setup();
+    const { repo, config } = setup();
     const now = Date.now();
     repo.acceptReceipt("old", "chat.message.sent", fixtureChat(), now - 8 * 86400000);
-    processEvent(repo, repo.claim()!);
+    new BotService(repo, config).event(repo.claim()!);
     repo.acceptReceipt("pending", "chat.message.sent", fixtureChat(), now - 31 * 86400000);
     repo.retain(now);
     expect(repo.store.orm.select().from(receipts).where(eq(receipts.id, "old")).get()?.payload).toBeNull();

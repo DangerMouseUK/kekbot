@@ -21,6 +21,13 @@ function saveExpired(context: ReturnType<typeof setup>, expiresAt = 0) {
 }
 
 describe("Kick contract", () => {
+  it("accepts the documented empty 204 confirmation for chat deletion", async () => {
+    const context = setup();
+    context.repo.store.orm.insert(connections).values({ provider: "kick", secret: encrypt(JSON.stringify({ ...token, scope: [...KICK_SCOPES, "moderation:chat_message:manage"].join(" "), expiresAt: Date.now() + 3600000, userId: 123, username: "creator" }), context.config.key, "kick.tokens"), updatedAt: 0 }).run();
+    context.request.mockResolvedValueOnce(new Response(null, { status: 204 }));
+    await expect(context.service.moderate({ action: "delete", userId: 456, messageId: "fixture-message", reason: "fixture" })).resolves.toBeUndefined();
+    expect(context.request.mock.calls[0][0]).toBe("https://api.kick.com/public/v1/chat/fixture-message");
+  });
   it("uses PKCE and consumes browser-bound state once, storing only encrypted tokens", async () => {
     const { config, repo, request, service } = setup();
     const url = new URL(service.authorize("browser-binding"));

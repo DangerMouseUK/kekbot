@@ -34,8 +34,8 @@ export class Repository {
   claim(now = Date.now(), leaseMs = 30000): Job | undefined {
     return this.store.sqlite.transaction(() => {
       // A crashed outbound send may already have reached Kick. Never resend it automatically.
-      this.store.sqlite.prepare("UPDATE jobs SET status='uncertain',last_error='worker_lost_during_delivery',lease_owner=NULL,lease_until=NULL WHERE kind='kick.reply' AND status='running' AND lease_until<=?").run(now);
-      this.store.sqlite.prepare("UPDATE jobs SET status='pending',lease_owner=NULL,lease_until=NULL WHERE kind!='kick.reply' AND status='running' AND lease_until<=?").run(now);
+      this.store.sqlite.prepare("UPDATE jobs SET status='uncertain',last_error='worker_lost_during_delivery',lease_owner=NULL,lease_until=NULL WHERE kind IN ('kick.reply','kick.action','discord.send','discord.interaction') AND status='running' AND lease_until<=?").run(now);
+      this.store.sqlite.prepare("UPDATE jobs SET status='pending',lease_owner=NULL,lease_until=NULL WHERE kind NOT IN ('kick.reply','kick.action','discord.send','discord.interaction') AND status='running' AND lease_until<=?").run(now);
       const row = this.store.sqlite.prepare("SELECT id FROM jobs WHERE status='pending' AND due_at<=? ORDER BY due_at,created_at,id LIMIT 1").get(now) as { id: string } | undefined;
       if (!row) return undefined;
       this.store.orm.update(jobs).set({ status: "running", leaseUntil: now + leaseMs, leaseOwner: randomUUID() }).where(eq(jobs.id, row.id)).run();
@@ -58,8 +58,9 @@ export class Repository {
 
   retain(now = Date.now()) {
     this.store.orm.delete(oauthStates).where(lt(oauthStates.expiresAt, now)).run();
-    this.store.sqlite.prepare("UPDATE receipts SET payload=NULL WHERE event_type='chat.message.sent' AND received_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.id='event:'||receipts.id AND jobs.status IN ('pending','running'))").run(now - 7 * 86400000);
-    this.store.sqlite.prepare("DELETE FROM receipts WHERE received_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.id='event:'||receipts.id AND jobs.status IN ('pending','running'))").run(now - 30 * 86400000);
+    const settings = JSON.parse((this.store.sqlite.prepare("SELECT data FROM documents WHERE id='instance'").get() as { data: string } | undefined)?.data ?? "{}");
+    this.store.sqlite.prepare("UPDATE receipts SET payload=NULL WHERE event_type='chat.message.sent' AND received_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.id='event:'||receipts.id AND jobs.status IN ('pending','running'))").run(now - (settings.chatDays ?? 7) * 86400000);
+    this.store.sqlite.prepare("DELETE FROM receipts WHERE received_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.id='event:'||receipts.id AND jobs.status IN ('pending','running'))").run(now - (settings.receiptDays ?? 30) * 86400000);
     this.store.sqlite.prepare("DELETE FROM jobs WHERE status='succeeded' AND created_at<?").run(now - 30 * 86400000);
   }
 

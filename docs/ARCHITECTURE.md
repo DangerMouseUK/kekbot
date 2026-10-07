@@ -1,6 +1,6 @@
 # KekBot architecture decisions
 
-Date: 2026-10-01. Status: implementation decisions selected; single-owner foundation live gate passed 2026-10-02.
+Updated: 2026-10-07. Status: foundation live gate passed historically; local product build implemented; bulk/live acceptance pending.
 
 ## ADR 001 — One self-hosted application
 
@@ -14,29 +14,39 @@ Use better-sqlite3 with Drizzle ORM and checked-in SQL migrations. Enable foreig
 
 Job state is pending/running/succeeded/failed/uncertain. Leases recover abandoned local work; abandoned outbound sends become uncertain because the provider may have accepted them. Only explicit rate-limit responses are automatically retried, with bounded delay and attempt count. Do not promise exactly-once external delivery.
 
-An instance lease prevents a second runtime or offline maintenance process from operating concurrently. A dead instance lease expires within 30 seconds; startup waits for its expiry. Multiple replicas/network-filesystem SQLite remain unsupported.
+An instance lease prevents a second runtime or offline maintenance process from operating concurrently. It renews every five seconds independently of provider I/O. A dead instance lease expires within 30 seconds; startup waits for its expiry. Multiple replicas/network-filesystem SQLite remain unsupported.
 
 Use a real SQLite backup snapshot, not a copy of a live WAL database. Foundation backups require the application to be stopped and include local assets/checksums. Restore validates schema, mode, original key fingerprint, database integrity, and asset hashes before publishing to new storage. Never overwrite an existing installation during restore.
 
 ## ADR 003 — Explicit runtime lifecycle
 
-Next.js instrumentation imports Node-only bootstrap code when `NEXT_RUNTIME=nodejs` and `KEKBOT_RUN_JOBS=1`. A process-global runtime singleton prevents duplicate runner initialization. Processing is bounded to ten jobs per tick, with leased ownership and storage-backed heartbeats. No HTTP request or browser tab owns the scheduler.
+Next.js instrumentation imports Node-only bootstrap code when `NEXT_RUNTIME=nodejs` and `KEKBOT_RUN_JOBS=1`. A process-global runtime singleton prevents duplicate runner initialization. Processing is bounded to 50 jobs or 200 ms of elapsed batch time, checked between jobs, then yields for 100 ms. An in-flight bounded provider request can exceed that elapsed budget; independent lease/heartbeat renewal continues during asynchronous I/O. Completion and its audit/live events commit together. No HTTP request or browser tab owns the scheduler.
 
 The build wrapper forces `KEKBOT_RUN_JOBS=0` and disables framework telemetry. Runtime data/secret paths are excluded from standalone tracing. Production startup uses manual signal handling for graceful lease release. Development fixtures use their own data directory and signing key and reject live credentials before any provider operation.
 
 ## ADR 004 — Authentication and provider trust
 
-The foundation temporarily uses a random host-managed proof token for operator endpoints; it is neither a default password nor a public setup route. OAuth also binds state to an HttpOnly, SameSite browser cookie. Tokens and PKCE material use AES-256-GCM with purpose-specific authenticated data; the encryption key lives outside the database and backup.
+Normal operator access uses Argon2id local accounts, revocable database sessions, same-origin JSON/CSRF checks and one-time host-token owner setup. Invitations expire and can be used once. Owner/Admin/Moderator/Read-only powers are checked at server entry points and in shared domain services. Queued human/API/Discord actions recheck their authority before execution. Retained proof endpoints are explicitly opt-in and require owner sessions in live mode. OAuth also binds state to an HttpOnly, SameSite browser cookie. Tokens and PKCE material use AES-256-GCM with purpose-specific authenticated data; the encryption key lives outside the database and backup.
 
-The next accounts increment adds Argon2id passwords, revocable sessions, one-time owner setup, expiring invitations, and the four PRD roles. It will replace foundation operator access before a v0.1 release. Widget reads and player acknowledgements receive separate revocable authority; account secrets never enter public state.
+Node 24's built-in asynchronous Argon2id uses 64 MiB / three passes / one lane with a unique salt, and hashing concurrency is bounded. Widget reads, player acknowledgements and owner API tokens have separate hashed, revocable authority. API tokens are scoped and cannot manage secrets or accounts. Account secrets never enter public state.
 
-Kick requests use fixed official hosts with redirects rejected and timeouts bounded. Verification uses the original request bytes and a key from the trusted Kick endpoint, never a caller header. The foundation accepts three documented event types for the configured broadcaster only. Its provisional signed-timestamp window is 48 hours with five minutes of future tolerance, based on documented retries extending beyond a day; live retry observations must confirm or revise this before release.
+Kick requests use fixed official hosts with redirects rejected and timeouts bounded. Verification uses the original request bytes and a key from the trusted Kick endpoint, never a caller header. Intake accepts documented chat/follow/stream and subscription variants for the configured broadcaster only. Its provisional signed-timestamp window is 48 hours with five minutes of future tolerance, based on documented retries extending beyond a day; live retry observations must confirm or revise this before release.
 
 ## ADR 005 — Web interfaces and later modules
 
-Use Next.js route handlers with uncached operational responses. Add authenticated SSE with stored event IDs/snapshot recovery when shared dashboard/widget state is built. Browser, Discord, and Kick controls call shared domain services. Owner integration tokens/API arrive after core workflows stabilize.
+Use Next.js route handlers with uncached operational responses. Authenticated SSE uses durable IDs, bounded replay and snapshot recovery; active sessions/source tokens are rechecked. Browser, signed Discord, verified Kick and scoped owner API actions call shared domain services. Discord interaction tokens are encrypted in durable jobs and never retained in receipt bodies.
 
 Media preserves the current item/queue after restart, pauses until moderator resume, then restarts the item from the beginning. Only one active player lease can acknowledge completion. Stale/disconnected players never advance a newer item.
+
+## ADR 006 — Local module state and portable configuration
+
+Schema 2 adds explicit account/session/token, queue, ledger/redemption, participation, incident, observation, audit and SSE tables. Declarative module configuration uses validated, versioned documents; internal ephemeral state uses bounded settings records. The checked-in schema 1→2 migration preserves foundation records and refuses upgrades while another runtime owns the lease.
+
+Media decisions and player acknowledgements use optimistic versions inside short transactions. Points are an append-only ledger, vote/entry identities are unique, and raffle selection uses cryptographic randomness with audited rerolls. Moderation rules are bounded string/window evaluations; templates, themes and imports execute no caller code. Incoming stream timestamps prevent stale status transitions.
+
+Analytics count only observed events, distinguish viewer samples from totals and expose missing worker coverage. Retention never deletes balances or pending queue decisions. Owner privacy actions state which integrity identifiers remain. Support bundles omit host/credential/raw-history data. Native configuration exports include validated asset bytes and remapped references, exclude authority/secrets/private history, and apply database changes atomically; failed imports clean up newly created assets. A process crash during file creation can leave an unreferenced asset for host inspection, without installing uncommitted configuration.
+
+Current module/service interfaces and operator workflows are documented in [API.md](API.md) and [OPERATIONS.md](OPERATIONS.md). [TESTING.md](TESTING.md) covers failure/concurrency/browser/container campaigns; [LIVE_ACCEPTANCE.md](LIVE_ACCEPTANCE.md) covers real-provider and operational evidence. [MILESTONES.md](MILESTONES.md) separates implementation, automated, live and release gates.
 
 ## References
 

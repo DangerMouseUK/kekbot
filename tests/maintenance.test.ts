@@ -10,7 +10,7 @@ function restoreConfig(context: ReturnType<typeof environment>) {
   const env = { ...context.env, KEKBOT_DATA_DIR: join(context.root, "restored") };
   const paths = readPaths(env);
   mkdirSync(join(paths.directory, "secrets"), { recursive: true });
-  for (const name of ["encryption.key", "proof.token", "fixture-public.pem", "fixture-private.pem"]) {
+  for (const name of ["encryption.key", "proof.token", "fixture-public.pem", "fixture-private.pem", "fixture-discord-public.pem", "fixture-discord-private.pem"]) {
     copyFileSync(join(context.config.directory, "secrets", name), join(paths.directory, "secrets", name));
   }
   return readConfig(env);

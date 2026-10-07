@@ -16,7 +16,7 @@ test("operator controls are protected and the browser shows real fixture state",
   for (const path of ["refresh", "capture"]) {
     expect((await request.post(`/api/foundation/kick/${path}`)).status()).toBe(401);
   }
-  await page.goto("/");
+  await page.goto("/foundation");
   await expect(page.getByRole("heading", { name: "KekBot", exact: true })).toBeVisible();
   await page.getByLabel("Foundation proof token").fill(secrets().token);
   await page.getByRole("button", { name: "Inspect status" }).click();

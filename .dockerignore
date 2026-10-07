@@ -36,6 +36,8 @@ output
 **/kick-live-evidence.json
 **/restore-evidence.json
 **/live-recovery-paths.json
+**/workload-driver.json
+**/workload-report.json
 **/KekBot-Test-Setup.md
 **/*.zip
 **/*.tar

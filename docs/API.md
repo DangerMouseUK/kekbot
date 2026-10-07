@@ -1,0 +1,105 @@
+# HTTP and domain interfaces
+
+Development API version: `v1`; implementation: `0.1.0-dev.0`, schema 2. Routes are dynamic/no-store. This is a pre-release interface; compatibility beyond the declared configuration/backup versions is not yet promised.
+
+## Authentication boundaries
+
+Dashboard operations use the HttpOnly `kekbot_session` cookie. `GET /api/auth` returns the current actor and CSRF token; mutation requests require matching Origin, `Content-Type: application/json` and `X-CSRF-Token`. No route accepts roles or actors supplied in request JSON. Domain services recheck permissions for mutations; deferred actions recheck current authority at execution.
+
+Owner API tokens are separate, individually named, shown once and stored hashed. Create them in Maintenance with only the required scopes; pass `Authorization: Bearer <TOKEN>` to `/api/v1/control`. Revocation takes immediate effect. The current limit is 60 requests/minute/token; it resets on process restart. Tokens never authorize login, secret management, accounts, host maintenance or widget/player operations.
+
+| Scope | Operations |
+| --- | --- |
+| `read` | `GET /api/v1/control` operational snapshot; protected moderator notes are excluded without `moderate` |
+| `configure` | `config.save/delete` for allowed domain documents; settings/guild mappings still require owner-only integration authority |
+| `operate` | `status`, `timers.pause/resume`, `alert.manual`, `goal.adjust` |
+| `moderate` | `moderation.warn/delete/timeout/ban/pause/resume/bulk/test`; moderator notes additionally use `configure` for API editing |
+| `media` | Request/approve/reject/remove/reorder/clear; player pause/resume/skip/volume |
+| `engage` | Points adjustments, reward complete/reject, activity close, raffle draw/reroll |
+
+The API adapter permits a bounded action allowlist and dispatches into the same control/domain services as the dashboard. It does not accept arbitrary provider URLs or executable templates. Authorization also runs inside domain services: an API action mapped to one scope may need another scope for its target document (for example notes). Use the narrow combined scopes required by your integration.
+
+## Examples
+
+Use your own origin and a token loaded privately by your caller. Example placeholders contain no credentials:
+
+```http
+GET /api/v1/control HTTP/1.1
+Authorization: Bearer <TOKEN>
+```
+
+```json
+{
+  "action": "config.save",
+  "input": {
+    "kind": "command",
+    "data": {
+      "name": "Welcome",
+      "trigger": "!welcome",
+      "responses": ["Welcome, {user}!"]
+    }
+  }
+}
+```
+
+POST this JSON to `/api/v1/control` with the appropriate bearer token. Updates include the existing `id` and `version`; stale edits fail with HTTP 409 and require a fresh snapshot. Creates return the saved document, stable ID and version. Provider actions return pending work; inspect job outcomes before declaring delivery successful.
+
+```json
+{"action":"media.approve","input":{"target":"<ITEM_ID>","version":2}}
+```
+
+```json
+{"action":"player.resume","input":{"version":3}}
+```
+
+```json
+{"action":"moderation.ban","input":{"target":"<VIEWER_ID>","reason":"Reviewed incident","acknowledge":true}}
+```
+
+IDs in these examples must be replaced with actual values obtained privately. Ban/delete/bulk require explicit acknowledgement; a bulk input uses numeric `targets` (up to 20 unique viewers), `operation`, `reason` and `acknowledge:true`. The API does not automatically retry arbitrary caller POSTs with a new ID; query current state before retrying a response whose outcome is unknown.
+
+## Route inventory
+
+| Route | Access and behaviour |
+| --- | --- |
+| `GET/POST /api/auth` | Setup/login/invite acceptance; session logout/password change. Bounded request/rate limits. |
+| `GET/POST /api/control` | Local session snapshot / action dispatch; owner additions for account/token/asset administration. |
+| `GET /api/control?view=analytics` | Local session; `from`/`to` Unix milliseconds and optional observed `stream` ID; `format=csv` for download, otherwise JSON. |
+| `POST /api/connections/kick` | Owner + CSRF; creates browser-bound OAuth authorization URL; optional `moderation=1`. |
+| `GET /api/providers/kick/callback` | Owner session, one-use state and binding cookie; encrypted matching-creator grant. |
+| `POST /api/providers/kick/events` | Original-byte RSA verification with trusted provider key, configured creator, bounded timestamp/body, transactional receipt/job intake. |
+| `POST /api/providers/discord/interactions` | Original-byte Ed25519 signature, timestamp/application/guild/channel checks; PING or durable deferred interaction. |
+| `GET /api/events` | Local session SSE; session rechecked continuously. |
+| `GET /api/widgets/:id?token=…` | Exact widget read token; minimal snapshot. `stream=1` selects SSE. |
+| `POST /api/player/:id` | Separate exact player bearer token; `lease` and bound completion/error acknowledgements. |
+| `GET /api/assets/:id` | Local session or alerts-widget read token; recognized safe file types, nosniff. |
+| `GET /api/health/live`, `/api/health/ready` | Public liveness / worker readiness, no private diagnostics. |
+| `/api/foundation/*` | Disabled by default. Explicit proof mode; live additionally owner session and CSRF on mutations. |
+
+## Configurations and actions
+
+`src/server/domain/catalog.ts` is the authoritative bounded schema inventory. Documents have stable IDs, kinds, JSON data, optimistic versions and update timestamps. Native configuration schemas reject unknown keys; HTTP mutations ignore no unknown document properties silently.
+
+Kinds: command, timer, alert, widget, rule, goal, reward, poll, raffle, note, guild and singleton settings (`instance`). `config.save` takes `kind`, optional `id`, `data`, and the current `version` for updates. `config.delete` takes `id`/`version`; settings cannot be deleted.
+
+Dashboard-only owner operations additionally manage accounts/invitations, encrypted integration settings, assets, read/player/API tokens, privacy exports/erasure, redacted support data and native configuration import/export. Pure `command.preview`, `timer.preview`, `alert.preview` and `moderation.test` do not enqueue live effects. Accounts/permissions and complete field workflows are described in [OPERATIONS.md](OPERATIONS.md).
+
+Configuration envelope: `{"format":"kekbot-config","version":1,"documents":[…],"assets":[…]}`. Portable kinds are commands/timers/alerts/widgets/rules/goals/rewards/settings. Each asset carries its original ID/name and base64 bytes. Import validates and remaps references to newly created local IDs; it never writes a caller-supplied path. Merge skips existing document IDs; replace removes the portable set before saving the validated replacement. A preview enumerates create/conflict/remove/asset decisions. Unsupported formats fail explicitly. Use full backups for account/history migration and larger asset sets.
+
+## Live state and playback
+
+SSE events have durable numeric IDs stored in SQLite. A caller may reconnect with `Last-Event-ID`; IDs outside retained history cause a snapshot recovery event. Dashboard events instruct the client to refetch authorized state; widget events carry only that source's minimal snapshot. Streams send heartbeats, use no-store/no-transform, disable proxy buffering and close on revocation. History is bounded to 1000 events and each pump to 100 IDs.
+
+Player requests use a separate bearer credential; read-only widget tokens cannot claim leases or acknowledge. Lease renewal runs every five seconds with a 15-second expiry. Completion/error input binds `lease`, `item`, `version`, and `action`. The visible player reports errors/autoplay restrictions and pauses; a disconnected lease never implies completion. Recovery preserves current item/queue, pauses, and requires moderator resume from the beginning.
+
+## Failures and durability
+
+Responses use sanitized error codes (and validation field names), never raw provider responses, passwords, bearer tokens or URLs containing secrets. Common statuses: 400 invalid input, 401 missing/expired authority, 403 insufficient permission/origin/CSRF, 409 stale state/invalid transition, 413 body too large, 429 rate limit, and 503 unavailable runtime/storage/configuration.
+
+Durable jobs distinguish pending/running/succeeded/failed/uncertain. Domain changes and their outbox entries commit atomically. Only explicit provider rate limits have safe bounded automatic retries. A terminated outbound action becomes uncertain rather than being blindly resent; operator reconciliation records the observed result. Local queue/points/vote transitions have durable IDs and short transactions. HTTP alone cannot guarantee exactly-once external delivery.
+
+Fixtures create signing keys and credentials at runtime in isolated ignored storage. CI exercises signed Kick/Discord intake and simulated playback without real credentials or provider mutations. See [architecture](ARCHITECTURE.md), [milestones](MILESTONES.md), and [contribution guidance](../CONTRIBUTING.md).
+
+## Fixture workload metrics
+
+`GET /api/foundation/workload?run=<16_UPPERCASE_HEX_CHARACTERS>&final=1` is a read-only development endpoint. It requires `KEKBOT_MODE=fixture`, explicit `KEKBOT_ENABLE_PROOF=1`, and the foundation proof bearer token. Live mode refuses it. The run selects synthetic delivery IDs by a validated prefix; results contain counts, optional receipt-to-decision/reply p95 and application RSS, without payloads, credentials or host details. Final latency queries are bounded to 200,000 completed pairs. Use only disposable fixture storage. See [testing](TESTING.md) and [live acceptance](LIVE_ACCEPTANCE.md) for measurement limits.

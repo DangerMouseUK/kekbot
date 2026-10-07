@@ -1,0 +1,21 @@
+import { rmSync } from "node:fs";
+import { afterEach, expect, it } from "vitest";
+import { workloadStats } from "../src/server/workload.ts";
+import { environment, repository } from "./helpers.ts";
+const cleanup: (() => void)[] = [];
+afterEach(() => { for (const fn of cleanup.splice(0).reverse()) fn(); });
+it("bounds run selectors and reports synthetic outcomes/latencies without payloads or credentials", () => {
+  const { root, config } = environment(); cleanup.push(() => rmSync(root, { recursive: true, force: true }));
+  const repo = repository(config); cleanup.push(() => repo.store.close());
+  expect(() => workloadStats(repo, "%")).toThrow("invalid_workload_run");
+  const run = "ABCDEF0123456789", id = `${run}0000000001`;
+  repo.acceptReceipt(id, "chat.message.sent", { content: "private synthetic text" }, 100);
+  const event = repo.claim(100)!; repo.finish(event, "succeeded");
+  repo.enqueue(`reply:${id}`, "kick.reply", { text: "private synthetic reply" }, 100);
+  repo.finish(repo.claim(100)!, "succeeded");
+  const result = workloadStats(repo, run, true);
+  expect(result.counts).toMatchObject({ received: 1, decided: 1, replied: 1, failures: 0 });
+  expect(result.latencies).toMatchObject({ completedSamples: 1 });
+  expect(JSON.stringify(result)).not.toContain("private synthetic"); expect(JSON.stringify(result)).not.toContain(config.proofToken);
+  expect(workloadStats(repo, "0000000000000000").counts).toMatchObject({ received: 0 });
+});

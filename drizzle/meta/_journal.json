@@ -8,6 +8,13 @@
       "when": 1790888680760,
       "tag": "0000_dizzy_grandmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791386635980,
+      "tag": "0001_brainy_the_watchers",
+      "breakpoints": true
     }
   ]
 }

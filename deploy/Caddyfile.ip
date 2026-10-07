@@ -10,8 +10,13 @@ https://{$KEKBOT_PUBLIC_IP} {
 			profile shortlived
 		}
 	}
-	request_body {
+	@provider path /api/providers/*
+	@application not path /api/providers/*
+	request_body @provider {
 		max_size 64KB
+	}
+	request_body @application {
+		max_size 12MiB
 	}
 	reverse_proxy kekbot:3000 {
 		flush_interval -1
