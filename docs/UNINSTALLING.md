@@ -51,3 +51,7 @@ Docker images and unrelated containers, volumes, networks and files are retained
 Host removal cannot complete provider-console cleanup. When retiring the bot, use the official provider dashboards to revoke OAuth grants and delete/disable unused apps/webhooks, Discord installation/commands and YouTube API keys as appropriate. Remove obsolete DNS/proxy/firewall forwarding yourself. Remove OBS browser sources and saved private URLs from your broadcasting setup. Never delete an application still used by another installation.
 
 For moving hosts, restore with the original key, update exact callback addresses and verify delivery on the replacement before retiring the old installation. Run only one active instance; follow [recovery](BACKUP_RECOVERY.md) and [live acceptance](LIVE_ACCEPTANCE.md). Uninstalling is not a provider-data deletion request and does not erase independent backups you keep elsewhere.
+
+## Diagnostics and unresolved work
+
+An external directory selected with `--diagnostics-dir` is not part of the managed installation and is not purged. Retain or delete those private metadata logs separately after investigation. Retained removal does not resolve uncertain provider actions or clear incomplete update/rollback requirements. Reconcile outcomes before repeating a real effect.

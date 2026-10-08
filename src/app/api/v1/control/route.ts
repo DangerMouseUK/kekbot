@@ -18,7 +18,12 @@ function access(request: Request, scope: string) {
   return { app, actor: { id: token.account_id, role: "owner" as const, permissions: JSON.parse(token.scopes) as Permission[], capabilityId: token.id } };
 }
 export function GET(request: Request) {
-  try { const { app, actor } = access(request, "read"); return json({ version: 1, state: app.bot.state.snapshot(actor) }); }
+  try {
+    const { app, actor } = access(request, "read");
+    const params = new URL(request.url).searchParams;
+    if (params.get("view") === "media-history") return json({ version: 1, ...app.bot.media.history({ cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }) });
+    return json({ version: 1, state: app.bot.state.snapshot(actor) });
+  }
   catch (error) { return failure(error); }
 }
 export async function POST(request: Request) {

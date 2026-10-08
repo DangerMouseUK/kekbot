@@ -15,6 +15,7 @@ Complete [automated candidate verification](TESTING.md) first. Use [installation
 - [Failure, privacy and recovery campaign](#failure-privacy-and-recovery-campaign)
 - [Reference workload and measurements](#reference-workload-and-measurements)
 - [Independent operators and sign-off](#independent-operators-and-sign-off)
+- [Candidate inputs for this campaign](#candidate-inputs-for-this-campaign)
 <!-- contents:end -->
 
 ## Candidate and environment record
@@ -115,3 +116,7 @@ The [release evidence index](release-evidence.json) mirrors these 31 scenarios a
 Public summaries contain dates, anonymous operator labels, source/image versions and outcomes only. A genuine missing provider capability is an unresolved requirement decision, not a passing test. Any code fix produces a new candidate: rerun its affected automated and live scenarios. Do not sign off unresolved authorisation, secret exposure, data loss, duplicate economic/queue transitions or unsafe retries.
 
 Milestone 18 passes only when the required live, independent, TLS-renewal, another-host restore and reference targets have evidence. Release publication remains Milestone 19 and needs explicit authorisation. Before finishing the campaign, revoke temporary test grants/source tokens, disable proof tooling, review retention, preserve authorised backups/keys and remove disposable fixture infrastructure when approved.
+
+## Candidate inputs for this campaign
+
+Record the exact source/image and schema-3 upgrade boundary before starting a new campaign. Dependency application/tooling/image/license reviews are separate release prerequisites; follow [the maintenance guide](DEPENDENCY_MAINTENANCE.md). Include an actual schema-2 backup upgrade and new-root recovery, extensive history with visible active media, and Start failure cleanup in operator trials. Local fixtures and CI remain rehearsal evidence; do not mark unavailable scenarios passed.

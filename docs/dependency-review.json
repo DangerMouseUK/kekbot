@@ -1,0 +1,30 @@
+{
+  "format": "kekbot-dependency-review",
+  "version": 1,
+  "candidate": {
+    "sourceRef": null,
+    "imageDigest": null
+  },
+  "reviews": {
+    "application": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "tooling": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "image": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "licenses": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    }
+  }
+}

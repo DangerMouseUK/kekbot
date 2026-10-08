@@ -3,11 +3,13 @@
 Runs with an isolated fixture root and generated credentials. Never emits those
 credentials or uploads runtime files. Called after release-package and checksums.
 """
+import contextlib
 import json
 import os
 from pathlib import Path
 import sqlite3
 import tempfile
+from unittest.mock import patch
 
 from core import Installation, Problem, check_host, prepare_target, run, validate_options
 
@@ -94,6 +96,28 @@ def main():
             updated = engine.update(derived(False))
             if updated["imageId"] == initial["imageId"]:
                 raise Problem("Successful update did not switch image identity.")
+            # Actual containers must stop even when activation cannot be recorded.
+            engine.stop()
+            for stage in ("readiness", "save"):
+                original = engine.save
+                def save(current):
+                    if stage == "save":
+                        raise OSError("synthetic final-record failure")
+                    original(current)
+                readiness = patch.object(engine, "wait_ready", side_effect=Problem("synthetic readiness failure")) if stage == "readiness" else contextlib.nullcontext()
+                with readiness, patch.object(engine, "save", side_effect=save):
+                    try:
+                        engine.start()
+                    except (Problem, OSError):
+                        pass
+                    else:
+                        raise Problem("Failed Start unexpectedly succeeded.")
+                running = engine.compose(engine.load(), "ps", "--status", "running", "--quiet")
+                if running:
+                    raise Problem("Failed Start left a managed container running.")
+                engine.start()
+                engine.stop()
+            engine.start()
             engine.uninstall()
             if not (root / updated["data"] / "fixture/kekbot.sqlite").exists():
                 raise Problem("Default uninstall removed persistent data.")

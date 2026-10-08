@@ -2,6 +2,11 @@
 
 ## 0.1.0-dev.0 — Local product build, unreleased
 
+- Remediated development-tool advisories with a parent-scoped esbuild 0.25.12 override and a local braces 3.0.3 AST-depth guard. Added exploit/compatibility regressions and production/full-tooling CI auditing that verifies the exact patch while retaining the upstream advisory count. No production package or lint rule was removed; candidate dependency sign-off remains pending.
+- Separated all active media requests from bounded paginated history; extracted typed dashboard panels and adopted scoped formatting for core services.
+- Added schema 3 with job payload retention, encrypted uncertain work, derived viewer associations, transient-state expiry and schema-2 upgrade regressions. Backup/configuration formats remain 1.
+- Hardened installer Start cleanup and added optional bounded private diagnostics. Added release-controlled dependency review, exact pin checks and optional candidate image auditing. No production dependency was added. Stable/live acceptance and dependency sign-off remain pending.
+
 - Fixed guided lifecycle recovery: prepare Caddy before creating installation state, attempt shutdown even when final/failure record writes fail, and preserve incomplete update/rollback guards and checkpoints during retained uninstall. Added portable failure regressions and clarified operator recovery guidance.
 
 - Added a guided Linux terminal installer, explicit updater with stopped-host backups and separate-root rollback, status/start/stop, and an uninstaller that retains data by default with an additional typed purge. Version selection supports latest stable (fail-closed until publication), exact releases, branches, PR heads, full commits and local audited source/image bundles. Added offline contract/failure tests, a real-image Linux CI lifecycle rehearsal and complete managed-host guides; provider/independent-installer acceptance remains pending.

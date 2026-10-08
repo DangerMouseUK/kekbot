@@ -88,3 +88,7 @@ Keep the upstream legal text under `licenses/` unchanged. Generated image notice
 | update-browserslist-db | 1.3.3 | MIT |
 | yallist | 3.1.1 | ISC |
 | zod | 4.6.5 | MIT |
+
+## Maintenance and tooling
+
+Follow [release-controlled dependency maintenance](DEPENDENCY_MAINTENANCE.md) for exact pin changes, full-tree/image auditing and security patches. Prettier 3.9.9 (MIT) is a development-only formatter; no production dependency was added by the quality follow-up. The 2026-10-08 security follow-up pins the legacy Drizzle loader to esbuild 0.25.12 (MIT) and locally patches braces 3.0.3 (MIT) without changing its license or removing ESLint rules. The production inventory above is unchanged. Runtime notice generation remains tied to the actual candidate image. A complete license sign-off also reviews build/development tools and the checked-in patch.

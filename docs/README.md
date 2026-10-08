@@ -1,6 +1,6 @@
 # KekBot documentation
 
-These guides describe the unreleased `0.1.0-dev.0` candidate, SQLite schema 2, backup format 1 and configuration format 1. Full-product live acceptance remains pending. Commands and screen labels follow the current implementation; provider portals can change.
+These guides describe the unreleased `0.1.0-dev.0` candidate, SQLite schema 3, backup format 1 and configuration format 1. Full-product live acceptance remains pending. Commands and screen labels follow the current implementation; provider portals can change.
 
 ## Start here
 
@@ -41,6 +41,8 @@ These guides describe the unreleased `0.1.0-dev.0` candidate, SQLite schema 2, b
 - [Documentation maintenance](DOCUMENTATION.md): editorial rules, coverage and verification procedure.
 - [Automated testing](TESTING.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md).
 - [Release readiness crosswalk](RELEASE_READINESS.md), [release evidence index](release-evidence.json) and [release procedure](RELEASING.md).
+- [Dependency maintenance](DEPENDENCY_MAINTENANCE.md): exact pins, candidate audits, security patches and release sign-off.
+- [Quality follow-up](QUALITY_HARDENING.md): the eight repository improvements and verification record.
 - [Dependency inventory](DEPENDENCIES.md), [supplemental licenses](../licenses/README.md) and [MIT license](../LICENSE).
 - [Security reporting](../SECURITY.md) and [changelog](../CHANGELOG.md).
 

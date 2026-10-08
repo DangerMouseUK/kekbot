@@ -89,6 +89,7 @@ The [documentation index](docs/README.md) lists every guide, reference and proje
 | [Dashboard fields](docs/CONFIGURATION_FIELDS.md) | Every editable field, default, unit and bound, with schema-checked examples |
 | [CLI](docs/CLI.md) | Complete command syntax, prerequisites, results and failure handling |
 | [Accounts](docs/ACCOUNTS.md) | Capability matrix, invitations, sessions and access removal |
+| [Dependency maintenance](docs/DEPENDENCY_MAINTENANCE.md) | Reviewed release upgrades, audits and candidate sign-off |
 | [HTTP API](docs/API.md) | Authentication, scopes, actions, schemas, SSE and error handling |
 | [Architecture](docs/ARCHITECTURE.md) | Runtime, persistence and provider design decisions |
 | [Testing](docs/TESTING.md) | Local checks, fixture isolation, browser and Linux CI coverage |
@@ -101,6 +102,8 @@ The [documentation index](docs/README.md) lists every guide, reference and proje
 Bug reports, documentation fixes and focused contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and [troubleshooting](docs/TROUBLESHOOTING.md#reporting-a-problem) before opening an [issue](https://github.com/DangerMouseUK/kekbot/issues). Use [SECURITY.md](SECURITY.md) for private vulnerability reporting.
 
 GitHub Actions checks documentation/publication policy, secrets, types/lint, real SQLite behavior, production builds, three browser engines and Linux container/proxy/recovery flows. Opt-in synthetic soak and candidate packaging are also available. Passing CI establishes automated evidence; live release gates remain separate.
+
+Active media requests stay separate from paginated history, so older requests cannot hide the queue. See the [media workflow](docs/USER_GUIDE.md) and [quality follow-up](docs/QUALITY_HARDENING.md) for the current changes and verification limits. Updates are explicit operator actions; dependencies are maintained through reviewed release work.
 
 ## Ownership and privacy
 

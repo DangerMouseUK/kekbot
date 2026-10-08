@@ -16,6 +16,7 @@ Use the [documentation index](README.md) for installation/user guides and [miles
 - [v0.1 — connected personal bot](#v01--connected-personal-bot)
 - [Later releases](#later-releases)
 - [Release evidence and defaults](#release-evidence-and-defaults)
+- [Post-build quality work](#post-build-quality-work)
 <!-- contents:end -->
 
 ## Evidence states
@@ -79,3 +80,7 @@ The distribution increment now includes a [guided terminal lifecycle](INSTALLER.
 Historical foundation evidence is in [FOUNDATION.md](FOUNDATION.md); current build/automated evidence and later acceptance are in [MILESTONES.md](MILESTONES.md). The assembled campaign is documented in [TESTING.md](TESTING.md), and the complete [live runbook](LIVE_ACCEPTANCE.md) is prepared with deployment deferred by the owner. A milestone is complete because its scenario and failures work, not because routes or schemas exist.
 
 Stable-v1 coverage is tracked in [RELEASE_READINESS.md](RELEASE_READINESS.md), including all widgets and user journeys. [RELEASING.md](RELEASING.md) covers versioned source/image/notices/checksum packages, opt-in hosted soak and final publication. All 33 live/operator sign-off gates remain pending; release preparation does not mark them passed.
+
+## Post-build quality work
+
+The [eight-item quality follow-up](QUALITY_HARDENING.md) improves the implemented candidate and its verification. It does not expand release scope, replace live trials or change either PRD. Stable preparation additionally requires [candidate dependency sign-off](DEPENDENCY_MAINTENANCE.md).

@@ -8,7 +8,7 @@ import { AppError } from "../errors.ts";
 import { digest } from "../crypto.ts";
 import type { Config } from "../config.ts";
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 export type Store = ReturnType<typeof openStore>;
 
 export function openStore(config: Pick<Config, "database" | "directory" | "assets" | "key" | "mode">) {
@@ -38,6 +38,6 @@ export function openStore(config: Pick<Config, "database" | "directory" | "asset
     sqlite.prepare("INSERT OR IGNORE INTO settings (key,value) VALUES (?,?)").run("mode", config.mode);
     const mode = sqlite.prepare("SELECT value FROM settings WHERE key='mode'").get() as { value: string };
     if (mode.value !== config.mode) throw new AppError("database_mode_mismatch", 503);
-    return { sqlite, orm, close: () => sqlite.close() };
+    return { sqlite, orm, key: config.key, close: () => sqlite.close() };
   } catch (error) { sqlite.close(); throw error; }
 }

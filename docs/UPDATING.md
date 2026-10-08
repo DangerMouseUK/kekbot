@@ -18,7 +18,7 @@ From **Bash on the Linux host**, open the copied tool:
 sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action update
 ```
 
-Replace the root if needed. If a newer release changes the management protocol, review its matching tool from a separate checkout before running it against your instance. Application updates do not silently replace the host tool. Current management format is 1; release metadata 1 / schema 2 / backup format 1 are supported.
+Replace the root if needed. If a newer release changes the management protocol, review its matching tool from a separate checkout before running it against your instance. Application updates do not silently replace the host tool. Current management format is 1; release metadata 1 / schemas 2 and 3 / backup format 1 are supported.
 
 ## Select and review
 
@@ -55,3 +55,9 @@ Rollback returns to the snapshot time: later chat/history/configuration/queue ch
 External effects after that snapshot may already have occurred even though their local records are absent. Reconcile actual chat/moderation/Discord outcomes before resending or replaying anything; restoration is not permission to repeat uncertain effects.
 
 On interruption, check status before restarting. `updating`, `update-failed`, `rolling-back` and `rollback-failed` require recovery; ordinary Start cannot bypass them. Retained-data uninstall preserves those statuses and their checkpoint, so removing containers cannot enable Start or another Update prematurely. If storage prevents saving a failure record, cleanup still attempts to stop the app and the last durable pending status remains authoritative. A hard host/process kill or Docker failure may prevent immediate cleanup, so verify the actual container state too. If rollback cannot complete, keep the record, backup, keys and failed roots intact and use [manual empty-target restore](BACKUP_RECOVERY.md#restore-into-a-separate-data-root). There is no downgrade SQL or blind retry of external effects.
+
+## Schema 3 and release maintenance
+
+This candidate adds schema 3. Use the current reviewed host tool for schema-3 bundles; a copied older tool may reject them and is never replaced implicitly. Schemas 1 and 2 upgrade through checked-in SQL during stopped-host initialization. Back up first and retain a compatible prior image. Recovery restores the pre-upgrade checkpoint into a new root; never start schema-2 code against upgraded storage.
+
+Dependencies are maintained through [deliberate release reviews](DEPENDENCY_MAINTENANCE.md), with exact candidate source/image sign-off. No dependency automation installs upgrades on your host. Latest stable remains the default selection and fails closed until an actual accepted stable release exists.

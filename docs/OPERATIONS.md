@@ -106,9 +106,15 @@ Owners edit retention in **Maintenance → Edit settings**. Defaults and current
 | Summaries | 90 days | 1–3650 days |
 | Security audits | 365 days | 30–3650 days |
 
-`Chat days = 0` removes chat bodies after processing and purges completed history; a bounded ten-minute moderation window can still retain text needed for spam decisions. The chat overlay becomes empty. Permanent configuration, ledger balances, participation decisions and queue state remain. Retention is not a full privacy-erasure operation.
+`Chat days = 0` removes chat bodies after processing and immediately scrubs resolved job payloads; a bounded ten-minute moderation window can still retain text needed for spam decisions. The chat overlay becomes empty. Permanent configuration, ledger balances, participation decisions and queue state remain. Retention is not a full privacy-erasure operation.
 
-Owner viewer export includes retained profile, ledger, redemptions, queue decisions, participation and chat. Handle it as private. Erasure removes profile text, chat and moderator notes, while integrity/audit identifiers and economic/participation/queue decisions remain. If matching events are still processing, retry after they finish. New chat can create a fresh observed profile; erasure does not promise removal of every personal identifier.
+Owner viewer export includes retained profile, ledger, redemptions, queue decisions, participation and chat. Handle it as private. Erasure removes profile text, chat, moderator notes, associated resolved job payloads and temporary viewer guards, while integrity/audit identifiers and economic/participation/queue decisions remain. If matching events or derived jobs are still pending/running, retry after they finish. Uncertain outbound payloads remain encrypted until explicit reconciliation; they are never automatically retried. New chat can create a fresh observed profile; erasure does not promise removal of every personal identifier.
+
+Resolved job payloads follow chat retention independently of outcome metadata, which follows the longer of audit and receipt retention. Pending/running jobs retain their payloads. Uncertain outbound jobs retain an encrypted payload until an operator reconciles the outcome; reconciliation clears it. Never resend an uncertain action blindly.
+
+Temporary login locks, cooldowns, utility/request guards, sent markers, moderation chat windows and Discord results expire on reads and are removed during periodic retention. Pending/running/uncertain Discord jobs protect their results. Permanent configuration/counters are unaffected. Legacy records are assigned conservative expiries on maintenance. Old jobs can be associated with a viewer only where receipts/media still supply identity; other resolved payloads expire normally.
+
+Erasure is logical: it does not promise physical overwriting of SQLite pages or existing backups. Protect and age out backups independently.
 
 ## Exports and configuration portability
 

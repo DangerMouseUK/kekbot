@@ -15,6 +15,7 @@ This guide is for creators and operators using an existing installation. For ini
 - [Points and rewards](#points-and-rewards)
 - [Polls and raffles](#polls-and-raffles)
 - [Analytics and private data](#analytics-and-private-data)
+- [Browse older media requests](#browse-older-media-requests)
 <!-- contents:end -->
 
 ## Accounts and permissions
@@ -168,3 +169,7 @@ Values describe observed events; viewer samples are averages/min/max, not a sum 
 Owners manage retention, viewer exports/erasure, redacted support data and native configuration imports in Maintenance. Read [privacy and retention](OPERATIONS.md#privacy-and-retention) before exporting or deleting data. Configuration exports are useful for reusable setups; use a [full backup](BACKUP_RECOVERY.md) for disaster recovery.
 
 For a stuck action, source or connection, use [troubleshooting](TROUBLESHOOTING.md) and inspect delivery outcomes before repeating a provider mutation.
+
+## Browse older media requests
+
+In **Media**, **Requests and queue** shows all active requests independently of history. **Load media history** loads up to 50 terminal requests; **Older history** moves to the next page and **Latest history** refreshes recent results. History does not refresh automatically after an action. Failed requests can be removed by an operator with media permission; read-only users can browse without acting. Queue reordering includes the complete approved queue even after extensive history accumulates. OBS playback/lease and explicit recovery rules remain unchanged.

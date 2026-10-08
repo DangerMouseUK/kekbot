@@ -11,6 +11,7 @@ This is the contributor/maintainer guide to the documentation set. Readers shoul
 - [Verification checklist](#verification-checklist)
 - [Reviewing quality](#reviewing-quality)
 - [Handbook verification record](#handbook-verification-record)
+- [Runtime quality follow-up](#runtime-quality-follow-up)
 <!-- contents:end -->
 
 ## Structure and ownership
@@ -86,3 +87,7 @@ Reviewed 2026-10-08 against runtime baseline `2219e36eea59a9ceebb10bfb8870954d57
 Verification included `pnpm check` (114 tests in 19 files, types/lint, publication/docs/release guards), `pnpm build`, and a fresh external fixture walkthrough. That walkthrough preserved keys across repeated initialization, seeded all 18 widget families, signed in, saved all 12 configuration example kinds, previewed commands/timers/alerts, safe-tested a rule, set an absolute goal value, uploaded an asset, accepted a read-only invitation and verified mutation denial, sent a signed fixture event, exercised/revoked a read API token, exported configuration, and performed stopped-host backup, separate-empty-target restore and owner recovery.
 
 Private generated accounts, keys, databases, assets and logs stayed outside the checkout. Linux container/proxy and browser verification belongs to the PR's ordinary CI. Docker Desktop operator trials, real provider/OBS delivery, certificate renewal, independent installers and another-host recovery are not established by this editorial/fixture review. PRDs, upstream license text, historical run identities and pending acceptance gates are preserved.
+
+## Runtime quality follow-up
+
+The [quality follow-up](QUALITY_HARDENING.md) records the later runtime/installer changes and their current verification. Its docs update covers active/history media, retention/erasure, schema-3 recovery, diagnostics and release-controlled dependencies. Preserve the earlier handbook record above as historical editorial evidence; it is not a test record for the new runtime.

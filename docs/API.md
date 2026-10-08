@@ -1,6 +1,6 @@
 # HTTP and domain interfaces
 
-Development API version: `v1`; implementation: `0.1.0-dev.0`, schema 2. Routes are dynamic/no-store. This is a pre-release interface; compatibility beyond the declared configuration/backup versions is not yet promised.
+Development API version: `v1`; implementation: `0.1.0-dev.0`, schema 3. Routes are dynamic/no-store. This is a pre-release interface; compatibility beyond the declared configuration/backup versions is not yet promised.
 
 Host installation/update/uninstall is deliberately outside HTTP/dashboard authority. The [terminal wizard](INSTALLER.md) needs trusted host/root access and its private management record; API tokens cannot invoke it. Application maintenance CLI and all domain/role contracts remain unchanged.
 
@@ -18,6 +18,7 @@ For every supported action, payload, capability and Discord/API availability, us
 - [Live state and playback](#live-state-and-playback)
 - [Failures and durability](#failures-and-durability)
 - [Fixture workload metrics](#fixture-workload-metrics)
+- [Media history reads](#media-history-reads)
 <!-- contents:end -->
 
 ## Authentication boundaries
@@ -150,3 +151,11 @@ Fixtures create signing keys and credentials at runtime in isolated ignored stor
 ## Fixture workload metrics
 
 `GET /api/foundation/workload?run=<16_UPPERCASE_HEX_CHARACTERS>&final=1` is a read-only development endpoint. It requires `KEKBOT_MODE=fixture`, explicit `KEKBOT_ENABLE_PROOF=1`, and the foundation proof bearer token. Live mode refuses it. The run selects synthetic delivery IDs by a validated prefix; results contain counts, optional receipt-to-decision/reply p95 and application RSS, without payloads, credentials or host details. Final latency queries are bounded to 200,000 completed pairs. Use only disposable fixture storage. See [testing](TESTING.md) and [live acceptance](LIVE_ACCEPTANCE.md) for measurement limits.
+
+## Media history reads
+
+`GET /api/control?view=media-history` requires a current dashboard session. `GET /api/v1/control?view=media-history` requires an owner API token with `read` scope. Both are uncached. Optional `limit` is an integer 1-100 (default 50); optional `cursor` is the opaque `nextCursor` from the preceding response. Invalid limits/cursors return 400.
+
+The response is `{ "items": [...], "nextCursor": "..." }`, with null at the end; the versioned endpoint also returns `version: 1`. Items are terminal requests, newest first, ordered by creation time then ID. Use the cursor unchanged to fetch older items, or omit it to refresh the newest page. New arrivals do not shift an existing cursor boundary. This is pagination, not a frozen historical export.
+
+`snapshot.media` now contains only active validating/pending/approved/playing requests, without a history limit. Pre-release clients using it for completed requests must use the history endpoint. Media history reads grant no mutation authority; action permissions/version checks are unchanged.

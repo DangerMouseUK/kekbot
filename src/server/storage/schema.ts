@@ -2,7 +2,8 @@ import { sql } from "drizzle-orm";
 import { check, index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const settings = sqliteTable("settings", {
-  key: text("key").primaryKey(), value: text("value").notNull()
+  key: text("key").primaryKey(), value: text("value").notNull(),
+  expiresAt: integer("expires_at"), jobId: text("job_id")
 });
 
 export const receipts = sqliteTable("receipts", {
@@ -13,12 +14,16 @@ export const receipts = sqliteTable("receipts", {
 export const jobs = sqliteTable("jobs", {
   id: text("id").primaryKey(), kind: text("kind", { enum: ["kick.event", "kick.reply", "proof.record", "kick.action", "discord.send", "discord.interaction", "media.validate"] }).notNull(),
   payload: text("payload").notNull(),
+  payloadState: text("payload_state").notNull().default("plain"),
+  payloadExpiresAt: integer("payload_expires_at"),
+  viewerIds: text("viewer_ids").notNull().default("[]"),
   status: text("status", { enum: ["pending", "running", "succeeded", "failed", "uncertain"] }).notNull().default("pending"),
   attempts: integer("attempts").notNull().default(0), dueAt: integer("due_at").notNull(),
   leaseUntil: integer("lease_until"), leaseOwner: text("lease_owner"), lastError: text("last_error"),
   createdAt: integer("created_at").notNull()
 }, table => [
   index("jobs_due").on(table.status, table.dueAt),
+  index("jobs_retention").on(table.status, table.createdAt),
   check("jobs_status", sql`${table.status} IN ('pending','running','succeeded','failed','uncertain')`),
   check("jobs_attempts", sql`${table.attempts} >= 0`)
 ]);
@@ -85,7 +90,7 @@ export const media = sqliteTable("media", {
   title: text("title"), uploader: text("uploader"), duration: integer("duration"),
   status: text("status").notNull(), position: integer("position").notNull(), version: integer("version").notNull().default(1),
   error: text("error"), createdAt: integer("created_at").notNull()
-}, t => [index("media_status_position").on(t.status, t.position)]);
+}, t => [index("media_status_position").on(t.status, t.position), index("media_history").on(t.createdAt, t.id)]);
 
 export const ledger = sqliteTable("ledger", {
   id: text("id").primaryKey(), viewer: text("viewer").notNull(), amount: integer("amount").notNull(),

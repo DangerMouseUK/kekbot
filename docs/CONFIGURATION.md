@@ -12,6 +12,7 @@ The [wizard](INSTALLER.md) generates protected `runtime.env` and `compose.json` 
 - [Secrets and storage](#secrets-and-storage)
 - [Dashboard settings](#dashboard-settings)
 - [Configuration precedence and change scope](#configuration-precedence-and-change-scope)
+- [Internal expiry and diagnostics](#internal-expiry-and-diagnostics)
 <!-- contents:end -->
 
 ## Runtime environment
@@ -133,3 +134,7 @@ The [complete dashboard field reference](CONFIGURATION_FIELDS.md) covers every c
 Never switch a live database into fixture operation. Mode selects separate subdirectories under the data root; it does not convert existing data. Keep proof tools off except during the explicitly controlled diagnostic workflow.
 
 Startup still validates configured secret-file paths even when saved integration settings take precedence. Remove obsolete bootstrap file variables deliberately; do not leave them pointing to deleted files. The installation key and proof-token files are always required runtime material.
+
+## Internal expiry and diagnostics
+
+Temporary login/cooldown/request/chat-window/Discord-result state expires internally; there are no new environment fields to configure it. Chat and receipt retention also govern job payload/marker cleanup; see [operations](OPERATIONS.md#privacy-and-retention). The host tool's `--diagnostics-dir` is a command-line option, not an application/container setting or a configuration-export field.

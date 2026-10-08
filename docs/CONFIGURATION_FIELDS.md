@@ -20,6 +20,7 @@ The field names below are the JSON names used by [the API](API.md). The dashboar
 - [note](#note)
 - [guild](#guild)
 - [settings](#settings)
+- [Retention interpretation](#retention-interpretation)
 <!-- contents:end -->
 
 ## Conventions
@@ -255,3 +256,7 @@ Owner-only singleton, ID `instance`. Open **Maintenance → Edit settings**. [JS
 | `auditDays` | `365` | Audit/incident retention days, 30–3650 |
 
 Moderator-added media bypasses the per-user limit/cooldown and auto-approves after validation; capacity, duplicate, metadata and content rules still apply. Points/watchtime need observed live state and recent chat, not silent viewing. Review [retention limits](OPERATIONS.md#privacy-and-retention) before changing data policies.
+
+## Retention interpretation
+
+Existing instance retention bounds are unchanged. `chatDays` also limits resolved job payload text; outcome metadata is retained for the longer of audit and receipt retention. Pending/running work and encrypted unresolved uncertainty are protected. `receiptDays` also bounds sent markers and completed Discord interaction results. These are internal semantics, not additional editable fields. See [operations](OPERATIONS.md#privacy-and-retention) before choosing values or erasing a viewer.

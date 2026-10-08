@@ -11,7 +11,7 @@ import sys
 import tempfile
 import textwrap
 
-from core import Installation, Problem, REPOSITORY, check_host, prepare_target, validate_options, validate_root
+from core import Diagnostics, diagnostic_session, Installation, Problem, REPOSITORY, check_host, prepare_target, validate_options, validate_root
 
 
 class Cancelled(Exception):
@@ -121,79 +121,84 @@ def main():
     parser = argparse.ArgumentParser(description="Guided KekBot Linux installer/updater/uninstaller. Interactive review is always required before mutations.")
     parser.add_argument("--root", help="Existing managed installation directory; otherwise ask")
     parser.add_argument("--action", choices=["install", "update", "rollback", "start", "stop", "status", "uninstall"], help="Open this walkthrough directly")
+    parser.add_argument("--diagnostics-dir", help="Opt-in protected directory outside source; bounded metadata only, no command output")
     args = parser.parse_args()
     if not sys.stdin.isatty():
         parser.error("This wizard needs an interactive terminal. Read docs/INSTALLER.md; there is no unattended --yes mode.")
     explain("KekBot host management", "This terminal walkthrough installs, updates or removes one Linux x86-64 installation. It explains choices before changing anything. Python 3.10+, Git, local Docker Engine and Compose v2 must already work. Review this public script before sudo; Docker/root access grants host authority. Type q at any prompt to cancel that walkthrough and return to the menu. Ctrl+C cancels; interrupted updates retain a recovery checkpoint. No host firewall/SSH/DNS settings are changed.")
-    check_host()
-    first = args.action
-    while True:
-        try:
-            action = first or choose("What would you like to do?", "Status is read-only. Installation, update, rollback, start/stop and uninstall each have a final review. Live provider consent and ordinary module settings remain in the browser dashboard.", [
-                ("Install KekBot", "Create a new protected installation and claim the owner in your browser.", "install"),
-                ("Update an installation", "Choose stable/release/branch/PR/commit/bundle, prepare its image, stop, back up, migrate and verify readiness.", "update"),
-                ("Inspect status", "Show recorded version, source, image and current container health without printing environment or credentials.", "status"),
-                ("Start or resume", "Start the recorded version/data without reinitializing or reseeding.", "start"),
-                ("Stop", "Stop the app and managed proxy; keep all state and certificates.", "stop"),
-                ("Roll back the last update", "Restore the previous image and pre-update snapshot into a new data root. Changes made after that snapshot will not be present.", "rollback"),
-                ("Uninstall", "Remove managed containers. Keep data by default; complete purge requires an additional typed confirmation.", "uninstall"),
-                ("Exit", "Leave this menu.", "exit"),
-            ])
-            first = None
-            if action == "exit":
-                return
-            if action == "install":
-                root, options = installation_options()
-                with tempfile.TemporaryDirectory(prefix="kekbot-install-stage-") as temporary:
-                    target = source_selection(Path(temporary))
-                    confirm("Review installation", f"New directory: {root}\n\nProject: {options['project']}; mode: {options['mode']}; HTTPS: {options['proxy']}; origin: {options['origin']}; loopback port: {options['port']}; chat identity: {options['chatType']}.\n\nVersion: {target['version']}; commit: {target['sourceRef']}; format: {target['distribution']}.\n\nWill build/load the pinned app, optionally build Caddy, create private configuration/storage, initialize (seed only for fixtures), then start and check health. Existing installations are never adopted or overwritten. No provider credentials are requested. Builds may take several minutes and use network/disk/RAM.")
-                    state = Installation(root).install(options, target)
-                    next_steps(root, state)
-                continue
-            root = validate_root(args.root or ask("Managed installation directory", "/srv/kekbot"))
-            installation = Installation(root)
-            state = installation.load()
-            explain("Current installation", f"Directory: {root}; project: {state['options']['project']}; status: {state['status']}.\n\nVersion: {state['target']['version']}; commit: {state['target']['sourceRef']}; image: {state['imageId']}.\n\nData: {root / state['data']}; mode: {state['options']['mode']}; origin: {state['options']['origin']}.")
-            if action == "status":
-                # Compose JSON status has no environment/credential values.
-                rows = installation.compose(state, "ps", "--all", "--format", "json")
-                for line in rows.splitlines():
-                    row = json.loads(line)
-                    print(f"{row.get('Service')}: {row.get('State')} ({row.get('Health', 'no health check')})")
-            elif action == "update":
-                with tempfile.TemporaryDirectory(prefix="kekbot-update-stage-") as temporary:
-                    target = source_selection(Path(temporary))
-                    confirm("Review update", f"Update {root} to {target['version']} ({target['sourceRef']}) using {target['distribution']}.\n\nThe current image remains available. Prepare the new image before downtime; stop the app; wait for its lease; create a new database/asset snapshot; apply migrations; recreate; check readiness/integrity. Keys/config/proxy/origin/mode are preserved. Media requires deliberate moderator resume.\n\nOn failure, leave the app stopped and use Roll back. No downgrade is attempted against newer storage. Keep your independent encryption-key copy; backups do not contain it. Read the selected version's release notes and compatibility boundary before applying.")
-                    installation.update(target)
-                    print("Update complete. Verify provider connections, permissions, assets and queue before resuming your stream.")
-            elif action in ("start", "stop", "rollback"):
-                descriptions = {"start": "Start the recorded app/proxy. No init, new owner or fixture reseed occurs.", "stop": "Stop the app and managed proxy. Data, keys, backups and certificates are kept.", "rollback": "Stop the current app. If migration was attempted, restore the pre-update snapshot into a new directory using the original keys, then start the previous image. Original/failed data remains for private inspection. Changes after the snapshot are absent; grants might require reauthorization. Never run both roots at once."}
-                confirm("Review " + action, descriptions[action])
-                getattr(installation, action)()
-                print(action.capitalize() + " complete.")
-            elif action == "uninstall":
-                purge = choose("What should be removed?", "Removing containers does not revoke provider grants, delete provider applications, update DNS or remove Docker/Git. Do those separately if retiring the bot. No global Docker prune is ever run.", [
-                    ("Containers only; keep all data (recommended)", "Retain database, assets, keys, environment, backups, management tool, images and certificate volumes. Completed installations can resume; incomplete updates still require recovery.", False),
-                    ("Permanently purge this managed installation", "Delete the entire recorded directory, including backups and keys, and its managed certificate volumes. Docker images and all unrelated resources remain. Recovery is impossible without an independent backup AND original key.", True),
+    log = Diagnostics(args.diagnostics_dir) if args.diagnostics_dir else None
+    if log:
+        print("Private diagnostics enabled: bounded stage/exit/timing metadata only. No command output is saved.")
+    with diagnostic_session(log):
+        check_host()
+        first = args.action
+        while True:
+            try:
+                action = first or choose("What would you like to do?", "Status is read-only. Installation, update, rollback, start/stop and uninstall each have a final review. Live provider consent and ordinary module settings remain in the browser dashboard.", [
+                    ("Install KekBot", "Create a new protected installation and claim the owner in your browser.", "install"),
+                    ("Update an installation", "Choose stable/release/branch/PR/commit/bundle, prepare its image, stop, back up, migrate and verify readiness.", "update"),
+                    ("Inspect status", "Show recorded version, source, image and current container health without printing environment or credentials.", "status"),
+                    ("Start or resume", "Start the recorded version/data without reinitializing or reseeding.", "start"),
+                    ("Stop", "Stop the app and managed proxy; keep all state and certificates.", "stop"),
+                    ("Roll back the last update", "Restore the previous image and pre-update snapshot into a new data root. Changes made after that snapshot will not be present.", "rollback"),
+                    ("Uninstall", "Remove managed containers. Keep data by default; complete purge requires an additional typed confirmation.", "uninstall"),
+                    ("Exit", "Leave this menu.", "exit"),
                 ])
-                backup_first = choose("Pre-uninstall backup", "A snapshot includes the database and assets, not encryption keys. In purge mode it is inside the directory being deleted, so it is not a recovery copy. Cancel and copy independent recovery material elsewhere before choosing purge.", [
-                    ("Create a stopped-host snapshot first", "Abort removal if the snapshot fails. Recommended for container-only removal.", True),
-                    ("Skip this snapshot", "Use only if you already have verified independent recovery material or deliberately accept losing it.", False),
-                ])
-                confirm("Final uninstall review", f"Directory: {root}; project: {state['options']['project']}.\n\n{'PERMANENT PURGE: database, assets, keys, environment and every backup below this root will be deleted; managed certificate volumes removed.' if purge else 'Remove containers only. Keep all installation files, keys, data and certificate volumes.'}\n\nPre-uninstall snapshot: {'yes' if backup_first else 'no'}. Verify the directory/project and any independent backup/key copy now.", "DELETE " + state["options"]["project"] if purge else "REMOVE CONTAINERS")
-                removed = installation.uninstall(purge=purge, backup_first=backup_first)
-                if not purge and removed["status"] != "uninstalled":
-                    print("Containers removed; incomplete operation status and recovery checkpoints remain. Inspect status and the recovery guide before starting or updating.")
-                print("Uninstall complete. Revoke provider grants/apps and remove obsolete DNS/firewall rules yourself if retiring this installation.")
-        except Cancelled:
-            print("\nWalkthrough cancelled. No further actions will run.")
-        except Problem as error:
-            print("\nCould not complete: " + str(error))
-            print("Inspect status and docs/INSTALLER.md recovery. Existing private state is retained unless you explicitly confirmed purge.")
+                first = None
+                if action == "exit":
+                    return
+                if action == "install":
+                    root, options = installation_options()
+                    with tempfile.TemporaryDirectory(prefix="kekbot-install-stage-") as temporary:
+                        target = source_selection(Path(temporary))
+                        confirm("Review installation", f"New directory: {root}\n\nProject: {options['project']}; mode: {options['mode']}; HTTPS: {options['proxy']}; origin: {options['origin']}; loopback port: {options['port']}; chat identity: {options['chatType']}.\n\nVersion: {target['version']}; commit: {target['sourceRef']}; format: {target['distribution']}.\n\nWill build/load the pinned app, optionally build Caddy, create private configuration/storage, initialize (seed only for fixtures), then start and check health. Existing installations are never adopted or overwritten. No provider credentials are requested. Builds may take several minutes and use network/disk/RAM.")
+                        state = Installation(root).install(options, target)
+                        next_steps(root, state)
+                    continue
+                root = validate_root(args.root or ask("Managed installation directory", "/srv/kekbot"))
+                installation = Installation(root)
+                state = installation.load()
+                explain("Current installation", f"Directory: {root}; project: {state['options']['project']}; status: {state['status']}.\n\nVersion: {state['target']['version']}; commit: {state['target']['sourceRef']}; image: {state['imageId']}.\n\nData: {root / state['data']}; mode: {state['options']['mode']}; origin: {state['options']['origin']}.")
+                if action == "status":
+                    # Compose JSON status has no environment/credential values.
+                    rows = installation.compose(state, "ps", "--all", "--format", "json")
+                    for line in rows.splitlines():
+                        row = json.loads(line)
+                        print(f"{row.get('Service')}: {row.get('State')} ({row.get('Health', 'no health check')})")
+                elif action == "update":
+                    with tempfile.TemporaryDirectory(prefix="kekbot-update-stage-") as temporary:
+                        target = source_selection(Path(temporary))
+                        confirm("Review update", f"Update {root} to {target['version']} ({target['sourceRef']}) using {target['distribution']}.\n\nThe current image remains available. Prepare the new image before downtime; stop the app; wait for its lease; create a new database/asset snapshot; apply migrations; recreate; check readiness/integrity. Keys/config/proxy/origin/mode are preserved. Media requires deliberate moderator resume.\n\nOn failure, leave the app stopped and use Roll back. No downgrade is attempted against newer storage. Keep your independent encryption-key copy; backups do not contain it. Read the selected version's release notes and compatibility boundary before applying.")
+                        installation.update(target)
+                        print("Update complete. Verify provider connections, permissions, assets and queue before resuming your stream.")
+                elif action in ("start", "stop", "rollback"):
+                    descriptions = {"start": "Start the recorded app/proxy. No init, new owner or fixture reseed occurs.", "stop": "Stop the app and managed proxy. Data, keys, backups and certificates are kept.", "rollback": "Stop the current app. If migration was attempted, restore the pre-update snapshot into a new directory using the original keys, then start the previous image. Original/failed data remains for private inspection. Changes after the snapshot are absent; grants might require reauthorization. Never run both roots at once."}
+                    confirm("Review " + action, descriptions[action])
+                    getattr(installation, action)()
+                    print(action.capitalize() + " complete.")
+                elif action == "uninstall":
+                    purge = choose("What should be removed?", "Removing containers does not revoke provider grants, delete provider applications, update DNS or remove Docker/Git. Do those separately if retiring the bot. No global Docker prune is ever run.", [
+                        ("Containers only; keep all data (recommended)", "Retain database, assets, keys, environment, backups, management tool, images and certificate volumes. Completed installations can resume; incomplete updates still require recovery.", False),
+                        ("Permanently purge this managed installation", "Delete the entire recorded directory, including backups and keys, and its managed certificate volumes. Docker images and all unrelated resources remain. Recovery is impossible without an independent backup AND original key.", True),
+                    ])
+                    backup_first = choose("Pre-uninstall backup", "A snapshot includes the database and assets, not encryption keys. In purge mode it is inside the directory being deleted, so it is not a recovery copy. Cancel and copy independent recovery material elsewhere before choosing purge.", [
+                        ("Create a stopped-host snapshot first", "Abort removal if the snapshot fails. Recommended for container-only removal.", True),
+                        ("Skip this snapshot", "Use only if you already have verified independent recovery material or deliberately accept losing it.", False),
+                    ])
+                    confirm("Final uninstall review", f"Directory: {root}; project: {state['options']['project']}.\n\n{'PERMANENT PURGE: database, assets, keys, environment and every backup below this root will be deleted; managed certificate volumes removed.' if purge else 'Remove containers only. Keep all installation files, keys, data and certificate volumes.'}\n\nPre-uninstall snapshot: {'yes' if backup_first else 'no'}. Verify the directory/project and any independent backup/key copy now.", "DELETE " + state["options"]["project"] if purge else "REMOVE CONTAINERS")
+                    removed = installation.uninstall(purge=purge, backup_first=backup_first)
+                    if not purge and removed["status"] != "uninstalled":
+                        print("Containers removed; incomplete operation status and recovery checkpoints remain. Inspect status and the recovery guide before starting or updating.")
+                    print("Uninstall complete. Revoke provider grants/apps and remove obsolete DNS/firewall rules yourself if retiring this installation.")
+            except Cancelled:
+                print("\nWalkthrough cancelled. No further actions will run.")
+            except Problem as error:
+                print("\nCould not complete: " + str(error))
+                print("Inspect status and docs/INSTALLER.md recovery. Existing private state is retained unless you explicitly confirmed purge.")
+                if args.action:
+                    sys.exit(1)
             if args.action:
-                sys.exit(1)
-        if args.action:
-            return
+                return
 
 
 if __name__ == "__main__":

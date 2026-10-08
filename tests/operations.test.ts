@@ -51,7 +51,7 @@ it("restores a real foundation-schema snapshot before upgrading and preserves en
   expect(restore(target, snapshot)).toMatchObject({ schemaVersion: 1, upgradeOnStart: true, assets: 1 });
   const upgraded = repository(target);
   try {
-    expect(upgraded.setting("schema_version")).toBe("2");
+    expect(upgraded.setting("schema_version")).toBe(String(SCHEMA_VERSION));
     expect(upgraded.acceptReceipt("preserved", "chat.message.sent", {})).toBe(false);
     expect(upgraded.store.sqlite.prepare("SELECT status FROM jobs WHERE id='reply:preserved'").get()).toEqual({ status: "succeeded" });
     expect(decrypt((upgraded.store.sqlite.prepare("SELECT secret FROM connections WHERE provider='kick'").get() as { secret: string }).secret, config.key, "kick")).toContain("generated fixture grant");

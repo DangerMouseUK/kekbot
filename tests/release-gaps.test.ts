@@ -64,6 +64,7 @@ it("validation commits one final chat status with metadata and exposes only the 
   const publicState = bot.presentation.widget("playing").data as { current: Record<string, unknown> };
   expect(publicState.current).toMatchObject({ title: "Fixture video abcdefghijk", requesterName: "Fixture requester" });
   expect(publicState.current).not.toHaveProperty("requester");
+  let job; while ((job = repo.claim())) repo.finish(job, "succeeded");
   bot.operations.eraseViewer(owner, "456");
   expect((bot.presentation.widget("playing").data as typeof publicState).current.requesterName).toBe("Erased viewer");
 });
