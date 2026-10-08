@@ -11,6 +11,7 @@ KekBot is a development candidate, not an accepted stable release. This guide co
 - [Coverage and limits](#coverage-and-limits)
 - [Workload and recovery harness](#workload-and-recovery-harness)
 - [Security and release evidence](#security-and-release-evidence)
+- [Long-lived state and lifecycle regressions](#long-lived-state-and-lifecycle-regressions)
 <!-- contents:end -->
 
 ## Safety and isolation
@@ -134,3 +135,9 @@ The report contains request/outcome counts, intake p95, receipt-to-decision/repl
 Use checksum-verified Gitleaks 8.30.1 for a redacted scan of a clean publication export (`gitleaks dir --redact --no-banner <EXPORT>`) and history (`gitleaks git --redact --no-banner --log-opts="--all" .`). Do not scan private runtime storage into public logs or add broad exclusions to silence findings. Review ignored/untracked artifacts and image contexts before pushing. Dependency audits and secret scans complement code/permission review; they do not prove the absence of vulnerabilities.
 
 Record source commit, application/schema/backup versions, exact commands, platform/browser/image and outcomes in [MILESTONES.md](MILESTONES.md). Publish only sanitised summaries. Keep addresses, provider apps, account names, credentials, payloads and private paths in the operator's private setup/evidence storage. Re-run affected checks after code changes. Stable release acceptance also requires Milestones 18–19; CI alone cannot complete them.
+
+## Long-lived state and lifecycle regressions
+
+[Long-lived tests](../tests/long-lived.test.ts) use real SQLite for a 1,200-item history, a 500-item active queue, cursor boundaries, payload expiry/erasure, uncertain-send encryption, temporary-state expiry after reopen and schema-2 upgrades. Browser tests cover separate history navigation and existing media/player/permission workflows. Installer tests cover Start readiness/final-save failures, bounded diagnostics, privacy and logging failures; Linux additionally checks actual stopped services in the audited-bundle rehearsal.
+
+`pnpm check` now includes `pnpm format:check` for the adopted panels/core files and `pnpm dependencies:check` for exact pins/review-record structure. These offline checks do not audit vulnerabilities. The optional `dependencies=true` workflow profile scans production/tooling npm dependencies and the same tested image with checksum-verified Trivy 0.75.0; it prints aggregate results only. See [dependency maintenance](DEPENDENCY_MAINTENANCE.md) for commands, failure handling and source/image-bound sign-off. Raw private artifacts are not uploaded. None of these checks passes a live release gate.

@@ -16,6 +16,7 @@ This is the design reference for contributors. Use [installation](INSTALLATION.m
 - [ADR 006 — Local module state and portable configuration](#adr-006--local-module-state-and-portable-configuration)
 - [Host lifecycle boundary](#host-lifecycle-boundary)
 - [References](#references)
+- [Schema 3: long-lived state and focused views](#schema-3-long-lived-state-and-focused-views)
 <!-- contents:end -->
 
 ## Runtime map
@@ -118,3 +119,13 @@ For a new capability, add its shared domain decision first, then the required ro
 - [Kick API contract](https://api.kick.com/swagger/doc.yaml)
 - [SQLite WAL](https://www.sqlite.org/wal.html)
 - [better-sqlite3 backup API](https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md)
+
+## Schema 3: long-lived state and focused views
+
+Migration `0002_retention_and_history.sql` adds job payload state/expiry/viewer associations, temporary-setting expiry/job references and retention/history indexes. It leaves released migrations unchanged. New jobs inherit viewer identity from event processing; asynchronous media results carry the requester explicitly. Existing receipt/media records backfill identities where still available. If an old receipt is already gone, erasure cannot reconstruct that association; normal payload retention still applies.
+
+Resolved payloads use chat retention separately from outcome metadata. Uncertain outbound effects are encrypted with the installation key and job-specific purpose, remain non-retryable, and are scrubbed on explicit reconciliation. Pending/running payloads remain available for processing. Expired temporary settings are ignored on reads and removed by maintenance, while pending/running/uncertain Discord work protects its result. Durable configuration, counters and participation decisions are not temporary settings.
+
+The operational snapshot includes every active media item. Terminal history uses a separate authenticated keyset query ordered by creation time and ID, backed by an index. Dashboard modules live in focused typed panels; the media history request is abortable and uncached. Routes still call shared domain services and enforce current authorization.
+
+Backup format stays 1. Restored schemas 1 and 2 require stopped-host initialization before current startup. Old code must never open schema-3 storage.

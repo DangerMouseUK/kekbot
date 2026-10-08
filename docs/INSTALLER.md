@@ -97,7 +97,7 @@ For multiple instances, use separate directories, project names, application por
 
 **Source build:** verify release source checksums (or pin a Git commit), extract only bounded ordinary files/directories, then build the checked-in Dockerfile with locked dependencies and provenance labels. Source builds execute selected code with Docker access and require network/resources. Resulting image bytes are not guaranteed to match a distributed accepted image. A source rebuild has its own verification responsibility.
 
-Release bundles use the existing [packaging contract](RELEASING.md): `*-source.tar.gz`, optional `*-linux-amd64-image.tar.gz`, `*-notices.tar.gz`, `release.json`, `SHA256SUMS`. The installer supports release metadata v1, database schema 2 and backup format 1. Incompatible formats fail before applying. Automatic GitHub zip/tar source downloads alone lack this contract; raw registry tags, native `.deb`/`.rpm`/Windows packages and ARM64 are not supported installer formats.
+Release bundles use the existing [packaging contract](RELEASING.md): `*-source.tar.gz`, optional `*-linux-amd64-image.tar.gz`, `*-notices.tar.gz`, `release.json`, `SHA256SUMS`. The installer supports release metadata v1, database schemas 2 and 3 and backup format 1. Incompatible formats fail before applying. Automatic GitHub zip/tar source downloads alone lack this contract; raw registry tags, native `.deb`/`.rpm`/Windows packages and ARM64 are not supported installer formats.
 
 Checksums detect missing/corrupted assets; they are **not a cryptographic publisher signature**. Obtain bundles from trusted project releases/operators. Latest stable additionally requires stable v1-or-later version and accepted-package metadata; its historical status field is named `acceptance-verified-unpublished` because packaging precedes publication. A published release must retain those exact audited assets. [GitHub's release API](https://docs.github.com/en/rest/releases/releases) resolves discovery; no GitHub token is requested or stored. Anonymous API rate limits fail with an explanation rather than weakening verification.
 
@@ -163,3 +163,15 @@ Container startup alone does not prove public certificates, callbacks, actual ch
 Use the copied tool with `--root` for returning maintenance. `status` shows only recorded version/source/image/data/origin and container health, not environment values. The wizard suppresses subprocess bodies because builds/runtime diagnostics can contain private material. Inspect bounded application/proxy logs privately with the generated Compose file when needed; never post them without redaction. [Troubleshooting](TROUBLESHOOTING.md) covers provider/application boundaries.
 
 For update order, checkpoint retention and recovery effects read [updating](UPDATING.md). For retained-data removal, purge and provider cleanup read [uninstalling](UNINSTALLING.md).
+
+## Optional private diagnostics
+
+By default, subprocess details are suppressed and no diagnostic log is written. For a difficult lifecycle failure, run the reviewed host tool from the checkout root with an explicit private directory:
+
+```sh
+sudo python3 -B installer/kekbot.py --root /srv/kekbot --action status --diagnostics-dir /var/log/kekbot-lifecycle
+```
+
+Use an absolute directory outside source and outside a not-yet-created installation root. Existing Linux directories must belong to the executing user and have mode 0700; log files use 0600. The same flag works with other actions and the interactive menu. Only UTC time, operation class, outcome, elapsed milliseconds and exit code are recorded. Arguments, paths, environment, subprocess output and provider payloads are excluded. At most approximately three 1 MiB files are kept. Storage errors while logging never prevent lifecycle cleanup. Logs remain private, are not uploaded, and can be removed when the investigation ends.
+
+A failed Start readiness check or final state save stops all managed services. If storage cannot save even the failure state, the record may still show the last durable status; inspect actual container state before retrying. Keep incomplete update/rollback recovery requirements in force. A reviewed current tool is required for schema-3 bundles; older copied tools are not automatically replaced.

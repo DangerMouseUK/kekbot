@@ -45,9 +45,13 @@ export async function control(app: Runtime, actor: Actor, input: unknown) {
     case "job.resolve": {
       state.assertActor(actor, "maintenance");
       const result = z.enum(["confirmed", "failed"]).parse(data.result);
-      const changed = state.db.prepare("UPDATE jobs SET status=?,last_error='operator_reconciled' WHERE id=? AND status='uncertain'").run(result === "confirmed" ? "succeeded" : "failed", id);
-      if (!changed.changes) throw new AppError("job_not_uncertain", 409);
-      state.audit(actor.id, "job.reconcile", id, result); return { reconciled: true };
+      state.db.transaction(() => {
+        const changed = state.db.prepare("UPDATE jobs SET status=?,last_error='operator_reconciled',payload='{}',payload_state='scrubbed' WHERE id=? AND status='uncertain'").run(result === "confirmed" ? "succeeded" : "failed", id);
+        if (!changed.changes) throw new AppError("job_not_uncertain", 409);
+        state.audit(actor.id, "job.reconcile", id, result);
+      })();
+      app.bot.operations.retain();
+      return { reconciled: true };
     }
     default: return app.bot.action(actor, body.action, data, randomUUID());
   }

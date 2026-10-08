@@ -11,9 +11,15 @@ it("packages only committed public source, verifies identity/checksums and refus
   const prepare = () => spawnSync(process.execPath, ["scripts/release-package.mjs", "--source-only"], { cwd: root, encoding: "utf8", windowsHide: true });
   try {
     mkdirSync(join(root, "scripts")); mkdirSync(join(root, "docs"));
-    for (const name of ["release-package", "image-audit", "release-policy", "check-publication"]) cpSync(`scripts/${name}.mjs`, join(root, `scripts/${name}.mjs`));
+    for (const name of ["release-package", "image-audit", "release-policy", "check-publication", "check-dependencies", "dependency-policy"]) cpSync(`scripts/${name}.mjs`, join(root, `scripts/${name}.mjs`));
     cpSync("docs/release-evidence.json", join(root, "docs/release-evidence.json"));
-    writeFileSync(join(root, "package.json"), JSON.stringify({ version: "0.1.0-dev.0", type: "module" }));
+    cpSync("package.json", join(root, "package.json"));
+    cpSync("docs/dependency-review.json", join(root, "docs/dependency-review.json"));
+    for (const name of [".node-version", ".npmrc", "Dockerfile"]) cpSync(name, join(root, name));
+    mkdirSync(join(root, ".github/workflows"), { recursive: true });
+    cpSync(".github/workflows/ci.yml", join(root, ".github/workflows/ci.yml"));
+    mkdirSync(join(root, "src/server/storage"), { recursive: true });
+    cpSync("src/server/storage/database.ts", join(root, "src/server/storage/database.ts"));
     writeFileSync(join(root, ".gitignore"), "output/\nruntime.env\n");
     writeFileSync(join(root, "README.md"), "Public fixture source\n");
     git(["init", "--quiet"]); git(["add", "."]);

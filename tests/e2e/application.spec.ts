@@ -2,6 +2,7 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { sign } from "node:crypto";
+import Database from "better-sqlite3";
 import { widgetKinds } from "../../src/server/domain/catalog.ts";
 const origin = "http://127.0.0.1:3137";
 const password = "a strong browser fixture password";
@@ -92,7 +93,7 @@ test("signed Discord approval reaches a fixture player and a duplicate completio
     await operation(request, csrf, "player.resume", { version: state.player.version });
     await expect(page.getByRole("button", { name: "Finish fixture item" })).toBeEnabled();
     await page.getByRole("button", { name: "Finish fixture item" }).click();
-    await expect.poll(async () => (await (await request.get("/api/control")).json()).media.find((row: { id: string }) => row.id === item.id).status).toBe("completed");
+    await expect.poll(async () => (await (await request.get("/api/control?view=media-history")).json()).items.find((row: { id: string }) => row.id === item.id)?.status).toBe("completed");
     state = await (await request.get("/api/control")).json(); expect(state.player.current).toBe(pending!.id); expect(youtubeRequests).toBe(0);
     const label = await operation(request, csrf, "config.save", { kind: "widget", data: { name: "Current requester", type: "nowplaying" } });
     const labelToken = await operation(request, csrf, "token.create", { name: "Requester label", kind: "widget", scopes: [`widget:${label.id}`] });
@@ -118,4 +119,42 @@ test("every widget family renders with scoped read access and an API token canno
   expect((await request.post("/api/v1/control", { headers: { Authorization: `Bearer ${token.token}` }, data: { action: "timers.pause" } })).status()).toBe(401);
   await operation(request, csrf, "token.revoke", { id: token.id });
   expect((await request.get("/api/v1/control", { headers: { Authorization: `Bearer ${token.token}` } })).status()).toBe(401);
+});
+
+
+test("large terminal history stays separate from the active queue and pages without granting mutation authority", async ({ request, page }) => {
+  const csrf = await login(request);
+  const db = new Database(join(root(), "fixture/kekbot.sqlite"));
+  try {
+    const add = db.prepare("INSERT INTO media(id,video_id,requester,title,status,position,created_at) VALUES(?,'abcdefghijk','456',?,'completed',0,?)");
+    db.transaction(() => {
+      for (let i = 0; i < 1200; i++) {
+        const name = `History fixture ${String(i).padStart(4, "0")}`;
+        add.run(`browser-history-${i}`, name, 100);
+      }
+    })();
+    await login(page.request);
+    await page.goto("/");
+    await page.getByRole("button", { name: "Media", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Requests and queue", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "History fixture 0999", exact: true })).toHaveCount(0);
+    await page.getByRole("button", { name: "Load media history", exact: true }).click();
+    const history = page.locator("section").filter({ has: page.getByRole("heading", { name: "Media history", exact: true }) });
+    await expect(history.locator("article")).toHaveCount(50);
+    const firstPage = await history.locator("article h3").allTextContents();
+    await page.getByRole("button", { name: "Older history", exact: true }).click();
+    await expect.poll(async () => (await history.locator("article h3").allTextContents()).some(name => firstPage.includes(name))).toBe(false);
+    await expect(history.locator("article")).toHaveCount(50);
+    await page.getByRole("button", { name: "Latest history", exact: true }).click();
+    await expect.poll(() => history.locator("article h3").allTextContents()).toEqual(firstPage);
+    const token = await operation(request, csrf, "token.create", { name: "History read", kind: "api", scopes: ["read"] });
+    const headers = { Authorization: `Bearer ${token.token}` };
+    expect((await request.get("/api/v1/control?view=media-history&limit=100", { headers })).ok()).toBe(true);
+    expect((await request.get("/api/v1/control?view=media-history&limit=101", { headers })).status()).toBe(400);
+    expect((await request.post("/api/v1/control", { headers, data: { action: "media.clear" } })).status()).toBe(401);
+    await operation(request, csrf, "token.revoke", { id: token.id });
+    expect((await request.get("/api/v1/control?view=media-history", { headers })).status()).toBe(401);
+  } finally {
+    db.prepare("DELETE FROM media WHERE id LIKE 'browser-history-%'").run(); db.close();
+  }
 });

@@ -22,6 +22,7 @@ Use these task-specific starting points:
 - Runtime/contracts: [architecture](docs/ARCHITECTURE.md), [API](docs/API.md).
 - Exhaustive references: [dashboard fields/examples](docs/CONFIGURATION_FIELDS.md), [control actions](docs/API_ACTIONS.md), [CLI](docs/CLI.md).
 - Verification/release: [testing](docs/TESTING.md), [live acceptance](docs/LIVE_ACCEPTANCE.md), [releasing](docs/RELEASING.md).
+- Dependency maintenance: [release-controlled reviews](docs/DEPENDENCY_MAINTENANCE.md); no automated update PRs, merges or installations. Exact pin checks are offline policy checks, not vulnerability sign-off.
 
 Read only the material needed for the requested scope. The [foundation guide](docs/FOUNDATION.md) is historical diagnostic evidence; it is not the normal installation path.
 
@@ -52,6 +53,8 @@ Follow [documentation maintenance](docs/DOCUMENTATION.md) for repository-wide gu
 Host lifecycle code uses Python 3.10+ standard library, separate from the TypeScript app. `pnpm check` includes offline installer contracts; Linux CI additionally tests locks/transactions and the audited-bundle install/update-failure/rollback/uninstall rehearsal. Keep final typed review, latest-stable fail-closed behavior, immutable source/image selection, private state and retained-data defaults. Do not adopt arbitrary manual deployments, execute downloaded management code, prune global Docker resources or claim fixture coverage as an independent installer trial.
 
 Run `pnpm check` and targeted checks appropriate to the change. Documentation-only work requires link/publication checks and validation of changed procedures; avoid unnecessary application rewrites or repeated performance tests.
+
+Schema 3 adds job payload/viewer retention and temporary-state expiry. Preserve pending work and encrypted uncertain effects until reconciliation. Active media and paginated history are separate contracts. Keep the adopted dashboard/core files formatted with `pnpm format:check`; avoid unrelated formatting. Installer diagnostics must remain opt-in, private and bounded, with allowlisted metadata only and no subprocess output or arguments.
 
 For runtime/UI/package changes run `pnpm build`, `pnpm test:standalone` and `pnpm test:e2e`. Linux container/proxy/storage-fault checks run in GitHub Actions. Do not ask the user to run checks that the agent or CI can run. Use real SQLite and meaningful failure/concurrency tests where needed; do not write implementation-mirroring tests for trivial changes.
 

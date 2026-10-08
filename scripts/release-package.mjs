@@ -15,6 +15,7 @@ try {
   if (values["source-only"] && values.image || !values["source-only"] && !values.image || values.stable && values["source-only"]) throw new Error("invalid_release_package_arguments");
   if (run("git", ["status", "--porcelain", "--untracked-files=normal"])) throw new Error("release_requires_clean_committed_source");
   run(process.execPath, ["scripts/check-publication.mjs"]);
+  run(process.execPath, ["scripts/check-dependencies.mjs"]);
   const sourceRef = run("git", ["rev-parse", "HEAD"]), { version } = JSON.parse(readFileSync("package.json", "utf8"));
   if (!/^\d+\.\d+\.\d+(?:-[a-z0-9.-]+)?$/.test(version)) throw new Error("invalid_release_version");
   const evidence = readEvidence(values.evidence);
@@ -45,7 +46,7 @@ try {
       rmSync(legal, { recursive: true, force: true });
     }
   }
-  writeFileSync(join(destination, "release.json"), JSON.stringify({ format: "kekbot-release", version: 1, applicationVersion: version, sourceRef, sourceArchive: source, image, status: values.stable ? "acceptance-verified-unpublished" : "candidate-unaccepted", reproducibility: "Exact locked inputs and source identity; image bytes may vary with base image/toolchain. Archive SHA256 verifies these artifacts, not an identical rebuild.", schemaVersion: 2, backupFormat: 1 }, null, 2) + "\n");
+  writeFileSync(join(destination, "release.json"), JSON.stringify({ format: "kekbot-release", version: 1, applicationVersion: version, sourceRef, sourceArchive: source, image, status: values.stable ? "acceptance-verified-unpublished" : "candidate-unaccepted", reproducibility: "Exact locked inputs and source identity; image bytes may vary with base image/toolchain. Archive SHA256 verifies these artifacts, not an identical rebuild.", schemaVersion: Number(readFileSync("src/server/storage/database.ts", "utf8").match(/export const SCHEMA_VERSION = (\d+);/)[1]), backupFormat: 1 }, null, 2) + "\n");
   const sums = [];
   for (const file of readdirSync(destination).sort()) {
     const hash = createHash("sha256"); for await (const bytes of createReadStream(join(destination, file))) hash.update(bytes);

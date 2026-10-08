@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import contextvars
 import hashlib
 import ipaddress
 import json
@@ -31,20 +32,81 @@ class Problem(Exception):
     """Safe user-facing explanation; subprocess bodies are never included."""
 
 
-def run(args, *, cwd=None, timeout=1200, env=None):
-    # Build/provider output is private and may contain sensitive material. Do not
-    # stream it into shared terminals or interpolate commands through a shell.
-    with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as errors:
+class Diagnostics:
+    """Opt-in bounded metadata only: never command arguments, bodies or output."""
+    def __init__(self, directory):
+        self.directory = no_links(Path(directory))
+        checkout = Path(__file__).resolve().parent.parent
+        if not Path(directory).is_absolute() or checkout == self.directory or checkout in self.directory.parents:
+            raise Problem("Diagnostics require an absolute private directory outside the source/tool checkout.")
+        self.directory.mkdir(parents=True, mode=0o700, exist_ok=True)
+        if not self.directory.is_dir():
+            raise Problem("Diagnostics destination must be a directory.")
+        if os.name == "posix" and (self.directory.stat().st_uid != os.geteuid() or self.directory.stat().st_mode & 0o077):
+            raise Problem("Diagnostics directory must belong to this user with permissions 0700.")
+
+    def record(self, operation, outcome, elapsed, code=None):
         try:
-            result = subprocess.run(args, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
-                                    stdout=output, stderr=errors, timeout=timeout, check=False)
-        except (OSError, subprocess.TimeoutExpired) as error:
-            raise Problem("A required command could not finish. Check prerequisites, disk space and connectivity.") from error
-        if result.returncode:
-            raise Problem(f"{Path(args[0]).name} failed. No command output or credentials were printed.")
-        output.seek(0)
-        value = output.read(4 * 1024 * 1024)
-        return value.decode("utf-8", errors="replace").strip()
+            path = no_links(self.directory / "lifecycle-diagnostics.log")
+            if path.exists() and (not path.is_file() or path.stat().st_nlink != 1):
+                return
+            if path.exists() and path.stat().st_size >= 1024 * 1024:
+                oldest = no_links(self.directory / "lifecycle-diagnostics.2.log")
+                oldest.unlink(missing_ok=True)
+                previous = no_links(self.directory / "lifecycle-diagnostics.1.log")
+                if previous.exists():
+                    os.replace(previous, oldest)
+                os.replace(path, previous)
+            descriptor = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0), 0o600)
+            with os.fdopen(descriptor, "w", encoding="utf-8") as output:
+                os.chmod(path, 0o600)
+                output.write(json.dumps(dict(at=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), operation=operation,
+                    outcome=outcome, elapsedMs=round(elapsed * 1000), exitCode=code)) + "\n")
+        except OSError:
+            # Logging must never interrupt recovery or shutdown.
+            pass
+        except Problem:
+            pass
+
+
+_diagnostics = contextvars.ContextVar("kekbot_diagnostics", default=None)
+
+
+@contextlib.contextmanager
+def diagnostic_session(log):
+    token = _diagnostics.set(log)
+    try:
+        yield
+    finally:
+        _diagnostics.reset(token)
+
+
+def run(args, *, cwd=None, timeout=1200, env=None):
+    # Store no subprocess output, even in private diagnostics. Build output may
+    # contain credentials; the log carries only allowlisted stage/exit/timing.
+    binary = Path(args[0]).name
+    operation = binary if binary in ("docker", "git") else "subprocess"
+    if operation in ("docker", "git") and len(args) > 1 and args[1] in ("build", "load", "save", "image", "inspect", "compose", "ps", "network", "volume", "info", "context", "clone", "fetch", "archive", "rev-parse", "--version"):
+        operation += " " + args[1]
+    started, outcome, code = time.monotonic(), "error", None
+    try:
+        with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as errors:
+            try:
+                result = subprocess.run(args, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
+                                        stdout=output, stderr=errors, timeout=timeout, check=False)
+            except (OSError, subprocess.TimeoutExpired) as error:
+                outcome = "timeout" if isinstance(error, subprocess.TimeoutExpired) else "unavailable"
+                raise Problem("A required command could not finish. Check prerequisites, disk space and connectivity.") from error
+            code = result.returncode
+            if result.returncode:
+                raise Problem(operation + " failed (exit " + str(code) + "). No command output or credentials were printed.")
+            outcome = "success"
+            output.seek(0)
+            return output.read(4 * 1024 * 1024).decode("utf-8", errors="replace").strip()
+    finally:
+        log = _diagnostics.get()
+        if log:
+            log.record(operation, outcome, time.monotonic() - started, code)
 
 
 def write_private(path, value):
@@ -317,7 +379,7 @@ def prepare_target(kind, value, distribution, directory):
     accepted = metadata.get("status") == "acceptance-verified-unpublished"
     if kind == "stable" and (not accepted or not re.fullmatch(r"[1-9]\d*\.\d+\.\d+", metadata["applicationVersion"])):
         raise Problem("Latest release does not carry the required stable acceptance metadata.")
-    if metadata.get("schemaVersion") != 2 or metadata.get("backupFormat") != 1:
+    if metadata.get("schemaVersion") not in (2, 3) or metadata.get("backupFormat") != 1:
         raise Problem("This installer cannot manage that schema/backup boundary. Use its matching installer and upgrade notes.")
     source_name = metadata.get("sourceArchive")
     required = [source_name]
@@ -622,10 +684,15 @@ class Installation:
             self.configure(state)
             # No migration here: failed initialization requires manual recovery.
             self.cli(state, "doctor")
-            self.compose(state, "up", "--detach", "--no-build")
-            self.wait_ready(state)
-            state["status"] = "ready"
-            self.save(state)
+            try:
+                self.compose(state, "up", "--detach", "--no-build")
+                self.wait_ready(state)
+                state["status"] = "ready"
+                self.save(state)
+            except BaseException:
+                # Keep failed initialization retryable; update recovery stays guarded.
+                self.fail_and_stop(state, "stopped" if state["status"] in ("ready", "stopped", "uninstalled") else state["status"])
+                raise
             return state
 
     def stop(self):

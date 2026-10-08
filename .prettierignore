@@ -1,0 +1,7 @@
+drizzle/
+licenses/
+pnpm-lock.yaml
+output/
+.next/
+node_modules/
+data/

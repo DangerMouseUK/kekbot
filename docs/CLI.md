@@ -16,6 +16,7 @@ The separate [terminal host wizard](INSTALLER.md) provides install/update/rollba
 - [recover-owner](#recover-owner)
 - [Fixture and foundation commands](#fixture-and-foundation-commands)
 - [Common failures](#common-failures)
+- [Host-tool diagnostic option](#host-tool-diagnostic-option)
 <!-- contents:end -->
 
 ## Invocation and configuration
@@ -65,7 +66,7 @@ Expected output reports mode and file paths, not token/key values. Protect an in
 
 ## doctor
 
-Checks SQLite `quick_check`, schema, instance-lease expiry, account roles/job status counts and whether callbacks/Kick credentials are configured. Expect `integrity: "ok"` and schema value `"2"` on this candidate.
+Checks SQLite `quick_check`, schema, instance-lease expiry, account roles/job status counts and whether callbacks/Kick credentials are configured. Expect `integrity: "ok"` and schema value `"3"` on this candidate.
 
 Doctor does not migrate, refresh OAuth, repair subscriptions, send messages or establish provider acceptance. A configured credential flag does not prove a valid grant. Compare results with dashboard diagnostics, HTTP readiness and actual delivery. If the database is absent, run `init` for a new installation or follow recovery for an existing one.
 
@@ -126,3 +127,7 @@ Replace `OWNER_USERNAME` and the host file path before running. Recovery resets/
 | Provider or replay error | Inspect sanitized status and current receipts/jobs before any retry |
 
 See [troubleshooting](TROUBLESHOOTING.md) for health, storage and origin failures. Maintenance commands do not bypass encryption or recover data without the original key.
+
+## Host-tool diagnostic option
+
+The Linux host tool (separate from `pnpm kekbot`) accepts `--diagnostics-dir ABSOLUTE_PRIVATE_DIRECTORY` alongside `--root` and optional `--action`. It enables bounded metadata logs; it does not expose raw command output. Use a directory outside source with owner-only permissions. See [installer diagnostics](INSTALLER.md#optional-private-diagnostics) for the runnable example, limits and cleanup.

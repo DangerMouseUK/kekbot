@@ -7,6 +7,7 @@ export function GET(request: Request) {
   try {
     const { app, actor } = requireAccount(request);
     const params = new URL(request.url).searchParams;
+    if (params.get("view") === "media-history") return json(app.bot.media.history({ cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }));
     if (params.get("view") === "analytics") {
       const result = app.bot.operations.analytics(Number(params.get("from") ?? Date.now() - 30 * 86400000), Number(params.get("to") ?? Date.now()), params.get("stream") ?? undefined);
       if (params.get("format") === "csv") return new Response(csv(result.rows as Record<string, unknown>[]), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": "attachment; filename=kekbot-analytics.csv", "Cache-Control": "no-store" } });

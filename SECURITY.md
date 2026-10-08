@@ -2,6 +2,8 @@
 
 This repository is pre-release and has no supported stable version yet.
 
+Maintainers review dependencies through [release-controlled maintenance](docs/DEPENDENCY_MAINTENANCE.md), including development/build tooling and the final image. A clean production-only npm audit is insufficient for stable sign-off. Advisory details and raw runtime diagnostics stay private until reviewed for disclosure. Optional installer diagnostics contain bounded lifecycle metadata only; inspect even those before sharing. No automated upgrade or deployment is implied by a security report.
+
 For ordinary setup/use problems, start with [troubleshooting](docs/TROUBLESHOOTING.md). The [documentation index](docs/README.md) links installation, provider and recovery procedures.
 
 Do not put credentials, private chat history, or exploit details affecting an operator into a public issue. Use GitHub's **Report a vulnerability** option on this repository's Security tab when available. If it is unavailable, open an issue titled **Request private security contact** containing only that request; a maintainer will arrange a private channel before you share the report. No personal email address or operator credentials are required in a public issue.

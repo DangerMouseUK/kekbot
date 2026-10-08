@@ -11,6 +11,7 @@ Use with [HTTP authentication and routes](API.md), [configuration fields](CONFIG
 - [Media and engagement](#media-and-engagement)
 - [Local administration](#local-administration)
 - [Errors and response handling](#errors-and-response-handling)
+- [History and reconciliation boundaries](#history-and-reconciliation-boundaries)
 <!-- contents:end -->
 
 ## Request shape and availability
@@ -113,3 +114,7 @@ Authentication itself uses `POST /api/auth`: `setup`/`invite` with `token`, `use
 An error JSON contains `error` with a sanitized code. HTTP 409 can mean a stale version, invalid state transition, already decided redemption or unavailable capability. Reload the relevant state and ask whether the intended operation is still needed. A 429 needs bounded backoff; provider job retry is separate from caller retry. A timeout with no response is an unknown outcome, not evidence of failure.
 
 Domain/source/provider payloads and outcome codes are defined by the current source, not a frozen OpenAPI specification. If you add/change an action, update this table, the corresponding task guide and meaningful permission/concurrency tests together.
+
+## History and reconciliation boundaries
+
+Media history is an authenticated [GET view](API.md#media-history-reads), not a control action. `media.reorder` supplies the complete approved queue, available in the active snapshot regardless of terminal history size. `job.resolve` records reconciliation and clears the encrypted uncertain payload atomically; it never resends the effect. Viewer erasure also checks derived pending work before removing associated resolved payloads. See [privacy](OPERATIONS.md#privacy-and-retention) for retained integrity records and uncertainty exceptions.

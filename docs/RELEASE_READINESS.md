@@ -1,6 +1,6 @@
 # Stable v1 requirements and release readiness
 
-Updated: 2026-10-08. Application `0.1.0-dev.0`; SQLite schema 2; backup format 1; native configuration format 1. This is an unreleased candidate. Milestone 18 is prepared with deployment deferred. Milestone 19's audit, release guards and candidate packaging are prepared and automatically tested; stable acceptance and publication remain pending.
+Updated: 2026-10-08. Application `0.1.0-dev.0`; SQLite schema 3; backup format 1; native configuration format 1. This is an unreleased candidate. Milestone 18 is prepared with deployment deferred. Milestone 19's audit, release guards and candidate packaging are prepared and automatically tested; stable acceptance and publication remain pending.
 
 This crosswalk covers the normative scope in both identical [PRDs](PRD.md). It links implementation and behavioural checks rather than counting routes. **Automated** means synthetic/SQLite/browser/container evidence exists; it does not mean that all live scenarios have passed. **Pending** means required external acceptance or publication has no result. Historical Milestone 1 evidence applies only to that older foundation snapshot. The [milestones](MILESTONES.md) record exact tested commits and runs.
 
@@ -17,6 +17,7 @@ The handbook additionally includes [first session](FIRST_SESSION.md), [accounts/
 - [Media, engagement and operations](#media-engagement-and-operations)
 - [Quality, distribution and completion](#quality-distribution-and-completion)
 - [Acceptance record](#acceptance-record)
+- [Repository quality follow-up](#repository-quality-follow-up)
 <!-- contents:end -->
 
 ## Ownership, journeys and installation
@@ -121,3 +122,7 @@ The guided host lifecycle adds implementation coverage for R02/R08/R57/R60: expl
 No new live acceptance is recorded. All 33 entries in [release-evidence.json](release-evidence.json) remain pending: L01–L24 and P01–P07 from the [runbook](LIVE_ACCEPTANCE.md), O01 (two independent complete owner sessions) and O02 (three unaided installations). An unaccepted/failed/unavailable required scenario blocks stable sign-off. Add dated, sanitised outcomes and explicit anchors here only after the frozen source/image actually passes. Keep raw details in private operator evidence outside Git.
 
 Automated run identities/results belong in [MILESTONES.md](MILESTONES.md). Package availability or a valid evidence schema does not establish acceptance. Publication itself and a clean installation from the final published artifacts remain separate final Milestone 19 tasks.
+
+## Repository quality follow-up
+
+[Eight follow-ups](QUALITY_HARDENING.md) cover active/history media, payload privacy, temporary-state expiry, installer cleanup/diagnostics, focused panels, dependency review and long-lived regressions. Storage is now schema 3; backup/configuration formats stay 1. These implementation/fixture checks do not change pending live gates. All four source/image-bound [dependency reviews](DEPENDENCY_MAINTENANCE.md) remain pending; two development-tool advisories require review before sign-off.

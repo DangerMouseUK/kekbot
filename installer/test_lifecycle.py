@@ -96,7 +96,7 @@ class Contracts(unittest.TestCase):
         bundle = self.root / "bundle"
         bundle.mkdir()
         archive(bundle / "kekbot-source.tar.gz")
-        metadata = dict(format="kekbot-release", version=1, applicationVersion="0.1.0-dev.0", sourceRef=SHA, sourceArchive="kekbot-source.tar.gz", image=None, status="candidate-unaccepted", schemaVersion=2, backupFormat=1)
+        metadata = dict(format="kekbot-release", version=1, applicationVersion="0.1.0-dev.0", sourceRef=SHA, sourceArchive="kekbot-source.tar.gz", image=None, status="candidate-unaccepted", schemaVersion=3, backupFormat=1)
         if image:
             metadata["image"] = dict(imageId=IMAGE, platform="linux/amd64")
             (bundle / "kekbot-linux-amd64-image.tar.gz").write_bytes(b"synthetic image, never loaded")
@@ -319,6 +319,55 @@ class RecoveryFailures(unittest.TestCase):
 
     def test_rollback_stops_even_if_final_and_failure_record_writes_fail(self):
         self.assert_shutdown_after_record_failure("rollback")
+
+    def test_start_stops_on_readiness_and_final_record_failure(self):
+        for failed_stage in ("readiness", "save"):
+            with self.subTest(stage=failed_stage):
+                self.record(status="stopped")
+                original = self.engine.save
+                calls = []
+                def save(current):
+                    if failed_stage == "save":
+                        raise OSError(errno.ENOSPC, "synthetic full disk")
+                    original(current)
+                with patch.object(self.engine, "cli", return_value={"integrity": "ok"}), patch.object(self.engine, "compose", side_effect=lambda _state, *args: calls.append(args) or ""), patch.object(self.engine, "wait_ready", side_effect=core.Problem("readiness failed") if failed_stage == "readiness" else None), patch.object(self.engine, "save", side_effect=save):
+                    with self.assertRaises((core.Problem, OSError)):
+                        self.engine.start()
+                self.assertEqual(calls[-1], ("stop",))
+                self.assertEqual(self.engine.load()["status"], "stopped")
+
+    def test_diagnostics_record_only_allowlisted_metadata_and_rotate(self):
+        directory = self.root / "diagnostics"
+        log = core.Diagnostics(directory)
+        with core.diagnostic_session(log), patch.object(core.subprocess, "run", return_value=unittest.mock.Mock(returncode=7)):
+            with self.assertRaises(core.Problem):
+                core.run(["docker", "build", "private-token-value"], env={"SECRET": "private-token-value"})
+        path = directory / "lifecycle-diagnostics.log"
+        entry = json.loads(path.read_text())
+        self.assertEqual(entry["operation"], "docker build")
+        self.assertEqual(entry["exitCode"], 7)
+        self.assertNotIn("private-token-value", path.read_text())
+        self.assertEqual(set(entry), {"at", "operation", "outcome", "elapsedMs", "exitCode"})
+        if os.name == "posix":
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+        for _ in range(4):
+            path.write_text("x" * (1024 * 1024))
+            log.record("docker compose", "success", 0, 0)
+        self.assertEqual(len(list(directory.iterdir())), 3)
+        with patch.object(core.os, "open", side_effect=OSError(errno.ENOSPC, "full")):
+            log.record("docker compose", "error", 0, 1)
+        with patch.object(core.os, "open", side_effect=PermissionError("readonly")):
+            log.record("docker compose", "error", 0, 1)
+
+    def test_diagnostics_reject_checkout_and_nonprivate_directory(self):
+        with self.assertRaises(core.Problem):
+            core.Diagnostics(Path(core.__file__).resolve().parent)
+        if os.name == "posix":
+            self.root.mkdir(mode=0o700, exist_ok=True)
+            directory = self.root / "public-diagnostics"
+            directory.mkdir(mode=0o755)
+            with self.assertRaises(core.Problem):
+                core.Diagnostics(directory)
 
     def test_retained_uninstall_preserves_incomplete_operation_and_checkpoint(self):
         checkpoint = dict(state=state(), backup="backups/checkpoint", phase="migrating")

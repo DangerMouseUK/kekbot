@@ -56,6 +56,10 @@ Use bounded declarative configuration rather than executable templates. Avoid ne
 
 Generate schema changes with `pnpm db:generate`, review SQL/metadata and commit both. Do not edit released migrations, generate migrations at startup or assume backup compatibility without evidence. Document any explicit upgrade boundary.
 
+Dependency upgrades follow [release-controlled maintenance](docs/DEPENDENCY_MAINTENANCE.md): deliberate reviewed PRs, exact pins, full tooling/runtime/image review and sign-off bound to the frozen source/image. Do not introduce automatic dependency PRs or installs. `pnpm dependencies:check` is offline; `pnpm dependencies:review` needs network access and a trusted image scanner for a complete report. Findings and unavailable checks remain review blockers until addressed explicitly.
+
+`pnpm format:check` checks the adopted dashboard panels and core services listed in `package.json`. Use the pinned Prettier to format changed files in that scope. This is incremental adoption; do not reformat unrelated files as part of a feature fix.
+
 ## Verification
 
 Run the checks appropriate to the change:

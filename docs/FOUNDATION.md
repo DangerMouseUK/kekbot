@@ -150,7 +150,7 @@ pnpm kekbot doctor
 pnpm start
 ```
 
-Restore validates mode/schema/key/integrity/checksums, removes stale runtime leases, and publishes the restored database only after validation. Current code supports schema 1–2 backups and backup format 1. Restored schema 1 storage upgrades on the next writable open; run stopped-host `init` after restore before `doctor` if an upgrade/setup is required. Reconfigure provider applications and reauthorize when moving callback addresses.
+Restore validates mode/schema/key/integrity/checksums, removes stale runtime leases, and publishes the restored database only after validation. Current code supports schema 1–3 backups and backup format 1. Restored schema 1 storage upgrades on the next writable open; run stopped-host `init` after restore before `doctor` if an upgrade/setup is required. Reconfigure provider applications and reauthorize when moving callback addresses.
 
 For containers, stop Compose and use a one-off `node src/cli.ts backup` or `restore` command with an additional host-mounted backup directory. The backup destination must be outside `/data/live` or `/data/fixture`. Prepare the new data root **and its mode directory** as writable by UID/GID 1000; manually creating only a nested `secrets` directory can leave its parent root-owned. Keep secret files readable only by the application user. No restore overwrites existing data. Follow the [current backup/recovery guide](BACKUP_RECOVERY.md) for container commands and audited owner recovery.
 

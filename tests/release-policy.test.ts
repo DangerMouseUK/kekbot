@@ -30,8 +30,16 @@ it("checks real external sign-off references against an immutable source and rej
     for (const id of acceptanceIds) evidence.gates[id] = { outcome: "pass", date: "2026-10-07", reference: "docs/RELEASE_READINESS.md#acceptance-record" };
     const path = join(docs, "release-evidence.json"), record = join(docs, "RELEASE_READINESS.md");
     writeFileSync(path, JSON.stringify(evidence)); writeFileSync(record, '<a id="acceptance-record"></a>\nSynthetic fixture evidence, not project acceptance.\n');
+    const dependency = { format: "kekbot-dependency-review", version: 1, candidate: { sourceRef: evidence.candidate.sourceRef, imageDigest: identity.imageDigest }, reviews: Object.fromEntries(["application", "tooling", "image", "licenses"].map(name => [name, { outcome: "pass", date: "2026-10-07", reference: "docs/RELEASE_READINESS.md#acceptance-record" }])) };
+    writeFileSync(join(docs, "dependency-review.json"), JSON.stringify(dependency));
     const check = () => spawnSync(process.execPath, ["scripts/check-release.mjs", "--stable", "--source", source, "--evidence", path, "--image-digest", identity.imageDigest], { encoding: "utf8", windowsHide: true });
     expect(check().status).toBe(0);
+    const originalSource = dependency.candidate.sourceRef;
+    dependency.candidate.sourceRef = "d".repeat(40);
+    writeFileSync(join(docs, "dependency-review.json"), JSON.stringify(dependency));
+    expect(check().stderr).toContain("dependency_source_mismatch");
+    dependency.candidate.sourceRef = originalSource;
+    writeFileSync(join(docs, "dependency-review.json"), JSON.stringify(dependency));
     writeFileSync(record, "Missing the explicit evidence anchor\n"); expect(check().status).toBe(1);
     writeFileSync(record, '<a id="acceptance-record"></a>\n');
     evidence.candidate.sourceRef = "c".repeat(40); writeFileSync(path, JSON.stringify(evidence)); expect(check().stderr).toContain("candidate_source_mismatch");

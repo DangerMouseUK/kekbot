@@ -40,6 +40,7 @@ The public operator path is [installation](INSTALLATION.md) → [providers](PROV
 - [Public documentation campaign — 2026-10-08](#public-documentation-campaign--2026-10-08)
 - [Guided host lifecycle — 2026-10-08](#guided-host-lifecycle--2026-10-08)
 - [Next work](#next-work)
+- [Post-milestone repository quality follow-up](#post-milestone-repository-quality-follow-up)
 <!-- contents:end -->
 
 ## Working approach
@@ -635,3 +636,7 @@ Source `1d9bda80edfb7f3e047a4ac08dd85eaa8d9ae779` passed [CI run 37810963864](ht
 ## Next work
 
 The build gate for Milestone 16, automated Milestone 17 campaign and autonomous Milestones 18–19 preparation are complete. When the owner authorises deployment, run Milestone 18 on fresh infrastructure using the live runbook, isolated provider apps, verified host identity and protected runtime storage. Complete reference-host measurements, independent owner/installer trials and another-host restoration; then finish Milestone 19's stable sign-off, authorized publication and published-artifact clean installation. Do not reuse old host details or infer missing live outcomes from automation.
+
+## Post-milestone repository quality follow-up
+
+The [quality follow-up](QUALITY_HARDENING.md) records eight targeted improvements, schema-3 compatibility and verification. It preserves the historical milestone identities and pending live/operator gates. Release dependency sign-off is separate and pending; no new deployment or stable release is claimed.

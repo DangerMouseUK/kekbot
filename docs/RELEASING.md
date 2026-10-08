@@ -12,6 +12,7 @@ This is the maintainer release procedure. Operators should use [installation](IN
 - [Autonomous candidate preparation](#autonomous-candidate-preparation)
 - [Freeze and acceptance evidence](#freeze-and-acceptance-evidence)
 - [Final publication gate](#final-publication-gate)
+- [Dependency review gate](#dependency-review-gate)
 <!-- contents:end -->
 
 ## Release sequence
@@ -35,9 +36,9 @@ The [interactive installer](INSTALLER.md) supports repository branches, PR heads
 | Next.js / React | 16.3.8 / 19.3.0 |
 | Production host | Linux x86-64, local persistent disk, one app replica; 2 vCPU / 2 GiB reference runtime target still unmeasured |
 | Windows/macOS | Documented Docker Desktop container path; native distribution not supported |
-| Application / database / backup / native config | `0.1.0-dev.0` / schema 2 / format 1 / format 1 |
+| Application / database / backup / native config | `0.1.0-dev.0` / schema 3 / format 1 / format 1 |
 | Proxy example | Caddy 2.11.6; domain or supported public-IP HTTPS; operator owns public reachability |
-| Upgrade | Foundation schema 1 → 2 supported; future schemas rejected; unsupported downgrade prohibited |
+| Upgrade | Schemas 1 and 2 → 3 supported; future schemas rejected; unsupported downgrade prohibited |
 
 Provider support is capability/scope-dependent. Follow/subscription variants, chat delivery identity, Discord guild permissions and YouTube availability/autoplay must be revalidated on the frozen candidate. Historical foundation results do not establish current full-product compatibility. See [provider setup](PROVIDERS.md), [OBS/media](OBS.md) and [operations](OPERATIONS.md) for limits and contacted third-party services.
 
@@ -106,3 +107,9 @@ Publication is a separate owner-authorized operation. Before publishing, verify 
 After explicit authorization, tag the accepted frozen source, publish that exact source and retained image to the chosen registry with an immutable version, attach checksums/notices/metadata to the GitHub release, and record source SHA and registry manifest digest. Configure Compose to use the published immutable image/digest with its existing build settings disabled for a published-artifact trial. Avoid mutable `latest` as a recovery/version reference. Publication credentials stay in the publisher's protected environment, not this repository or candidate archives.
 
 Then complete a clean installation from actual published artifacts and rehearse the pre-upgrade backup/upgrade/recovery path. Update Milestone 19 only after those results and the definition of done pass. No release workflow can automate provider consent, independent people or missing live evidence. The current workflow prepares and audits artifacts; automatic tag/registry publication is not enabled.
+
+## Dependency review gate
+
+Before stable packaging, follow [dependency maintenance](DEPENDENCY_MAINTENANCE.md). [dependency-review.json](dependency-review.json) requires separate application, tooling, image and license passes bound to the exact frozen source/image. All four are pending. They supplement the existing live acceptance gates; a clean build or production-only audit cannot approve the candidate.
+
+`pnpm release:check --stable --source /path/to/frozen-candidate --image-digest IMAGE_ID` fails closed on missing/mismatched reviews. For private external evidence, `--dependency-review PATH` selects the dependency record; its default is `dependency-review.json` beside the `--evidence` file. Stable `release:prepare` uses that sibling record. Record sign-off in a separate evidence revision referring to the frozen candidate. Do not publish raw audit output, private diagnostic logs or runtime files.

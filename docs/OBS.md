@@ -11,6 +11,7 @@ Install/claim KekBot and connect the relevant [providers](PROVIDERS.md) first. F
 - [YouTube request and approval walkthrough](#youtube-request-and-approval-walkthrough)
 - [Restart, disconnect or playback error](#restart-disconnect-or-playback-error)
 - [Scene and credential checklist](#scene-and-credential-checklist)
+- [Queue and history](#queue-and-history)
 <!-- contents:end -->
 
 ## Create a source
@@ -97,3 +98,7 @@ For blank sources, lost credentials, autoplay/embedding errors or unexpected aud
 - Revoke both token kinds when replacing a player source. Existing scene collections/exports still contain the old credential values; keep them private.
 - After reconnect/restart, inspect the current item and error before moderator resume. Closing a source is not an end-of-item event.
 - Preview changes separately from live manual alerts. Only actual provider/OBS tests establish those live boundaries.
+
+## Queue and history
+
+Queue sources and playback use active media state. Completed, rejected and failed history is browsed separately in the dashboard and cannot hide active requests. History pagination does not alter the player lease, acknowledgements or explicit resume after restart.

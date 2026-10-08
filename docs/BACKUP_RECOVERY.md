@@ -1,6 +1,6 @@
 # Backup, recovery and upgrades
 
-This guide covers the development candidate, SQLite schema 2 and backup format 1. It assumes the Linux paths and Compose project from [installation](INSTALLATION.md). Keep backups, keys, credentials and private evidence outside Git. Return to the [documentation index](README.md).
+This guide covers the development candidate, SQLite schema 3 and backup format 1. It assumes the Linux paths and Compose project from [installation](INSTALLATION.md). Keep backups, keys, credentials and private evidence outside Git. Return to the [documentation index](README.md).
 
 For [managed installations](INSTALLER.md), [updating](UPDATING.md) creates the same stopped-host database/asset format and [rollback](UPDATING.md#roll-back-after-failure-or-a-bad-update) restores into a new root automatically. Do not substitute the manual `dc` helper below for that installation's generated Compose. For manual disaster/owner recovery on a managed host, select its recorded project and `<root>/compose.json`, inspect the active recorded data root, and preserve original keys. Custom recovery to a different topology should use a separate manual installation, not edited lifecycle records.
 
@@ -91,7 +91,7 @@ dc run --rm --no-deps kekbot node src/cli.ts doctor
 
 For fixtures, use `fixture` paths and preserve/recreate both RSA and Ed25519 fixture signing pairs before restore, because runtime configuration requires their public keys. Keep fixture credentials separate from live storage.
 
-Restore validates mode/schema, key fingerprint, SQLite integrity and database/asset checksums, then clears runtime leases. Current code accepts schema 1 or 2 and rejects newer schemas. **For a schema 1 backup**, run stopped-host `init` **after** restore and **before** doctor/startup to migrate it and create owner setup material. A schema 2 backup already contains account state.
+Restore validates mode/schema, key fingerprint, SQLite integrity and database/asset checksums, then clears runtime leases. Current code accepts schemas 1, 2 and 3 and rejects newer schemas. For schema 1 or 2, run stopped-host `init` **after** restore and **before** doctor/startup to apply checked-in migrations. Schema 1 also needs owner setup material; schemas 2 and 3 preserve existing account state. Never run schema-2 code against schema-3 storage.
 
 If a validation/copy fails, keep the original backup and old data untouched; inspect the failed target privately and retry into another new directory. Do not work around a key/checksum mismatch.
 
