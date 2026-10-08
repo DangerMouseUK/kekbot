@@ -4,6 +4,8 @@ The current `0.1.0-dev.0` build is an unreleased candidate. The [requirements au
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
 
+Review fixes change the candidate source even when versions/formats stay the same. Rebuild and verify the final source/image; do not transfer an earlier candidate's acceptance. The 2026-10-09 [regressions](TESTING.md#long-lived-state-and-lifecycle-regressions) cover grant races, import versions, waiting queues and privacy/cooldown boundaries. Their fixture results do not change `release-evidence.json`'s pending live or dependency gates.
+
 <!-- contents:start -->
 **On this page**
 

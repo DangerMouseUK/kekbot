@@ -41,8 +41,8 @@ export class AutomationService {
     const command = trigger.toLowerCase();
     const actor: Actor = { id: `kick:${viewer}`, role: ["moderator", "broadcaster"].includes(role) ? "moderator" : "readonly", permissions: [] };
     const reply = (text: string) => this.state.effect(`reply:${receipt}`, "kick.reply", { text });
+    const cooldown = `utility:${viewer}:${command}`;
     try {
-      const cooldown = `utility:${viewer}:${command}`;
       if (Date.now() - Number(this.state.repository.setting(cooldown) ?? 0) < 5000) return;
       const builtIn = this.utility(command, args, viewer, name, role, actor, receipt);
       if (builtIn !== undefined) {
@@ -62,6 +62,7 @@ export class AutomationService {
       reply(renderTemplate(config.responses[randomInt(config.responses.length)], { user: name, args: args.join(" ").slice(0, 200), channel: this.state.settings.name, counter: count, points: this.engagement.balance(viewer) }));
       this.state.observe(`command:${receipt}`, "commands.executed");
     } catch (error) {
+      this.state.repository.set(cooldown, String(Date.now()));
       reply(error instanceof AppError ? error.code.replaceAll("_", " ") : "Command input was not valid.");
     }
   }

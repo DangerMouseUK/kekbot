@@ -84,11 +84,13 @@ The dedicated [CLI reference](CLI.md) gives all arguments, expected outputs and 
 
 Only explicit rate limits receive safe bounded automatic retries. A network interruption during a mutation can leave delivery uncertain. Owners can select **Provider confirms success** or **Provider confirms failure** after inspection. This records the observed result and **does not resend** the job. Repeating a manual action can cause a second real effect; do not equate a missing response with a failed send.
 
+**Delivery outcomes** shows the latest 100 jobs. **Maintenance → Uncertain deliveries** is a separate queue of every still-uncertain job, 50 per page, so newer successful work cannot hide it. Use **Older waiting items** to continue, **Newest waiting items** to return, and **Refresh this page** to reload an older page. A reconciliation refreshes the displayed queue page. Only the owner can record outcomes; read-only browsing grants no action authority.
+
 Current account permissions, guild routes and timer eligibility are rechecked when deferred work runs. Removing authority can invalidate pending work. Preview/test tools are separate from real delivery: command/timer previews, alert previews and safe moderation tests create no provider mutations.
 
 ### Reconcile an uncertain action
 
-1. Identify the job, intended effect and time from the local delivery list. Preserve the sanitized error privately.
+1. Identify the job, intended effect and time from the local delivery list. Use **Uncertain deliveries → Older waiting items** if it is absent from recent outcomes. Preserve the sanitized error privately.
 2. Inspect Kick/Discord for the actual message or moderation outcome. A missing browser response alone is insufficient.
 3. If the provider confirms the result, the owner records **Provider confirms success** or **Provider confirms failure**. If it remains unknowable, leave it uncertain and document that limit privately.
 4. Only after a known failure, decide whether a new deliberate action is still appropriate. Reconciliation itself never resends.
@@ -110,6 +112,8 @@ Owners edit retention in **Maintenance → Edit settings**. Defaults and current
 
 Owner viewer export includes retained profile, ledger, redemptions, queue decisions, participation and chat. Handle it as private. Erasure removes profile text, chat, moderator notes, associated resolved job payloads and temporary viewer guards, while integrity/audit identifiers and economic/participation/queue decisions remain. If matching events or derived jobs are still pending/running, retry after they finish. Uncertain outbound payloads remain encrypted until explicit reconciliation; they are never automatically retried. New chat can create a fresh observed profile; erasure does not promise removal of every personal identifier.
 
+Gift recipients count as associated viewers even when the gifter is anonymous. Erasing a recipient clears the matching retained gift receipt, which may also contain other recipients. Pending processing or related delivery blocks erasure until it finishes. Older job associations are recovered from retained receipts before that check; if the source receipt has already expired, the normal payload-retention limits still apply.
+
 Resolved job payloads follow chat retention independently of outcome metadata, which follows the longer of audit and receipt retention. Pending/running jobs retain their payloads. Uncertain outbound jobs retain an encrypted payload until an operator reconciles the outcome; reconciliation clears it. Never resend an uncertain action blindly.
 
 Temporary login locks, cooldowns, utility/request guards, sent markers, moderation chat windows and Discord results expire on reads and are removed during periodic retention. Pending/running/uncertain Discord jobs protect their results. Permanent configuration/counters are unaffected. Legacy records are assigned conservative expiries on maintenance. Old jobs can be associated with a viewer only where receipts/media still supply identity; other resolved payloads expire normally.
@@ -123,6 +127,8 @@ Analytics filters observed events by date or observed stream ID and exports JSON
 In **Maintenance → Configuration portability**, export the native configuration bundle. It contains portable commands/timers/alerts/widgets/rules/goals/rewards/settings and referenced local assets. It excludes credentials, accounts, sessions, invitations, source/API tokens, guild mappings, paths and private history. Asset names/configured response text may still contain information you entered; review before sharing.
 
 Paste a bundle into the import form, select **merge** or **replace**, and leave **Apply after reviewing the preview** unchecked first. Review create/conflict/remove/asset decisions, then deliberately enable Apply and submit. Merge skips existing document IDs; replace removes the portable set before saving replacements. Imports validate/remap assets and apply database changes atomically. A crash during file creation can leave an unreferenced asset for host inspection.
+
+Replacement advances each retained document's local version, including unchanged data; the bundle does not supply versions. Editors holding a pre-import version receive `configuration_changed_reload` on save/delete and must reload. New document IDs start at version 1. Command trigger swaps apply within the same transaction after validating the final namespace.
 
 The application envelope is limited to 12 MiB. Use a full backup for account/history migration or larger asset sets. Configuration exports are not disaster recovery and do not claim compatibility with other bot products. See [API formats](API.md#configurations-and-actions).
 

@@ -79,6 +79,9 @@ export class Repository {
           value.follower?.user_id,
           value.subscriber?.user_id,
           value.gifter?.user_id,
+          ...(Array.isArray(value.giftees)
+            ? value.giftees.map((user: { user_id?: unknown } | null) => user?.user_id)
+            : []),
           value.userId,
           value.requester,
           value.viewer,
@@ -215,6 +218,28 @@ export class Repository {
   }
 
   scrubViewer(viewer: string) {
+    const receiptMatch = `(CAST(json_extract(r.payload,'$.sender.user_id') AS TEXT)=@viewer
+      OR CAST(json_extract(r.payload,'$.follower.user_id') AS TEXT)=@viewer
+      OR CAST(json_extract(r.payload,'$.subscriber.user_id') AS TEXT)=@viewer
+      OR CAST(json_extract(r.payload,'$.gifter.user_id') AS TEXT)=@viewer
+      OR EXISTS(SELECT 1 FROM json_each(r.payload,'$.giftees') AS recipient
+        WHERE CAST(json_extract(recipient.value,'$.user_id') AS TEXT)=@viewer))`;
+    // Older schema-3 jobs omitted gift recipients. Recover associations from retained receipts
+    // before either checking pending work or removing the only remaining source payload.
+    this.store.sqlite
+      .prepare(
+        `WITH matched_receipts AS MATERIALIZED (SELECT r.id FROM receipts r WHERE ${receiptMatch})
+      UPDATE jobs SET viewer_ids=json_insert(viewer_ids,'$[#]',@viewer)
+      WHERE NOT EXISTS(SELECT 1 FROM json_each(jobs.viewer_ids) WHERE value=@viewer)
+      AND EXISTS(SELECT 1 FROM matched_receipts r WHERE (
+        jobs.id='event:'||r.id OR jobs.id='reply:'||r.id OR jobs.id='action:moderation:'||r.id
+        OR (jobs.kind='discord.send' AND (
+          substr(jobs.id,1,length('discord:'||r.id||':'))='discord:'||r.id||':'
+          OR substr(jobs.id,1,length('discord:moderation:'||r.id||':'))='discord:moderation:'||r.id||':'
+          OR (substr(jobs.id,1,13)='discord:goal:' AND instr(substr(jobs.id,14),':'||r.id||':')>0)
+        ))))`,
+      )
+      .run({ viewer });
     const match = "EXISTS(SELECT 1 FROM json_each(jobs.viewer_ids) WHERE value=?)";
     if (
       this.store.sqlite
@@ -229,6 +254,9 @@ export class Repository {
       )
       .run(viewer);
     this.protectUncertain();
+    this.store.sqlite
+      .prepare(`UPDATE receipts AS r SET payload=NULL WHERE ${receiptMatch}`)
+      .run({ viewer });
   }
 
   retain(now = Date.now()) {

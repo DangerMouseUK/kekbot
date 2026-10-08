@@ -21,6 +21,8 @@ export function GET(request: Request) {
   try {
     const { app, actor } = access(request, "read");
     const params = new URL(request.url).searchParams;
+    const view = params.get("view");
+    if (view === "uncertain-jobs" || view === "pending-redemptions") return json({ version: 1, ...app.bot.state.workQueue(view, { cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }) });
     if (params.get("view") === "media-history") return json({ version: 1, ...app.bot.media.history({ cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }) });
     return json({ version: 1, state: app.bot.state.snapshot(actor) });
   }

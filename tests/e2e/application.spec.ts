@@ -158,3 +158,80 @@ test("large terminal history stays separate from the active queue and pages with
     db.prepare("DELETE FROM media WHERE id LIKE 'browser-history-%'").run(); db.close();
   }
 });
+
+test("older unresolved deliveries and rewards stay actionable through bounded pages and current permissions", async ({ request, page, browser }) => {
+  const csrf = await login(request), db = new Database(join(root(), "fixture/kekbot.sqlite"));
+  const createdAt = Date.now() - 60000;
+  try {
+    const job = db.prepare("INSERT INTO jobs(id,kind,payload,status,due_at,created_at) VALUES(?,'kick.reply','{}',?,0,?)");
+    const redemption = db.prepare("INSERT INTO redemptions(id,viewer,reward,cost,status,created_at) VALUES(?,'456','Browser reward',10,?,?)");
+    db.transaction(() => {
+      for (let i = 0; i < 125; i++) {
+        const suffix = String(i).padStart(3, "0");
+        job.run(`browser-waiting-job-${suffix}`, "uncertain", createdAt);
+        redemption.run(`browser-waiting-reward-${suffix}`, "pending", createdAt);
+      }
+      for (let i = 0; i < 150; i++) {
+        job.run(`browser-terminal-job-${i}`, "succeeded", createdAt + 100);
+        redemption.run(`browser-terminal-reward-${i}`, "completed", createdAt + 100);
+      }
+    })();
+    await login(page.request); await page.goto("/");
+    await page.getByRole("button", { name: "Maintenance", exact: true }).click();
+    const deliveries = page.locator("section").filter({ has: page.getByRole("heading", { name: "Uncertain deliveries", exact: true }) });
+    await expect(deliveries.locator("article")).toHaveCount(50);
+    await deliveries.getByRole("button", { name: "Older waiting items", exact: true }).click();
+    await expect(deliveries.locator("article").first()).toContainText("browser-waiting-job-074");
+    await deliveries.getByRole("button", { name: "Older waiting items", exact: true }).click();
+    await expect(deliveries.locator("article")).toHaveCount(25);
+    const oldJob = deliveries.locator("article").filter({ hasText: "browser-waiting-job-000" });
+    await oldJob.getByRole("button", { name: "Provider confirms success", exact: true }).click();
+    await expect(oldJob).toHaveCount(0);
+    expect(db.prepare("SELECT status,payload,payload_state FROM jobs WHERE id='browser-waiting-job-000'").get()).toEqual({ status: "succeeded", payload: "{}", payload_state: "scrubbed" });
+    await deliveries.getByRole("button", { name: "Newest waiting items", exact: true }).click();
+    await expect(deliveries.locator("article").first()).toContainText("browser-waiting-job-124");
+    await page.getByRole("button", { name: "Points & rewards", exact: true }).click();
+    const rewards = page.locator("section").filter({ has: page.getByRole("heading", { name: "Pending redemptions", exact: true }) });
+    await expect(rewards.locator("article")).toHaveCount(50);
+    await rewards.getByRole("button", { name: "Older waiting items", exact: true }).click();
+    await expect(rewards.locator("article").first()).toContainText("browser-waiting-reward-074");
+    await rewards.getByRole("button", { name: "Older waiting items", exact: true }).click();
+    await expect(rewards.locator("article")).toHaveCount(25);
+    const oldReward = rewards.locator("article").filter({ hasText: "browser-waiting-reward-000" });
+    await oldReward.getByRole("button", { name: "Mark fulfilled", exact: true }).click();
+    await expect(oldReward).toHaveCount(0);
+    expect(db.prepare("SELECT status FROM redemptions WHERE id='browser-waiting-reward-000'").get()).toEqual({ status: "completed" });
+
+    const token = await operation(request, csrf, "token.create", { name: "Waiting work read", kind: "api", scopes: ["read"] });
+    const headers = { Authorization: `Bearer ${token.token}` };
+    for (const view of ["uncertain-jobs", "pending-redemptions"]) {
+      const result = await request.get(`/api/v1/control?view=${view}&limit=100`, { headers });
+      expect(result.ok()).toBe(true); expect((await result.json()).items).toHaveLength(100);
+      expect((await request.get(`/api/control?view=${view}&cursor=modified`)).status()).toBe(400);
+      expect((await request.get(`/api/v1/control?view=${view}&limit=101`, { headers })).status()).toBe(400);
+    }
+    expect((await request.post("/api/v1/control", { headers, data: { action: "job.resolve", input: { id: "browser-waiting-job-001", result: "confirmed" } } })).status()).toBe(403);
+    await operation(request, csrf, "token.revoke", { id: token.id });
+    expect((await request.get("/api/v1/control?view=uncertain-jobs", { headers })).status()).toBe(401);
+
+    const invitation = await operation(request, csrf, "account.invite", { role: "readonly" });
+    const reader = await browser.newContext({ baseURL: origin });
+    try {
+      expect((await reader.request.post("/api/auth", { headers: { Origin: origin }, data: { action: "invite", token: invitation.token, username: "queue-reader", password } })).ok()).toBe(true);
+      const readerPage = await reader.newPage(); await readerPage.goto("/");
+      await readerPage.getByRole("button", { name: "Maintenance", exact: true }).click();
+      await expect(readerPage.getByRole("heading", { name: "Uncertain deliveries", exact: true })).toBeVisible();
+      await expect(readerPage.getByRole("button", { name: "Provider confirms success", exact: true })).toHaveCount(0);
+      await readerPage.getByRole("button", { name: "Points & rewards", exact: true }).click();
+      await expect(readerPage.getByRole("heading", { name: "Pending redemptions", exact: true })).toBeVisible();
+      await expect(readerPage.getByRole("button", { name: "Mark fulfilled", exact: true })).toHaveCount(0);
+      const session = await (await reader.request.get("/api/auth")).json();
+      for (const [action, input] of [["job.resolve", { id: "browser-waiting-job-001", result: "confirmed" }], ["reward.complete", { target: "browser-waiting-reward-001" }]] as const) {
+        expect((await reader.request.post("/api/control", { headers: { Origin: origin, "X-CSRF-Token": session.csrf }, data: { action, input } })).status()).toBe(403);
+      }
+    } finally { await reader.close(); }
+  } finally {
+    db.prepare("DELETE FROM jobs WHERE id LIKE 'browser-waiting-job-%' OR id LIKE 'browser-terminal-job-%'").run();
+    db.prepare("DELETE FROM redemptions WHERE id LIKE 'browser-waiting-reward-%' OR id LIKE 'browser-terminal-reward-%'").run(); db.close();
+  }
+});

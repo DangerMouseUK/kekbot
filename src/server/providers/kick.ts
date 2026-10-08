@@ -103,6 +103,9 @@ export class KickService {
     if (user.user_id !== config.broadcasterId) throw new AppError("authorize_configured_channel_owner", 403);
     if (generation !== this.generation) throw new AppError("kick_connection_changed_retry", 409);
     this.save({ ...token, expiresAt: Date.now() + token.expires_in * 1000, userId: user.user_id, username: user.name });
+    // The new grant supersedes any refresh of the previous grant.
+    this.generation++;
+    this.refreshFlight = undefined;
     return { broadcasterId: user.user_id, authorizedUsername: user.name, chatType: this.config.chatType };
   }
 
@@ -135,7 +138,10 @@ export class KickService {
     const current = this.load();
     if (!forceRefresh && current.expiresAt > Date.now() + 60000) return current.access_token;
     if (!this.refreshFlight) {
-      this.refreshFlight = this.refresh(current).finally(() => { this.refreshFlight = undefined; });
+      const flight = this.refresh(current).finally(() => {
+        if (this.refreshFlight === flight) this.refreshFlight = undefined;
+      });
+      this.refreshFlight = flight;
     }
     return this.refreshFlight;
   }
@@ -159,6 +165,7 @@ export class KickService {
       this.repository.set("kick_last_refresh_at", String(Date.now()));
       return token.access_token;
     } catch (error) {
+      if (generation !== this.generation) throw new AppError("kick_connection_changed_retry", 409);
       if (!(error instanceof DeliveryError && error.outcome === "retry")) this.repository.set("kick_auth_error", "kick_refresh_failed_reauthorize");
       throw error;
     }
@@ -229,6 +236,7 @@ export class KickService {
     let token: Tokens | undefined;
     try { token = this.load(); } catch { /* local disconnect also works after revocation */ }
     this.generation++;
+    this.refreshFlight = undefined;
     this.repository.store.sqlite.prepare("DELETE FROM connections WHERE provider='kick'").run();
     this.repository.store.sqlite.prepare("DELETE FROM oauth_states").run();
     this.repository.set("kick_auth_error", "disconnected");
@@ -246,6 +254,7 @@ export class KickService {
 
   invalidate() {
     this.generation++;
+    this.refreshFlight = undefined;
     this.repository.store.sqlite.prepare("DELETE FROM connections WHERE provider='kick'").run();
     this.repository.store.sqlite.prepare("DELETE FROM oauth_states").run();
     this.repository.set("kick_auth_error", "connection_settings_changed_reauthorize");

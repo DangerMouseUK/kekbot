@@ -41,6 +41,7 @@ The public operator path is [installation](INSTALLATION.md) → [providers](PROV
 - [Guided host lifecycle — 2026-10-08](#guided-host-lifecycle--2026-10-08)
 - [Next work](#next-work)
 - [Post-milestone repository quality follow-up](#post-milestone-repository-quality-follow-up)
+- [Repository review fixes — 2026-10-09](#repository-review-fixes--2026-10-09)
 <!-- contents:end -->
 
 ## Working approach
@@ -640,3 +641,16 @@ The build gate for Milestone 16, automated Milestone 17 campaign and autonomous 
 ## Post-milestone repository quality follow-up
 
 The [quality follow-up](QUALITY_HARDENING.md) records eight targeted improvements, schema-3 compatibility and verification. PR #6 also remediates the two development-tool vulnerabilities with tested, exact dependency changes; its [remediation record](DEPENDENCY_MAINTENANCE.md#review-record) distinguishes the remaining raw registry warning from verified patched code. It preserves the historical milestone identities and pending live/operator gates. Release dependency sign-off is separate and pending; no new deployment or stable release is claimed.
+
+## Repository review fixes — 2026-10-09
+
+Baseline `fb7c6e0736f19733bf443ce31e341f7014dcabf5`, with fixes on `fix/review-durability-and-work-queues`. Seven reviewed defects are addressed: OAuth/refresh generation races, replacement-import version reuse, generated job-ID reconciliation, hidden old uncertain deliveries and pending rewards, gift-recipient erasure, and unthrottled utility-error replies. No production dependency, migration or format change is required. Operator, API, architecture and contributor guidance describes the corrected behavior.
+
+Local Windows verification used Node 24.21.0 and pnpm 10.26.0:
+
+- `pnpm check`: publication policy, documentation/schema examples, release/dependency structure, types, formatting, lint and **144 application tests across 23 files** passed. Installer contracts passed **26 portable tests**, with seven Linux-only tests reserved for CI.
+- `pnpm build` and `pnpm test:standalone` passed, including packaged owner recovery and separate-directory backup/restore outside the checkout.
+- `pnpm test:e2e`: **13 Chromium production-browser scenarios** passed, including older waiting-page navigation, reconciliation/fulfillment, read-only/API boundaries and the existing accessibility/responsive checks.
+- Gitleaks 8.30.1's redacted full-history scan passed across the 28 existing commits. Candidate publication scans and final CI identify the reviewed source. GitHub CI supplies Linux/container/all-browser evidence against the PR commit.
+
+Existing historical results and all live/operator/dependency gates stay unchanged. Deployment remains deferred; no real provider, public certificate or independent-operator acceptance is claimed by these fixes.

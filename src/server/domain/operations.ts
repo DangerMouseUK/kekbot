@@ -208,6 +208,11 @@ export class OperationsService {
               mapping.set(asset.id, uploaded.id);
             }
           }
+          const previousVersions = new Map(
+            portableKinds
+              .flatMap((kind) => this.state.list(kind))
+              .map((doc) => [doc.id, doc.version]),
+          );
           if (mode === "replace")
             for (const kind of portableKinds)
               this.state.db.prepare("DELETE FROM documents WHERE kind=?").run(kind);
@@ -222,6 +227,12 @@ export class OperationsService {
                 if (typeof data[field] === "string")
                   data[field] = mapping.get(data[field]) ?? data[field];
             this.state.save(actor, doc.kind, doc.id, data, existing?.version);
+            // Rebuild the namespace atomically, but never reuse a retained document's version.
+            const previousVersion = previousVersions.get(doc.id);
+            if (mode === "replace" && previousVersion !== undefined)
+              this.state.db
+                .prepare("UPDATE documents SET version=? WHERE id=?")
+                .run(previousVersion + 1, doc.id);
           }
           this.state.audit(actor.id, "configuration.import", mode);
         })
@@ -302,22 +313,10 @@ export class OperationsService {
       .parse(viewer);
     return this.state.db
       .transaction(() => {
-        const pending = this.state.db
-          .prepare(
-            "SELECT 1 FROM receipts r JOIN jobs j ON j.id='event:'||r.id WHERE j.status IN ('pending','running') AND (json_extract(r.payload,'$.sender.user_id')=? OR json_extract(r.payload,'$.follower.user_id')=? OR json_extract(r.payload,'$.subscriber.user_id')=? OR json_extract(r.payload,'$.gifter.user_id')=?) LIMIT 1",
-          )
-          .get(Number(viewer), Number(viewer), Number(viewer), Number(viewer));
-        if (pending)
-          throw new AppError("privacy_processing_pending_retry_after_jobs_complete", 409);
         this.state.repository.scrubViewer(viewer);
         this.state.db
           .prepare("UPDATE viewers SET name='Erased viewer',messages=0,watch_minutes=0 WHERE id=?")
           .run(viewer);
-        this.state.db
-          .prepare(
-            "UPDATE receipts SET payload=NULL WHERE json_extract(payload,'$.sender.user_id')=? OR json_extract(payload,'$.follower.user_id')=? OR json_extract(payload,'$.subscriber.user_id')=? OR json_extract(payload,'$.gifter.user_id')=?",
-          )
-          .run(Number(viewer), Number(viewer), Number(viewer), Number(viewer));
         this.state.db
           .prepare("DELETE FROM settings WHERE key=? OR key=? OR key LIKE ? OR key LIKE ?")
           .run(

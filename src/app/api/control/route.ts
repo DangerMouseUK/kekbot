@@ -7,6 +7,8 @@ export function GET(request: Request) {
   try {
     const { app, actor } = requireAccount(request);
     const params = new URL(request.url).searchParams;
+    const view = params.get("view");
+    if (view === "uncertain-jobs" || view === "pending-redemptions") return json(app.bot.state.workQueue(view, { cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }));
     if (params.get("view") === "media-history") return json(app.bot.media.history({ cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }));
     if (params.get("view") === "analytics") {
       const result = app.bot.operations.analytics(Number(params.get("from") ?? Date.now() - 30 * 86400000), Number(params.get("to") ?? Date.now()), params.get("stream") ?? undefined);
