@@ -1,30 +1,57 @@
 # Repository instructions
 
-## Working style
+## Working style and authorization
 
-Work as a single agent. Do not delegate or spawn subagents without the user's explicit approval for the current task. Inspect relevant code, tests and documentation before changing them. Prefer targeted changes and the pinned pnpm toolchain. Do not commit, push, deploy, provision paid infrastructure or publish a release unless the user has authorised that action.
+Work as a single agent. Do not delegate or spawn subagents without the user's explicit approval for the current task. Inspect relevant implementation, tests and documentation before editing. Prefer focused changes, existing patterns and the pinned pnpm toolchain.
+
+Carry authorized work through implementation, verification and review. Do not commit, push, deploy, provision paid infrastructure or publish a release unless the user has authorized that action. A documentation/packaging change alone never authorizes live deployment or publication. Do not perform unrelated cleanup.
+
+## Current project and entry points
+
+KekBot is an MIT self-hosted Kick/Discord control room: one creator per installation, local accounts, SQLite/local assets, one Next.js application container and optional owner-supplied integrations. The application is a development candidate; inspect [milestones](docs/MILESTONES.md), [release readiness](docs/RELEASE_READINESS.md) and `package.json` for current versions/evidence. Never infer stable acceptance from implementation or CI.
+
+Use these task-specific starting points:
+
+- Public entry/navigation: [README](README.md), [documentation index](docs/README.md).
+- Local setup: [quickstart](docs/QUICKSTART.md), [contributing](CONTRIBUTING.md).
+- Hosting/configuration: [installation](docs/INSTALLATION.md), [configuration](docs/CONFIGURATION.md).
+- Provider/presentation behavior: [providers](docs/PROVIDERS.md), [user guide](docs/USER_GUIDE.md), [OBS](docs/OBS.md).
+- Host/privacy/recovery: [operations](docs/OPERATIONS.md), [backup/recovery](docs/BACKUP_RECOVERY.md).
+- Runtime/contracts: [architecture](docs/ARCHITECTURE.md), [API](docs/API.md).
+- Verification/release: [testing](docs/TESTING.md), [live acceptance](docs/LIVE_ACCEPTANCE.md), [releasing](docs/RELEASING.md).
+
+Read only the material needed for the requested scope. The [foundation guide](docs/FOUNDATION.md) is historical diagnostic evidence; it is not the normal installation path.
 
 ## Architecture and safety
 
-- Keep routes and React components separate from domain services, provider clients, storage and background jobs. All control surfaces use the same domain decisions.
-- Use real SQLite transactions, constraints and optimistic versions for durable state. Keep provider calls outside transactions. Treat uncertain outbound delivery as requiring reconciliation; never retry it blindly.
-- Enforce current permissions at every server entry point and again when deferred work executes. Widget read access and player acknowledgements have different credentials.
-- Default to isolated synthetic fixtures for development and CI. Tests must not use live grants, send real provider mutations or load live YouTube playback. Generate fixture keys and credentials at runtime.
-- Add schema changes through checked-in SQL migrations and metadata. Do not edit released migrations or regenerate them at startup. Preserve backup compatibility or document an explicit upgrade boundary.
-- Avoid new production dependencies unless necessary. Pin any added dependency exactly and review its license and use.
+- Keep routes/React separate from domain services, providers, storage and jobs. All control surfaces use the same decisions; `catalog.ts` defines bounded configuration and `State` enforces current permissions/versions.
+- Use real SQLite transactions, constraints and optimistic versions for durable state. Commit decisions/outbox atomically. Keep provider calls outside transactions; uncertain delivery requires reconciliation, never blind retry.
+- Enforce current permissions at every server entry and again at deferred execution. Widget reads and player acknowledgements use separate exact credentials. Owner-only account/integration/token powers stay owner-only.
+- Default to isolated synthetic fixtures. Development/CI never use live grants, send real provider mutations or load live YouTube. Generate fixture keys/accounts at runtime outside the publication set; never introduce default live passwords.
+- Use checked-in SQL migrations and metadata. Do not rewrite released migrations or generate migrations at startup. Preserve backup compatibility or document an explicit upgrade boundary.
+- Keep one runtime per local SQLite installation. Builds/tests must not start live jobs. Preserve bounded processing, durable leases, snapshot recovery and explicit media resume after restart.
+- Avoid new production dependencies unless justified. Pin exact additions and review licenses/notices.
 
-## Documentation and evidence
+## Documentation quality and evidence
 
-The root README is the public entry point. Keep it, CONTRIBUTING.md, operator/API/testing guidance, CHANGELOG.md and milestone/roadmap evidence consistent with changed behaviour. Update both PRDs together only when requirements change. Link new public guides from the appropriate index. Examples use reserved domains, synthetic identities and empty provider credentials.
+The root README serves new public users. Keep it and the documentation index linked to working task-based guides. Explain prerequisites, shell/platform, command location, host versus container paths, required permissions, expected results and recovery/next steps. Match actual screen labels, schemas and CLI behavior. Do not invent an installer, published image, default account or verified provider capability.
 
-Keep planned, implemented, fixture-tested and live-tested evidence distinct. Record exact commands and source/candidate identity. CI timings are not reference-host benchmark results. Real OBS/provider checks, certificate renewal and independent-owner trials require live evidence. Never mark an unavailable scenario passed.
+Update relevant guides, CONTRIBUTING, CHANGELOG and architecture/API references with changed behavior. Keep roadmap/milestone/requirement records aligned. Update both identical PRDs together only when requirements change; preserve historical evidence identities.
 
-Maintain the [requirement crosswalk](docs/RELEASE_READINESS.md) and [release procedure](docs/RELEASING.md) for release-affecting changes. The 33 live/operator gates in `docs/release-evidence.json` remain pending until dated evidence exists. Validate with `pnpm release:check`; stable checks must fail closed on missing acceptance or mismatched source/image. Candidate packaging never authorizes deployment, tags, registry writes or release publication. Only audited public release bundles may be uploaded; raw test/runtime artifacts stay private.
+Separate planned, implemented, fixture-tested and live-tested outcomes. Record exact commands, source/image and dates. Hosted CI timings do not establish reference-host benchmarks. Real OBS/provider delivery, public certificate renewal, independent operators and another-host restoration require actual evidence. Never mark an unavailable scenario passed.
 
-## Verification and publication
+Maintain [RELEASE_READINESS.md](docs/RELEASE_READINESS.md), [RELEASING.md](docs/RELEASING.md) and [release-evidence.json](docs/release-evidence.json) for release-affecting work. Read the current evidence file instead of assuming a fixed gate count/status. `pnpm release:check` validates evidence structure; stable mode must fail closed on missing acceptance or source/image mismatch.
 
-Run `pnpm check` and relevant targeted tests. For runtime/UI/package changes, run `pnpm build`, `pnpm test:standalone` and `pnpm test:e2e`. Linux container, proxy and storage-fault checks run in GitHub Actions; see [testing guidance](docs/TESTING.md). Do not ask the user to run local tests that the agent or CI can run.
+## Verification
 
-Before publishing, inspect the complete candidate and scan publication files and Git history with redacted output. No runtime environment files, private keys, tokens, runtime data, raw live history, screenshots/traces, operator setup records, personal filesystem paths or installation addresses belong in Git or image build contexts. The empty `.env.example` template is the only environment-file exception. Keep private live evidence outside the checkout; do not upload browser traces or fixture data as public CI artifacts. Follow SECURITY.md for reporting.
+Run `pnpm check` and targeted checks appropriate to the change. Documentation-only work requires link/publication checks and validation of changed procedures; avoid unnecessary application rewrites or repeated performance tests.
 
-Report what changed, which checks passed and what remains unverified. A successful build or route alone does not establish release acceptance.
+For runtime/UI/package changes run `pnpm build`, `pnpm test:standalone` and `pnpm test:e2e`. Linux container/proxy/storage-fault checks run in GitHub Actions. Do not ask the user to run checks that the agent or CI can run. Use real SQLite and meaningful failure/concurrency tests where needed; do not write implementation-mirroring tests for trivial changes.
+
+## Publication and privacy
+
+Before publishing, inspect the full candidate and scan publication files/Git history with redacted output. No runtime environment files, private keys, tokens, databases, backups, raw live history, browser screenshots/traces, operator setup records, personal filesystem paths or installation addresses belong in Git or image contexts. The empty `.env.example` is the only environment-file exception. Examples use reserved domains and synthetic identities.
+
+Keep private evidence/runtime configuration outside source. Never echo a secret into a tool result, public issue, PR or log. Only audited public release bundles may be uploaded; raw test/runtime artifacts stay private. Follow [SECURITY.md](SECURITY.md) for reporting.
+
+Report what changed, which checks passed and what remains unverified. A working screen, route or build alone does not establish release acceptance.

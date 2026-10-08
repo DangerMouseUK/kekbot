@@ -1,62 +1,95 @@
 # KekBot
 
-An MIT-licensed, self-hosted Kick and Discord bot and stream control room.
+[![CI](https://github.com/DangerMouseUK/kekbot/actions/workflows/ci.yml/badge.svg)](https://github.com/DangerMouseUK/kekbot/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**Current stage: automated candidate verified, `0.1.0-dev.0`.** Accounts, dashboard, commands/timers, Discord controls, alerts/OBS sources, media approval/playback, moderation, goals, engagement, analytics and configuration/API services are implemented. Milestone 17's fixture, SQLite, failure, concurrency, browser and Linux container campaign passed. Milestones 18–19's live runbook, requirement audit, release guards and candidate packaging are prepared; stable acceptance remains pending. Follow the [milestones](docs/MILESTONES.md) for exact evidence and outstanding gates. New deployment is deferred. The original test droplet has been destroyed; no running deployment is assumed.
+**Your Kick bot, your stream control room, your infrastructure.**
 
-## Start locally
+KekBot brings Kick chat automation, Discord moderator controls, OBS sources and YouTube requests into a self-hosted dashboard. One installation serves one creator and their moderator team. You own the provider applications, configuration, local accounts and data.
 
-Requirements: Node.js 24.21.0 and pnpm 10.26.0. Native SQLite compilation may require a C++ build toolchain and Python. The production target is Linux x86-64; Docker Desktop is the container path for Windows/macOS.
+**Status: development candidate (`0.1.0-dev.0`).** The feature build and automated candidate campaign are complete. Full-product live testing and stable release acceptance are pending. Install from source for evaluation; a supported stable release and published image are still to come. See the [milestones](docs/MILESTONES.md) and [release readiness](docs/RELEASE_READINESS.md) for evidence and limits.
+
+## What you can do
+
+| Area | Capabilities |
+| --- | --- |
+| Kick chat | Custom commands, aliases, response pools, counters, restrictions, cooldowns and timers |
+| Discord | Explicit guild/channel notification routing and permission-controlled operator commands |
+| Stream presentation | Follow/subscription alerts, local image/sound assets, goals, three themes and 18 OBS source types |
+| Media | Kick `!sr` requests → dashboard or Discord approval → visible YouTube playback in OBS → durable queue advancement |
+| Moderation | Link/phrase/repetition/caps/burst rules, safe rule tests, notes, escalation and temporary incident presets |
+| Community | Points, estimated watchtime, rewards, polls, raffles and leaderboards |
+| Ownership | Local accounts/roles, scoped API/source tokens, analytics, retention, configuration portability and backup/recovery tools |
+
+Discord and YouTube are optional to enable. KekBot runs without a project-operated account, relay or billing service. Enabled integrations contact their official services; OBS YouTube playback contacts YouTube. The [configuration reference](docs/CONFIGURATION.md) explains storage and secrets.
+
+## Get started
+
+- **Try the dashboard safely:** [local fixture quickstart](docs/QUICKSTART.md). Synthetic data, generated credentials and simulated provider effects; no provider account required.
+- **Run your own bot:** [installation guide](docs/INSTALLATION.md), then [Kick/Discord/YouTube setup](docs/PROVIDERS.md) and [OBS setup](docs/OBS.md).
+- **Use an existing installation:** [user guide](docs/USER_GUIDE.md).
+- **Maintain or recover a host:** [operations](docs/OPERATIONS.md), [backup and recovery](docs/BACKUP_RECOVERY.md), and [troubleshooting](docs/TROUBLESHOOTING.md).
+- **Contribute:** [CONTRIBUTING.md](CONTRIBUTING.md), [architecture](docs/ARCHITECTURE.md) and [testing](docs/TESTING.md).
+
+### Local fixture setup
+
+Install Git, **Node.js 24.21.0** and **pnpm 10.26.0** first. See [quickstart prerequisites](docs/QUICKSTART.md#prerequisites), including native SQLite build requirements.
 
 ```sh
+git clone https://github.com/DangerMouseUK/kekbot.git
+cd kekbot
 pnpm install --frozen-lockfile
 cp .env.example .env.local
-# Edit .env.local. Select fixture mode explicitly for offline development.
+```
+
+PowerShell uses `Copy-Item .env.example .env.local` for the last command. Edit `.env.local` before continuing:
+
+```dotenv
+KEKBOT_MODE=fixture
+KEKBOT_RUN_JOBS=1
+KEKBOT_ENABLE_PROOF=0
+KEKBOT_PUBLIC_URL=http://127.0.0.1:3000
+KICK_BROADCASTER_USER_ID=123
+```
+
+Leave the provider client ID/secret empty and keep the local public URL exactly as above. Then:
+
+```sh
 pnpm kekbot init
-# Optional: populate every module and create protected fixture credentials while stopped.
-# pnpm kekbot fixture-seed
+pnpm kekbot fixture-seed
 pnpm dev
 ```
 
-On PowerShell, use `Copy-Item .env.example .env.local`. For fixture development, set `KEKBOT_MODE=fixture`, `KICK_BROADCASTER_USER_ID=123`, and leave live Kick credentials empty. Keep `KEKBOT_RUN_JOBS=1` to exercise the background runtime.
+Open **http://127.0.0.1:3000**. Read the protected `fixture-account.json` file at the path reported by seeding to sign in. The password is randomly generated. For manual owner setup instead, omit seeding and use the setup-token file reported by `init`.
 
-Open `http://127.0.0.1:3000`. Initialization reports the private setup-token file path, never its contents. Read it locally to claim the owner account; the token expires after one hour. A seeded fixture installation instead uses the random credentials stored in the reported protected `fixture-account.json` file. There are no default live passwords.
+The [complete quickstart](docs/QUICKSTART.md) explains the first command, simulated playback, shutdown and storage. Fixture mode cannot send live provider mutations or play real YouTube videos.
 
-The dashboard uses local sessions, role permissions and CSRF checks. Owners configure their own optional integrations and issue separate revocable widget/player/API tokens. The [operator guide](docs/OPERATIONS.md) covers installation, provider setup, OBS, daily workflows, backups, upgrades and owner recovery. Historical foundation controls now live at `/foundation`, require explicit proof enablement, and additionally require owner authority in live mode.
+## Hosting requirements
 
-```sh
-pnpm kekbot fixture-event
-pnpm kekbot doctor
-pnpm check
-pnpm build
-pnpm test:standalone
-pnpm exec playwright install chromium
-pnpm test:e2e
-pnpm test:workload
-pnpm start
-```
+The deployment target is **Linux x86-64**, one long-running application container, local persistent disk and publicly trusted HTTPS for provider callbacks. The included Compose examples build KekBot and an optional Caddy proxy from source. A domain is the usual path; a separate public-IPv4 HTTPS example is available. Windows/macOS can evaluate the Linux container with Docker Desktop or develop from source.
 
-`pnpm build` disables jobs and telemetry even when live runtime configuration exists. `pnpm start` runs the built standalone server. The browser is not required for job processing.
+SQLite storage is local to the installation. Multiple replicas sharing a database, network-filesystem storage and ARM64 distribution are outside the current supported topology. The 2 vCPU / 2 GiB runtime reference target still needs live benchmark acceptance; allow more memory for image builds. See [installation requirements](docs/INSTALLATION.md#requirements).
 
-## Project guides
+## Documentation
 
-- [Project milestones and final testing plan](docs/MILESTONES.md)
-- [Installation and operator guide](docs/OPERATIONS.md)
-- [HTTP API and configuration interfaces](docs/API.md)
-- [Automated testing and GitHub CI](docs/TESTING.md)
-- [Live acceptance and reference benchmarks](docs/LIVE_ACCEPTANCE.md)
-- [Complete v1 requirement coverage and outstanding acceptance](docs/RELEASE_READINESS.md)
-- [Candidate packages, checksums and release procedure](docs/RELEASING.md)
-- [Foundation setup, live proof, backup and restore](docs/FOUNDATION.md)
-- [Ordered build roadmap and evidence](docs/ROADMAP.md)
-- [Architecture decisions](docs/ARCHITECTURE.md)
-- [Product specification](docs/PRD.md)
-- [Contributing](CONTRIBUTING.md)
-- [Repository instructions for coding agents](AGENTS.md)
-- [Security reporting](SECURITY.md)
-- [Changelog](CHANGELOG.md)
-- [Production dependency licenses](docs/DEPENDENCIES.md)
+The [documentation index](docs/README.md) lists every guide, reference and project record. Start with the task-based guides above; the PRDs describe product requirements rather than installation steps.
 
-GitHub Actions runs publication/docs/release-gate/types/lint checks, real SQLite/provider/concurrency/storage-fault tests, migrations, production dependency audit, packaged recovery, Chromium/Firefox/WebKit browser checks, accessibility, a short synthetic workload, and Linux image/proxy/recovery checks. Checksum-pinned Gitleaks scans candidate files, complete Git history and every image application layer. Manual invocation can also run a one-hour fixture soak and upload audited versioned source/image/notices/checksum bundles; these are unaccepted candidates. Workflows use read-only repository permissions and no provider credentials. Private traces, screenshots and generated runtime data are not uploaded. See the [testing guide](docs/TESTING.md) and [release procedure](docs/RELEASING.md) for coverage, commands and limits.
+| Reference | Purpose |
+| --- | --- |
+| [Configuration](docs/CONFIGURATION.md) | Environment variables, file layout, secrets and module defaults |
+| [HTTP API](docs/API.md) | Authentication, scopes, actions, schemas, SSE and error handling |
+| [Architecture](docs/ARCHITECTURE.md) | Runtime, persistence and provider design decisions |
+| [Testing](docs/TESTING.md) | Local checks, fixture isolation, browser and Linux CI coverage |
+| [Live acceptance](docs/LIVE_ACCEPTANCE.md) | Remaining provider, OBS, host and independent-operator trials |
+| [Release procedure](docs/RELEASING.md) | Candidate packages, checksums, acceptance and publication |
+| [Milestones](docs/MILESTONES.md) | Completed work, exact evidence and remaining milestones |
 
-One installation serves one creator. The runtime requires no KekBot account, central relay, billing service, or default telemetry. Enabled provider integrations still depend on their official services. MIT covers newly authored KekBot code; dependencies retain their own licenses.
+## Contributing and support
+
+Bug reports, documentation fixes and focused contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and [troubleshooting](docs/TROUBLESHOOTING.md#reporting-a-problem) before opening an [issue](https://github.com/DangerMouseUK/kekbot/issues). Use [SECURITY.md](SECURITY.md) for private vulnerability reporting.
+
+GitHub Actions checks documentation/publication policy, secrets, types/lint, real SQLite behavior, production builds, three browser engines and Linux container/proxy/recovery flows. Opt-in synthetic soak and candidate packaging are also available. Passing CI establishes automated evidence; live release gates remain separate.
+
+## License
+
+KekBot code and built-in themes are [MIT licensed](LICENSE). Dependencies retain their own licenses; see the [dependency inventory](docs/DEPENDENCIES.md) and [supplemental notices](licenses/README.md). Operators are responsible for the rights to uploaded assets and requested media.

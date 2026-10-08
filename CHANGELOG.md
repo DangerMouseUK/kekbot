@@ -2,6 +2,8 @@
 
 ## 0.1.0-dev.0 — Local product build, unreleased
 
+- Reworked the public README and contributor/agent guidance; added a documentation index and dedicated fixture, installation, configuration, provider, user, OBS, troubleshooting and recovery guides. Documentation checks now validate local heading/evidence anchors as well as files; existing acceptance results remain unchanged.
+
 - Added one-time owner setup, Argon2id local accounts, invitations, role/grant checks, revocable sessions, CSRF protection and stopped-host owner recovery.
 - Added the shared dashboard, versioned configuration, authenticated durable SSE, audits, diagnostics and explicit opt-in foundation tools.
 - Added custom commands/aliases/response pools/counters/conditions, safe previews, utilities, restart-safe timers and owner Kick lifecycle controls.

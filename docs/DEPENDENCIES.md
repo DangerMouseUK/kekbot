@@ -1,5 +1,7 @@
 # Production dependency licenses
 
+This is the generated application dependency reference. See [supplemental notices](../licenses/README.md) for reviewed upstream license fallbacks, [release packaging](RELEASING.md) for distributed notices, and the [documentation index](README.md) for operator/contributor guides.
+
 Generated from the installed, locked production dependency tree with `pnpm licenses list --prod --json` on 2026-10-07. Includes direct and transitive packages. Package metadata paths and author contact details are intentionally omitted. Each package retains its own license; redistributed container dependencies retain their bundled notices. Refresh this inventory whenever the lockfile changes.
 
 KekBot source and its built-in CSS themes are MIT licensed. User-uploaded assets remain the operator’s responsibility. There are no bundled third-party images, fonts or sounds.

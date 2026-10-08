@@ -1,6 +1,6 @@
 # Testing and candidate verification
 
-KekBot is a development candidate, not an accepted stable release. This guide covers Milestone 17's assembled-product checks. [Live acceptance](LIVE_ACCEPTANCE.md) covers Milestone 18. The [milestones](MILESTONES.md) record results and outstanding gates; the [operator guide](OPERATIONS.md) describes normal installation and recovery.
+KekBot is a development candidate, not an accepted stable release. This guide covers Milestone 17's assembled-product checks. [Live acceptance](LIVE_ACCEPTANCE.md) covers Milestone 18. The [milestones](MILESTONES.md) record results and outstanding gates. Use [quickstart](QUICKSTART.md) for local setup, [installation](INSTALLATION.md) for hosting and [backup/recovery](BACKUP_RECOVERY.md) for maintenance procedures. Return to the [documentation index](README.md).
 
 ## Safety and isolation
 
@@ -24,7 +24,7 @@ pnpm test:e2e
 pnpm test:workload
 ```
 
-`pnpm check` runs publication policy, local documentation links and matching PRDs, release-evidence validity, TypeScript, ESLint, and the complete Vitest suite. The browser suite starts the production standalone build on loopback with fresh isolated data. Run a build after changing application code; otherwise browser tests exercise the previous build.
+`pnpm check` runs publication policy, local documentation links/heading fragments and matching PRDs, release-evidence validity, TypeScript, ESLint, and the complete Vitest suite. Documentation checks validate relative files, heading/explicit-anchor destinations and repository boundaries; fenced examples are ignored. External links require editorial review and are not fetched by CI. The browser suite starts the production standalone build on loopback with fresh isolated data. Run a build after changing application code; otherwise browser tests exercise the previous build.
 
 Linux container checks additionally require Docker Engine/Compose:
 

@@ -1,27 +1,88 @@
 # Contributing to KekBot
 
-Use Node.js and pnpm versions pinned in the repository. Start with [README.md](README.md) and the [fixture/operator guide](docs/OPERATIONS.md); fixture mode needs no provider account, private dependency, or maintainer credential. Run `init` and optionally `fixture-seed` while stopped to populate all modules; read its generated account file locally. Never use live credentials for CI or fixture development.
+Thanks for helping improve KekBot. Focused fixes, clearer guides, reproducible bug reports and meaningful tests are welcome. The project is an unreleased development candidate; [milestones](docs/MILESTONES.md) distinguish the completed build/automated campaign from pending live acceptance.
 
-Keep UI/HTTP code separate from domain decisions, provider clients, storage, and runtime jobs. Dashboard, Discord, verified chat and owner API actions call the same domain services. `catalog.ts` defines bounded declarative configuration; `State` enforces permissions/versions and records audit/live events. Network calls belong outside SQLite transactions, in provider clients/leased jobs. Add schema changes through `pnpm db:generate`, review the generated SQL, and commit the migration and metadata. Do not generate migrations at application startup or modify an already released migration.
+## Start with an isolated development setup
 
-For a change, explain the behavior and relevant evidence. Run `pnpm check`; run `pnpm build` and relevant browser/container checks when their behavior changes. Use real SQLite for persistence evidence. Add meaningful tests for behavior and failure cases; do not write tests solely to mirror trivial implementation details.
+Follow the [fixture quickstart](docs/QUICKSTART.md). Use Node.js **24.21.0**, pnpm **10.26.0** and the frozen lockfile. No provider account, private dependency or maintainer credential is needed. Never use live grants for development/CI.
 
-`pnpm check` includes publication-policy, local Markdown-link, PRD consistency and release-evidence validity checks. Publication policy rejects private runtime/config/evidence files even if force-added, private key material, personal paths and populated provider examples. Git and Docker ignore rules also exclude these artifacts. CI checks migration metadata, audits production dependencies, scans Git history for secrets, and builds/tests the Linux container. GitHub Actions are pinned to commit hashes; update those pins deliberately when changing tooling. All CI fixtures are generated locally and require no integration secrets.
+```sh
+git clone https://github.com/DangerMouseUK/kekbot.git
+cd kekbot
+pnpm install --frozen-lockfile
+git switch -c fix/describe-the-change
+```
 
-Never commit provider tokens, `.env.local`, encryption keys, proof tokens, local data, or raw operator history. Fixtures must be synthetic or redacted, isolated from live mode, and unable to perform provider mutations. Theme and media contributions need distributable licenses and attribution.
+External contributors can fork the repository and clone their fork instead. Copy/edit `.env.local`, select fixtures and initialize/seed as described in the quickstart. Generated credentials are private files; there are no fixed demonstration passwords.
 
-Review the staged diff before committing. If you use a private email locally, select your public GitHub handle and GitHub no-reply commit email before publishing. Gitleaks 8.30.1 can scan a clean export of staged files with `gitleaks dir --redact --no-banner PATH`, and committed history with `gitleaks git --redact --no-banner --log-opts="--all" .`. Do not add broad scanner exclusions for generated test secrets: generate them at runtime outside the publication set.
+## Find the relevant code
 
-The foundation live gate passed historically; the original test droplet has been destroyed. Follow the [automated testing guide](docs/TESTING.md) for Milestone 17 and the [live acceptance runbook](docs/LIVE_ACCEPTANCE.md) for Milestone 18. Update [milestone evidence](docs/MILESTONES.md) and [roadmap](docs/ROADMAP.md) accurately: build complete, fixture-tested and live-tested are different states. Local/CI passing checks do not establish live release acceptance. Container checks run on Docker/Linux CI; operators need not install Docker locally just to validate a contribution.
+| Path | Responsibility |
+| --- | --- |
+| `src/app/` | Next.js pages, route adapters, dashboard and widgets |
+| `src/server/domain/` | Shared configuration/state and module decisions |
+| `src/server/providers/` | Provider clients, signature/identity boundaries and Discord interactions |
+| `src/server/storage/` | SQLite, repositories and schema handling |
+| `src/server/runtime.ts`, `src/server/bootstrap.ts` | Long-running runtime and durable work |
+| `src/cli.ts`, `src/server/maintenance.ts` | Host maintenance/recovery |
+| `drizzle/` | Checked-in SQL migrations and metadata |
+| `tests/`, `tests/e2e/` | Vitest/real SQLite and production browser workflows |
+| `scripts/`, `.github/workflows/` | Verification, standalone/container checks and candidate packaging |
+| `docs/` | Operator guides, references, requirements and evidence |
 
-The bulk suite includes genuinely separate SQLite connections and abrupt subprocess termination. Use bounded disposable storage for capacity failures; never fill the contributor's real disk. `pnpm test:workload` checks synthetic signed traffic with five real browser clients; the full `pnpm benchmark` profile is opt-in and belongs on isolated fixture infrastructure. CI timings are not PRD benchmark acceptance. The browser matrix includes axe scans; the pinned `@axe-core/playwright` dependency is development-only and is excluded from the production image/license graph.
+Read [architecture](docs/ARCHITECTURE.md) before changing boundaries and [API](docs/API.md) before changing contracts. Coding agents also follow [AGENTS.md](AGENTS.md).
 
-Keep the root README, operator/API/testing/live guidance, changelog, architecture and milestone evidence aligned with behaviour. [AGENTS.md](AGENTS.md) provides the repository-specific rules for coding agents. Do not claim unaided independent installs, OBS playback, certificate renewal or physical power-loss evidence from fixture tests.
+## Implementation expectations
 
-For provider changes, inject fake request clients and verify forged/modified signatures, wrong identities, duplicate IDs, scope revocation, rate limits and uncertain sends. For state changes, exercise competing versions, transactional queue/ledger/vote decisions, restart recovery and backup preservation with real SQLite. Browser fixtures use the production standalone output, generated local signing keys and a simulated player; they must not load live YouTube playback or send provider mutations.
+Keep routes/React separate from shared domain decisions. Dashboard, Kick, Discord and API controls must use the same services. Keep network calls outside SQLite transactions, persist decisions/outbox atomically, and use constraints/versions for concurrency. Never blindly resend an uncertain provider mutation. Recheck current authority when deferred effects execute.
 
-For new widgets, expose only the minimal source snapshot, use its exact read scope, preserve transparency/reduced motion and test revocation/reconnect. Player acknowledgements require a separate credential and active lease. Never add untrusted HTML/script templates or arbitrary provider fetch targets. Native exports and support bundles require explicit privacy review. See [architecture](docs/ARCHITECTURE.md), [API](docs/API.md), and the [dependency/license inventory](docs/DEPENDENCIES.md).
+Use bounded declarative configuration rather than executable templates. Avoid new production dependencies unless necessary; pin exact versions, review license/use and update [dependency notices](docs/DEPENDENCIES.md). Asset/theme contributions require distributable rights and attribution.
 
-Contributors retain copyright. No copyright assignment or contributor license agreement is required. Publication and provider acceptance details belong to the repository owner.
+Generate schema changes with `pnpm db:generate`, review SQL/metadata and commit both. Do not edit released migrations, generate migrations at startup or assume backup compatibility without evidence. Document any explicit upgrade boundary.
 
-For release-affecting changes, keep the [requirement crosswalk](docs/RELEASE_READINESS.md), [release procedure](docs/RELEASING.md) and evidence index consistent. Never change a pending gate to pass without actual dated acceptance. `pnpm release:prepare --source-only` packages a clean committed public snapshot without Docker; CI audits the Linux image and complete candidate bundles. Full-duration hosted soak runs are opt-in, credential-free, and cannot replace reference-host or independent-operator results. Review supplemental dependency notices when changing locked packages.
+## Verification
+
+Run the checks appropriate to the change:
+
+```sh
+pnpm check
+```
+
+This includes publication/docs/release-evidence validity, types, lint and all unit/SQLite tests. For runtime/UI/package changes also run:
+
+```sh
+pnpm build
+pnpm test:standalone
+pnpm exec playwright install chromium
+pnpm test:e2e
+```
+
+Linux container/proxy/storage checks run in GitHub Actions; local Docker is optional for contribution review. The [testing guide](docs/TESTING.md) explains commands, the three-browser matrix, workload profiles and limits. Do not use a passing build to claim provider/OBS acceptance.
+
+Use real SQLite for persistence, meaningful contention/revocation/restart/failure checks for state changes, and generated request clients/signatures for provider changes. Do not write tests that merely mirror trivial implementation. Avoid filling a real disk; use bounded disposable storage. Fixture browser tests never load live YouTube or send provider mutations.
+
+## Documentation contributions
+
+Start at [docs/README.md](docs/README.md). Write task-based steps with prerequisites, shell/platform, paths, expected results and a next step. Check examples against actual CLI/schema/UI labels. Distinguish source development, installation and historical proof tools; do not imply a published installer/image exists before release.
+
+Keep README and the documentation index navigable. Update the relevant installation/configuration/provider/user/OBS/operations/recovery/API guides when behavior changes. Update CHANGELOG for user-facing changes. Keep requirement/evidence records consistent; update both identical PRDs together only when requirements change. Never rewrite historical source/run identities to make old evidence appear current.
+
+Use reserved domains, synthetic identities and empty provider credential examples. Do not put actual host addresses, operator paths, account names or setup records in public documentation. Verify local links with `pnpm docs:check`; run `pnpm check` before submitting. Documentation-only work does not need a new performance campaign.
+
+## Submit a pull request
+
+1. Keep the branch focused and explain the concrete problem/result.
+2. Run relevant checks and review the complete diff for accidental changes, debug code, secrets and personal information.
+3. Commit using an identity you intend to publish. A public GitHub handle/no-reply email is suitable; review local Git configuration before the first commit.
+4. Push your branch to your fork or authorized repository and open a PR using the template.
+5. Report checks/results and unverified scenarios honestly. Address review feedback without weakening security/acceptance gates.
+
+Never commit runtime files, keys, databases, backups, raw provider history, source URLs, browser traces or generated fixture credentials. Git/Docker exclusions and publication checks enforce these boundaries. Maintainers additionally scan candidate exports and full history with checksum-verified Gitleaks 8.30.1 and redacted output; see [testing/security evidence](docs/TESTING.md#security-and-release-evidence). Do not add broad exclusions to silence generated secrets.
+
+## Issues, security and releases
+
+Use the [bug/feature templates](https://github.com/DangerMouseUK/kekbot/issues/new/choose); include synthetic/redacted reproductions. See [troubleshooting](docs/TROUBLESHOOTING.md#reporting-a-problem) for useful diagnostic details. Follow [SECURITY.md](SECURITY.md) for private vulnerability reports.
+
+Release-affecting work must keep the [requirement crosswalk](docs/RELEASE_READINESS.md), [evidence index](docs/release-evidence.json) and [release procedure](docs/RELEASING.md) consistent. Candidate preparation does not authorize deployment, tags, registry writes or release publication. Live results, independent operators and reference-host benchmarks remain separate acceptance work.
+
+Contributors retain copyright. No copyright assignment or contributor license agreement is required.

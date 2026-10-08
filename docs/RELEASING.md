@@ -2,6 +2,8 @@
 
 The current `0.1.0-dev.0` build is an unreleased candidate. The [requirements audit](RELEASE_READINESS.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md) define the remaining work. Preparation can run without provider accounts or a local Docker installation. Stable sign-off requires the live results; publication requires the repository owner's explicit authorization.
 
+This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
+
 ## Supported candidate versions
 
 | Component | Supported candidate |
@@ -14,7 +16,7 @@ The current `0.1.0-dev.0` build is an unreleased candidate. The [requirements au
 | Proxy example | Caddy 2.11.6; domain or supported public-IP HTTPS; operator owns public reachability |
 | Upgrade | Foundation schema 1 → 2 supported; future schemas rejected; unsupported downgrade prohibited |
 
-Provider support is capability/scope-dependent. Follow/subscription variants, chat delivery identity, Discord guild permissions and YouTube availability/autoplay must be revalidated on the frozen candidate. Historical foundation results do not establish current full-product compatibility. See [OPERATIONS.md](OPERATIONS.md) for limits and declarations of contacted third-party services.
+Provider support is capability/scope-dependent. Follow/subscription variants, chat delivery identity, Discord guild permissions and YouTube availability/autoplay must be revalidated on the frozen candidate. Historical foundation results do not establish current full-product compatibility. See [provider setup](PROVIDERS.md), [OBS/media](OBS.md) and [operations](OPERATIONS.md) for limits and contacted third-party services.
 
 ## Autonomous candidate preparation
 

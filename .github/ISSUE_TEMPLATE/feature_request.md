@@ -12,4 +12,4 @@ assignees: ""
 
 **Relevant roadmap item or alternatives**
 
-Check docs/ROADMAP.md for planned work. Use synthetic examples and omit private operator data.
+Check docs/MILESTONES.md for current status and docs/ROADMAP.md for release scope. The guide index is docs/README.md. Use synthetic examples and omit private operator data.

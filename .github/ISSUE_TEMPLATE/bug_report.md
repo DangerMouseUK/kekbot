@@ -8,6 +8,8 @@ assignees: ""
 
 For security vulnerabilities, follow SECURITY.md instead of posting exploit details here.
 
+Check docs/TROUBLESHOOTING.md first. Use the documentation template for missing or unclear guide steps.
+
 **Problem and expected behavior**
 
 **Steps to reproduce**

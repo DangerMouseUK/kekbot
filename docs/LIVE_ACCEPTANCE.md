@@ -2,7 +2,7 @@
 
 This is Milestone 18's operator runbook for the complete candidate. **Deployment is deferred; no new live campaign has run.** The original foundation droplet was destroyed. Historical foundation results remain valid only for their recorded source and scenarios. Do not assume its database, grants, captures, certificates or backups survived.
 
-Complete [automated candidate verification](TESTING.md) first. Use the [operator guide](OPERATIONS.md) for actual setup/CLI commands, [API guide](API.md) for contracts and [milestones](MILESTONES.md) for sign-off. This document contains reusable examples only. Keep actual infrastructure/provider details and detailed results in the existing single private operator setup document outside the checkout, with protected credential/evidence files referenced rather than copied into it.
+Complete [automated candidate verification](TESTING.md) first. Use [installation](INSTALLATION.md), [provider setup](PROVIDERS.md), [OBS](OBS.md) and [backup/recovery](BACKUP_RECOVERY.md) for actual procedures, [API](API.md) for contracts and [milestones](MILESTONES.md) for sign-off. Return to the [documentation index](README.md). This document contains reusable examples only. Keep actual infrastructure/provider details and detailed results in a private operator setup record outside the checkout, with protected credential/evidence files referenced rather than copied into it.
 
 ## Candidate and environment record
 
