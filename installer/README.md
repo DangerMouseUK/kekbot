@@ -1,0 +1,11 @@
+# Host lifecycle tooling
+
+Operator walkthrough: [guided installer](../docs/INSTALLER.md), [updates](../docs/UPDATING.md), [uninstall](../docs/UNINSTALLING.md). Run `python3 -B installer/kekbot.py --help` from the source root. This is a Linux x86-64 interactive host tool, not an HTTP API or application-container command.
+
+`kekbot.py` owns explained menus, defaults, cancellation and typed final confirmation. `core.py` owns source resolution, verified bundle extraction, immutable image/Compose state and locked lifecycle transactions. It uses Python 3.10+ standard library only so a Docker host does not need Node/pnpm/pip. Do not add provider credentials to terminal prompts or execute downloaded management code implicitly.
+
+`test_lifecycle.py` runs offline with `pnpm test:installer` (included in `pnpm check`). Portable contract tests run on Windows; Linux additionally tests locks, interrupted updates, checkpoints, rollback and removal boundaries. `smoke.py` is CI-only, run with sudo **after** candidate package checksums: real audited image → isolated fixture installation → deliberately broken maintenance image → failed update → new-root rollback → successful update → retained-data removal/resume → explicit purge. It never uses live providers, public TLS or uploads runtime artifacts.
+
+Management record/Compose/environment are private, outside source. Installation record format 1 carries active immutable image, mode/origin/project/data root, selected source identity and one previous checkpoint. Update phases are persisted before migration; rollback restores into a new root, never runs older code against mutated storage. Extend format compatibility deliberately and update guides/tests; do not silently adopt arbitrary manual deployments.
+
+Root/Docker privileges and selected branch/PR builds require reviewed source. Reject shell interpolation, unsafe archives, links and path escapes. Suppress raw subprocess output; operator-visible failures must not print environment/body/credential values. Uninstall defaults to retaining data, and purge is scoped to the exclusively managed root and named project volumes. Never introduce global Docker prune or automatic infrastructure/provider changes.

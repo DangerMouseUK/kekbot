@@ -14,6 +14,7 @@ This is the design reference for contributors. Use [installation](INSTALLATION.m
 - [ADR 004 — Authentication and provider trust](#adr-004--authentication-and-provider-trust)
 - [ADR 005 — Web interfaces and media recovery](#adr-005--web-interfaces-and-media-recovery)
 - [ADR 006 — Local module state and portable configuration](#adr-006--local-module-state-and-portable-configuration)
+- [Host lifecycle boundary](#host-lifecycle-boundary)
 - [References](#references)
 <!-- contents:end -->
 
@@ -96,6 +97,12 @@ Media decisions and player acknowledgements use optimistic versions inside short
 Analytics count only observed events, distinguish viewer samples from totals and expose missing worker coverage. Retention never deletes balances or pending queue decisions. Owner privacy actions state which integrity identifiers remain. Support bundles omit host/credential/raw-history data. Native configuration exports include validated asset bytes and remapped references, exclude authority/secrets/private history, and apply database changes atomically; failed imports clean up newly created assets. A process crash during file creation can leave an unreferenced asset for host inspection, without installing uncommitted configuration.
 
 Current module/service interfaces and operator workflows are documented in [API.md](API.md) and [OPERATIONS.md](OPERATIONS.md). [TESTING.md](TESTING.md) covers failure/concurrency/browser/container campaigns; [LIVE_ACCEPTANCE.md](LIVE_ACCEPTANCE.md) covers real-provider and operational evidence. [MILESTONES.md](MILESTONES.md) separates implementation, automated, live and release gates.
+
+## Host lifecycle boundary
+
+The [guided host tool](INSTALLER.md) is dependency-free Python 3.10+ outside the Next.js runtime. Its numbered UI owns explanations/cancellation/typed review; its engine resolves source once, verifies bundles and immutable image metadata, and generates private Compose/environment/record files in an exclusively managed root. Host/root authority is separate from application roles. The tool does not automate provider consent or accept credentials through terminal arguments.
+
+Updates stage images before downtime, persist a checkpoint, use the old image for a stopped-host backup and persist migration intent before invoking the new CLI. Linux `flock` serializes management operations; the application retains its independent SQLite runtime lease. Atomic private record writes are flushed before replacement. Failed migrations/startup require explicit recovery; rollback restores into new storage with the original key and old image rather than downgrading newer storage. Default uninstall retains files/certificates; purge requires typed review and rejects link/mount escapes. See [implementation](../installer/README.md) and [tests](TESTING.md).
 
 ## References
 

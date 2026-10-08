@@ -12,6 +12,8 @@ The expected boundaries are one creator per installation, server-side role autho
 
 ## What to include privately
 
+The [host wizard](docs/INSTALLER.md) runs with root/Docker authority, separately from dashboard roles. Only run reviewed tool/application commits; branch/PR builds can execute arbitrary code. Release checksums establish integrity, not a publisher signature. Managed files/checkpoints remain private outside Git; default uninstall retains them, while explicitly confirmed purge destroys the managed root and its certificate volumes. Report path/verification/authority bypasses privately. The tool never changes SSH/firewalls or asks for provider credentials.
+
 - Affected source commit/version and installation mode; avoid actual host addresses unless privately necessary.
 - Entry point and minimum required authority, such as a viewer message, Discord role, widget credential or local account.
 - Expected boundary, observed impact and a minimal synthetic/redacted reproduction.

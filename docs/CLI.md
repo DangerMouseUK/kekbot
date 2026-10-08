@@ -2,6 +2,8 @@
 
 These commands maintain one installation's local files. They do not provision a host or install Docker. See [installation](INSTALLATION.md) for a runnable Compose setup and [backup/recovery](BACKUP_RECOVERY.md) for complete procedures. [All documentation](README.md).
 
+The separate [terminal host wizard](INSTALLER.md) provides install/update/rollback/uninstall; it is not a `pnpm kekbot` subcommand. For a managed root, open its copied tool for ordinary lifecycle work. To run an application maintenance command against that root, use `sudo docker compose -p <recorded-project> -f <root>/compose.json ...`; inspect the private record for the current data root, especially after rollback. Keep host paths distinct from CLI container paths and stop before backup/restore/recovery/init as required below.
+
 <!-- contents:start -->
 **On this page**
 

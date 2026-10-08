@@ -2,6 +2,8 @@
 
 Development API version: `v1`; implementation: `0.1.0-dev.0`, schema 2. Routes are dynamic/no-store. This is a pre-release interface; compatibility beyond the declared configuration/backup versions is not yet promised.
 
+Host installation/update/uninstall is deliberately outside HTTP/dashboard authority. The [terminal wizard](INSTALLER.md) needs trusted host/root access and its private management record; API tokens cannot invoke it. Application maintenance CLI and all domain/role contracts remain unchanged.
+
 Start with [installation](INSTALLATION.md) and [provider setup](PROVIDERS.md) for a working host, [the user guide](USER_GUIDE.md) for dashboard actions, and [configuration](CONFIGURATION.md) for environment/storage defaults. Return to the [documentation index](README.md).
 
 For every supported action, payload, capability and Discord/API availability, use the [action reference](API_ACTIONS.md). For every configuration property, use the [field reference](CONFIGURATION_FIELDS.md) and [schema-checked JSON examples](examples/README.md). The source currently has no generated OpenAPI contract; those references describe the development interface.

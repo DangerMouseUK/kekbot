@@ -1,5 +1,7 @@
 # Troubleshooting KekBot
 
+For terminal install/update/removal problems start with [wizard failures](INSTALLER.md#failure-and-interruption-recovery), [update recovery](UPDATING.md) and [uninstall boundaries](UNINSTALLING.md). Check the recorded status after interruption; never rerun older code against migrated storage or delete keys to fix startup. These managed roots use generated Compose, while manual instructions use their original file set.
+
 Start with the symptom below. Work on your own authorized installation and keep diagnostics private until reviewed. Return to the [documentation index](README.md).
 
 <!-- contents:start -->

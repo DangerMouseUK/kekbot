@@ -21,6 +21,8 @@ Screenshots, traces, databases, backups, workload reports and generated credenti
 
 ## Run the campaign
 
+`pnpm check` includes `pnpm test:installer`, which requires Python 3.10+ (`python` on Windows; `python3` on Linux/macOS), with no pip packages. Portable contracts cover menus, cancellation, source refs, release checksums, image identity and unsafe input/archive boundaries. Linux also exercises exclusive locks, backup/migration failures, checkpoint ordering, new-root rollback and uninstall boundaries.
+
 Use the pinned Node/pnpm versions from the root README. An agent or CI can run these commands; operators do not need to execute them on a production installation.
 
 ```sh
@@ -62,6 +64,8 @@ pnpm test:container
 Run the Compose validation and Caddy adaptation commands from [.github/workflows/ci.yml](../.github/workflows/ci.yml) as well. Container tests create uniquely named disposable volumes/networks and remove only their own resources. They do not modify an operator installation or request public certificates.
 
 ## GitHub Actions
+
+After candidate archive audit/checksums, the container job runs `sudo python3 -B installer/smoke.py` against a uniquely named fixture installation. It loads the actual audited bundle, initializes/seeds, preserves a local asset/key, deliberately fails an update with a broken maintenance image, restores into a new root with the old image, succeeds with a new image, removes/resumes containers while retaining data, then explicitly purges only that fixture root. No public TLS, live integrations or independent installer are implied; raw files/credentials remain on the ephemeral runner.
 
 Pushes to `main`, pull requests and manual workflow runs execute the read-only CI workflow on Ubuntu 24.04. Feature-branch pushes use their pull request's campaign; before opening a PR, maintainers can invoke it manually. This avoids duplicate push/PR runs cancelling each other's checks. A new commit cancels only the superseded campaign for that branch.
 

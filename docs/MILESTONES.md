@@ -627,4 +627,10 @@ Documentation preparation does not accept any of the 33 live/operator gates. Fre
 
 ## Next work
 
+### Guided host lifecycle — 2026-10-08
+
+Milestone 16 distribution now includes the explained Linux terminal installer/updater/uninstaller, immutable source/image choices, latest-stable fail-closed discovery, stopped-host snapshots, failed-update checkpoints, separate-root rollback, retained-data removal/resume and scoped typed purge. The [installer guide](INSTALLER.md), [update guide](UPDATING.md), [removal guide](UNINSTALLING.md) and [implementation/tests](../installer/README.md) cover the new interface and manual/managed boundary. No application schema/dependency or historical acceptance identity changes.
+
+The implementation adds offline contract/failure tests and a Linux real-image fixture lifecycle campaign. Record the final PR/CI identity with its actual result; fixtures do not establish O02, public TLS, real provider delivery or an actual published-release install. Milestones 18–19 and all existing live sign-off gates remain pending.
+
 The build gate for Milestone 16, automated Milestone 17 campaign and autonomous Milestones 18–19 preparation are complete. When the owner authorises deployment, run Milestone 18 on fresh infrastructure using the live runbook, isolated provider apps, verified host identity and protected runtime storage. Complete reference-host measurements, independent owner/installer trials and another-host restoration; then finish Milestone 19's stable sign-off, authorized publication and published-artifact clean installation. Do not reuse old host details or infer missing live outcomes from automation.

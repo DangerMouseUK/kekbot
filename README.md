@@ -28,11 +28,12 @@ Discord and YouTube are optional to enable. KekBot runs without a project-operat
 | You want to… | Start here | What you need |
 | --- | --- | --- |
 | Explore safely | [Local quickstart](docs/QUICKSTART.md) | Git, pinned Node/pnpm; no provider accounts or Docker |
-| Host a real bot | [Installation](docs/INSTALLATION.md) | Linux x86-64, Docker/Compose, local persistent disk and public HTTPS |
+| Host a real bot | [Guided terminal installer](docs/INSTALLER.md) or [manual installation](docs/INSTALLATION.md) | Linux x86-64, Python 3, Git, Docker/Compose, local persistent disk and public HTTPS |
 | Configure a fresh dashboard | [First session](docs/FIRST_SESSION.md) | Owner login and optional provider connections |
 | Join an existing team | [Accounts](docs/ACCOUNTS.md) → [user guide](docs/USER_GUIDE.md) | A private invitation from your installation's operator |
 | Put sources on stream | [OBS and playback](docs/OBS.md) | Owner-created source URLs; OBS Browser Source support |
-| Back up, upgrade or diagnose | [Operations](docs/OPERATIONS.md) → [recovery](docs/BACKUP_RECOVERY.md) | Trusted host access for maintenance commands |
+| Update or remove a managed host | [Updating](docs/UPDATING.md) · [uninstalling](docs/UNINSTALLING.md) | Trusted host access; wizard-created installation |
+| Back up or diagnose | [Operations](docs/OPERATIONS.md) → [recovery](docs/BACKUP_RECOVERY.md) | Trusted host access for maintenance commands |
 | Contribute or integrate | [Contributing](CONTRIBUTING.md) → [API](docs/API.md) | An isolated fixture installation |
 
 ### Local fixture setup
@@ -71,6 +72,8 @@ The [complete quickstart](docs/QUICKSTART.md) explains the first command, simula
 Prefer containers? The [Docker Desktop evaluation guide](docs/DOCKER_DESKTOP.md) covers Windows/macOS with Linux containers and a separate fixture volume, without host Node/pnpm.
 
 ## Hosting requirements
+
+The [guided installer](docs/INSTALLER.md) provides explained terminal menus, a final review, pinned branch/PR/commit/release selection, backup-before-update, recovery checkpoints and a data-preserving default uninstall. Its default is **latest stable**, which reports unavailable until stable releases exist; choose a reviewed development source explicitly today. Release formats are audited source builds or prebuilt Linux amd64 image archives. The wizard runs on the host with Python's standard library, outside the application container, and leaves provider consent/settings to the owner dashboard.
 
 The deployment target is **Linux x86-64**, one long-running application container, local persistent disk and publicly trusted HTTPS for provider callbacks. The included Compose examples build KekBot and an optional Caddy proxy from source. A domain is the usual path; a separate public-IPv4 HTTPS example is available. Windows/macOS can evaluate the Linux container with Docker Desktop or develop from source.
 

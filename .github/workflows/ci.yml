@@ -139,6 +139,8 @@ jobs:
         run: for directory in output/release/*; do (cd "$directory" && sha256sum --check SHA256SUMS); done
       - name: Load the exported image and install into a fresh isolated volume
         run: node scripts/release-roundtrip.mjs
+      - name: Rehearse guided install, update recovery and uninstall with isolated fixtures
+        run: sudo python3 -B installer/smoke.py
       - name: Upload audited candidate archives only
         if: github.event_name == 'workflow_dispatch' && inputs.package
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

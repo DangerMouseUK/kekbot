@@ -67,6 +67,8 @@ After v1: ARM64, optional TTS, supported clip helpers, OBS scene control, declar
 
 ## Release evidence and defaults
 
+The distribution increment now includes a [guided terminal lifecycle](INSTALLER.md): latest stable by default, explicit release/branch/PR/commit/bundle evaluation, source or prebuilt image, checkpointed updates/rollback and safe removal. Build/fixture evidence belongs in Milestone 16; published artifacts and unaided/live recovery still require Milestones 18–19. No deployment or publication is implied by installer preparation.
+
 - Run targeted type/lint/unit/SQLite/browser checks and inspect final changes for accidental edits, secrets, debug code, and unnecessary complexity.
 - Provider tests cover signature/body trust, wrong channel/guild, replay, malformed input, scopes/auth, 429, uncertain sends, and safe refresh repair. Never enable provider mutations from fixtures.
 - Recovery tests cover leases, competing media decisions, revoked accounts/source tokens, dropped connections, disk pressure/read-only storage, assets, and failed migrations.

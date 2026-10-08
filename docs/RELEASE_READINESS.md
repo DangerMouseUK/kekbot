@@ -116,6 +116,8 @@ This audit added configurable rule-scoped escalation thresholds/windows/actions,
 
 ## Acceptance record
 
+The guided host lifecycle adds implementation coverage for R02/R08/R57/R60: explained source/format choices, immutable image selection, backup-before-update, separate-root rollback and retained-data/default versus typed-purge removal. Offline and isolated Linux fixture tests are described in [testing](TESTING.md). Actual published-release installation/update, trusted public TLS/provider setup and three unaided operators remain required; no sign-off record changes because the tool exists.
+
 No new live acceptance is recorded. All 33 entries in [release-evidence.json](release-evidence.json) remain pending: L01–L24 and P01–P07 from the [runbook](LIVE_ACCEPTANCE.md), O01 (two independent complete owner sessions) and O02 (three unaided installations). An unaccepted/failed/unavailable required scenario blocks stable sign-off. Add dated, sanitised outcomes and explicit anchors here only after the frozen source/image actually passes. Keep raw details in private operator evidence outside Git.
 
 Automated run identities/results belong in [MILESTONES.md](MILESTONES.md). Package availability or a valid evidence schema does not establish acceptance. Publication itself and a clean installation from the final published artifacts remain separate final Milestone 19 tasks.

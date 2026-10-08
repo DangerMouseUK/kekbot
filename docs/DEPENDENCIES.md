@@ -12,6 +12,8 @@ Builds fail if an installed production package has no notice or reviewed version
 
 ## Refresh and redistribution review
 
+The host lifecycle wizard uses Python 3.10+ standard library only; no pip packages are installed or bundled and no Python runtime is added to the application image. Operators supply Python/Git/Docker on the host. The source bundle includes the MIT-licensed host tool and tests; application dependency/license inventories below remain the locked npm tree. See [installer prerequisites](INSTALLER.md#before-you-start).
+
 After changing the lockfile, install with the frozen lockfile, run `pnpm licenses list --prod --json` privately, and update the package/version/license rows below without copying local paths or author contacts. Run `pnpm build` to verify notice extraction; Linux container CI checks the target-platform notice inventory and exported package. Do not replace a missing license with a guessed identifier: inspect the exact upstream version and add a reviewed fallback only when justified.
 
 Keep the upstream legal text under `licenses/` unchanged. Generated image notices, native-library version inventories and any corresponding-source obligations still need final redistribution review. A successful notice-copy script does not by itself settle every dependency's legal requirements. [Release procedure](RELEASING.md) describes the distribution gate.

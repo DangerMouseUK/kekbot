@@ -2,6 +2,8 @@
 
 This guide covers the development candidate, SQLite schema 2 and backup format 1. It assumes the Linux paths and Compose project from [installation](INSTALLATION.md). Keep backups, keys, credentials and private evidence outside Git. Return to the [documentation index](README.md).
 
+For [managed installations](INSTALLER.md), [updating](UPDATING.md) creates the same stopped-host database/asset format and [rollback](UPDATING.md#roll-back-after-failure-or-a-bad-update) restores into a new root automatically. Do not substitute the manual `dc` helper below for that installation's generated Compose. For manual disaster/owner recovery on a managed host, select its recorded project and `<root>/compose.json`, inspect the active recorded data root, and preserve original keys. Custom recovery to a different topology should use a separate manual installation, not edited lifecycle records.
+
 <!-- contents:start -->
 **On this page**
 

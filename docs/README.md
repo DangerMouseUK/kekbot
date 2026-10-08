@@ -7,7 +7,8 @@ These guides describe the unreleased `0.1.0-dev.0` candidate, SQLite schema 2, b
 | Your goal | Read in this order |
 | --- | --- |
 | Explore without provider accounts | [Quickstart](QUICKSTART.md) → [first session](FIRST_SESSION.md) → [user guide](USER_GUIDE.md) |
-| Host a live installation | [Installation](INSTALLATION.md) → [provider setup](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [OBS](OBS.md) → [operations](OPERATIONS.md) |
+| Host a live installation | [Guided installer](INSTALLER.md) (or [manual installation](INSTALLATION.md)) → [provider setup](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [OBS](OBS.md) → [operations](OPERATIONS.md) |
+| Update, roll back or remove | [Updating](UPDATING.md) → [uninstalling](UNINSTALLING.md); manual deployments use [recovery](BACKUP_RECOVERY.md) |
 | Join a moderator team | [Accounts and permissions](ACCOUNTS.md) → the relevant [daily workflow](USER_GUIDE.md) |
 | Move, back up or recover a host | [Backup and recovery](BACKUP_RECOVERY.md) → [troubleshooting](TROUBLESHOOTING.md) |
 | Develop or integrate | [Contributing](../CONTRIBUTING.md) → [architecture](ARCHITECTURE.md) → [API](API.md) → [testing](TESTING.md) |
@@ -17,6 +18,8 @@ These guides describe the unreleased `0.1.0-dev.0` candidate, SQLite schema 2, b
 - [Quickstart](QUICKSTART.md): pinned tools, isolated fixtures, generated login, first command and shutdown.
 - [Docker Desktop evaluation](DOCKER_DESKTOP.md): Windows/macOS Linux containers, private runtime files, named-volume fixtures and stop/resume.
 - [Installation](INSTALLATION.md): source-built Linux container, external runtime files, domain/IP HTTPS and owner claim.
+- [Guided installer](INSTALLER.md): explained Linux terminal walkthrough, every host/source/format choice, private layout and failure recovery.
+- [Updating](UPDATING.md) and [uninstalling](UNINSTALLING.md): explicit version changes, pre-update checkpoints, separate-root rollback, retained-data removal and typed purge.
 - [First session](FIRST_SESSION.md): a command, cautious timer, manual alert/source, delegation and recovery checkpoint.
 - [Accounts](ACCOUNTS.md): role/capability matrix, claim, invitations, sessions and access removal.
 - [Configuration reference](CONFIGURATION.md): all supported environment variables, storage/secret paths and module defaults.
@@ -33,6 +36,7 @@ These guides describe the unreleased `0.1.0-dev.0` candidate, SQLite schema 2, b
 
 - [Contributing](../CONTRIBUTING.md) and [coding-agent instructions](../AGENTS.md).
 - [Architecture decisions](ARCHITECTURE.md) and [HTTP/domain API](API.md).
+- [Host lifecycle implementation](../installer/README.md): standard-library Python boundary, state protocol and offline/real-Docker tests.
 - [Action reference](API_ACTIONS.md): payloads, capabilities and availability by control surface.
 - [Documentation maintenance](DOCUMENTATION.md): editorial rules, coverage and verification procedure.
 - [Automated testing](TESTING.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md).

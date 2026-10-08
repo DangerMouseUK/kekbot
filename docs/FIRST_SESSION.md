@@ -1,5 +1,7 @@
 # Your first session
 
+After [guided installation](INSTALLER.md), use the reported private setup-token or random fixture-account path. The terminal wizard handles the host; the browser steps below configure all application modules, with [every field](CONFIGURATION_FIELDS.md) explained separately. It never needs provider secrets in the terminal.
+
 This walkthrough turns a claimed installation into a small, understandable setup. It is for the **owner**; [accounts](ACCOUNTS.md) explains delegated access. Start with [installation](INSTALLATION.md) for live hosting or the [quickstart](QUICKSTART.md) for an isolated demonstration. [All documentation](README.md).
 
 Fixture installations simulate effects. On a live installation, the command and alert checks below contact real services. Use a channel and identities you control. This walkthrough is an operator check, not completion of the release acceptance campaign.

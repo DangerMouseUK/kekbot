@@ -16,6 +16,7 @@ Use these task-specific starting points:
 - Local setup: [quickstart](docs/QUICKSTART.md), [contributing](CONTRIBUTING.md).
 - Initial configuration/delegation: [first session](docs/FIRST_SESSION.md), [accounts](docs/ACCOUNTS.md); Windows/macOS containers: [Docker Desktop](docs/DOCKER_DESKTOP.md).
 - Hosting/configuration: [installation](docs/INSTALLATION.md), [configuration](docs/CONFIGURATION.md).
+- Guided host lifecycle: [installer](docs/INSTALLER.md), [updates](docs/UPDATING.md), [uninstall](docs/UNINSTALLING.md), [implementation](installer/README.md).
 - Provider/presentation behavior: [providers](docs/PROVIDERS.md), [user guide](docs/USER_GUIDE.md), [OBS](docs/OBS.md).
 - Host/privacy/recovery: [operations](docs/OPERATIONS.md), [backup/recovery](docs/BACKUP_RECOVERY.md).
 - Runtime/contracts: [architecture](docs/ARCHITECTURE.md), [API](docs/API.md).
@@ -47,6 +48,8 @@ Maintain [RELEASE_READINESS.md](docs/RELEASE_READINESS.md), [RELEASING.md](docs/
 Follow [documentation maintenance](docs/DOCUMENTATION.md) for repository-wide guide work. `pnpm docs:check` validates local navigation, identical PRDs, every catalog field row and strict-schema JSON examples. Keep UI starting values distinct from schema defaults, exact-role matching distinct from hierarchy, and fixture walkthroughs distinct from real delivery. A guide improvement does not pass an independent-installer gate.
 
 ## Verification
+
+Host lifecycle code uses Python 3.10+ standard library, separate from the TypeScript app. `pnpm check` includes offline installer contracts; Linux CI additionally tests locks/transactions and the audited-bundle install/update-failure/rollback/uninstall rehearsal. Keep final typed review, latest-stable fail-closed behavior, immutable source/image selection, private state and retained-data defaults. Do not adopt arbitrary manual deployments, execute downloaded management code, prune global Docker resources or claim fixture coverage as an independent installer trial.
 
 Run `pnpm check` and targeted checks appropriate to the change. Documentation-only work requires link/publication checks and validation of changed procedures; avoid unnecessary application rewrites or repeated performance tests.
 

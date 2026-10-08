@@ -1,6 +1,8 @@
 # Install KekBot
 
-This guide installs the **unreleased development candidate** from source on a Linux x86-64 host. Use it for controlled evaluation. Stable distribution, unaided installer trials and full-product live acceptance are pending. There is currently no published stable image or automated host installer. For a safe local demonstration, use the [quickstart](QUICKSTART.md). Return to the [documentation index](README.md).
+This is the **manual source/Compose installation** of the unreleased development candidate on Linux x86-64. For explained terminal menus covering installation, versions, updates and removal, use the [guided installer](INSTALLER.md). Stable publication, unaided installer trials and full-product live acceptance remain pending. For a safe local demonstration use [quickstart](QUICKSTART.md). Return to the [documentation index](README.md).
+
+Choose one management path. Manual instructions below keep public source in `/srv/kekbot/source` and use a `dc` shell helper. The wizard instead owns a new root with private `installation.json`, generated `compose.json`, immutable images and a copied tool. Do not mix paths or overwrite either installation with the other. A wizard-managed host uses [updating](UPDATING.md) and [uninstalling](UNINSTALLING.md).
 
 <!-- contents:start -->
 **On this page**
