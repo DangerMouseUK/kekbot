@@ -2,6 +2,7 @@
 
 ## 0.1.0-dev.0 — Local product build, unreleased
 
+- Remediated development-tool advisories with a parent-scoped esbuild 0.25.12 override and a local braces 3.0.3 AST-depth guard. Added exploit/compatibility regressions and production/full-tooling CI auditing that verifies the exact patch while retaining the upstream advisory count. No production package or lint rule was removed; candidate dependency sign-off remains pending.
 - Separated all active media requests from bounded paginated history; extracted typed dashboard panels and adopted scoped formatting for core services.
 - Added schema 3 with job payload retention, encrypted uncertain work, derived viewer associations, transient-state expiry and schema-2 upgrade regressions. Backup/configuration formats remain 1.
 - Hardened installer Start cleanup and added optional bounded private diagnostics. Added release-controlled dependency review, exact pin checks and optional candidate image auditing. No production dependency was added. Stable/live acceptance and dependency sign-off remain pending.

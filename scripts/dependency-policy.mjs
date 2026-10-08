@@ -9,6 +9,9 @@ export function dependencyPolicy(root = ".") {
   for (const group of ["dependencies", "devDependencies"]) for (const [name, version] of Object.entries(pkg[group] ?? {})) {
     if (!exact.test(version)) problems.push(`unfixed_dependency:${name}`);
   }
+  for (const [name, version] of Object.entries(pkg.pnpm?.overrides ?? {})) {
+    if (!exact.test(version)) problems.push(`unfixed_override:${name}`);
+  }
   const node = read(".node-version").trim(), pnpm = pkg.packageManager?.match(/^pnpm@(\d+\.\d+\.\d+)$/)?.[1];
   if (!exact.test(node) || pkg.engines?.node !== `>=${node} <${Number(node.split(".")[0]) + 1}`) problems.push("node_pin_mismatch");
   if (!pnpm || pkg.engines?.pnpm !== pnpm || !read("Dockerfile").includes(`pnpm@${pnpm}`)) problems.push("pnpm_pin_mismatch");

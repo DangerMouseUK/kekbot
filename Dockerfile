@@ -4,6 +4,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && apt-get clean
 RUN npm install --global pnpm@10.26.0
 COPY package.json pnpm-lock.yaml .npmrc ./
+COPY patches ./patches
 RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build

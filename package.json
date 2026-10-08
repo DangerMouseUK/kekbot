@@ -31,6 +31,7 @@
     "check": "pnpm publication:check && pnpm docs:check && pnpm release:check && pnpm dependencies:check && pnpm typecheck && pnpm format:check && pnpm lint && pnpm test && pnpm test:installer",
     "dependencies:check": "node scripts/check-dependencies.mjs",
     "dependencies:review": "node scripts/dependency-review.mjs",
+    "dependencies:audit": "node scripts/dependency-audit.mjs",
     "format:check": "prettier --check \"src/app/panels/**/*.{ts,tsx}\" src/app/module-panels.tsx src/app/dashboard.tsx src/server/storage/repository.ts src/server/domain/bot.ts src/server/domain/media.ts src/server/domain/operations.ts src/server/domain/state.ts src/server/runtime.ts"
   },
   "dependencies": {
@@ -56,10 +57,16 @@
     "vitest": "5.0.3"
   },
   "pnpm": {
+    "overrides": {
+      "@esbuild-kit/core-utils@3.3.2>esbuild": "0.25.12"
+    },
     "onlyBuiltDependencies": [
       "better-sqlite3",
       "esbuild",
       "sharp"
-    ]
+    ],
+    "patchedDependencies": {
+      "braces@3.0.3": "patches/braces@3.0.3.patch"
+    }
   }
 }

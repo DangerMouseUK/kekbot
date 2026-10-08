@@ -639,4 +639,4 @@ The build gate for Milestone 16, automated Milestone 17 campaign and autonomous 
 
 ## Post-milestone repository quality follow-up
 
-The [quality follow-up](QUALITY_HARDENING.md) records eight targeted improvements, schema-3 compatibility and verification. It preserves the historical milestone identities and pending live/operator gates. Release dependency sign-off is separate and pending; no new deployment or stable release is claimed.
+The [quality follow-up](QUALITY_HARDENING.md) records eight targeted improvements, schema-3 compatibility and verification. PR #6 also remediates the two development-tool vulnerabilities with tested, exact dependency changes; its [remediation record](DEPENDENCY_MAINTENANCE.md#review-record) distinguishes the remaining raw registry warning from verified patched code. It preserves the historical milestone identities and pending live/operator gates. Release dependency sign-off is separate and pending; no new deployment or stable release is claimed.

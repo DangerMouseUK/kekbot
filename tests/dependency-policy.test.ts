@@ -1,6 +1,8 @@
 import { expect, it } from "vitest";
 import { dependencyPolicy, validateDependencyReview, dependencyBlockers } from "../scripts/dependency-policy.mjs";
 import { auditSummary, imageSummary, reviewDependencies } from "../scripts/dependency-review.mjs";
+import { bracesRemediation, verifyBracesRemediation } from "../scripts/dependency-patches.mjs";
+import { readFileSync } from "node:fs";
 
 const sourceRef = "a".repeat(40), imageDigest = `sha256:${"b".repeat(64)}`;
 const review = () => ({ format: "kekbot-dependency-review", version: 1, candidate: { sourceRef, imageDigest }, reviews: Object.fromEntries(["application", "tooling", "image", "licenses"].map(name => [name, { outcome: "pass", date: "2026-10-08", reference: "docs/DEPENDENCY_MAINTENANCE.md#review-record" } as { outcome: string; date: string | null; reference: string | null }])) });
@@ -28,4 +30,27 @@ it("reports advisory counts only and does not turn scanner/network errors into p
   const commands: string[][] = [];
   const report = reviewDependencies({ scanner: "fixture-scanner", "image-archive": "fixture.tar" }, (_binary, args) => { commands.push(args); return { status: 1, stdout: "" }; });
   expect(report.image.passed).toBe(false); expect(commands.every(args => !args.includes("update") && !args.includes("install"))).toBe(true);
+});
+it("accepts only the exact advisory path with verified local remediation while preserving raw counts", () => {
+  const advisory = { github_advisory_id: bracesRemediation.advisory, module_name: "braces", severity: "high", findings: [{ version: "3.0.3", paths: [bracesRemediation.path] }] };
+  const report = (entry = advisory, high = 1) => ({ status: 1, stdout: JSON.stringify({ metadata: { vulnerabilities: { info: 0, low: 0, moderate: 0, high, critical: 0 } }, advisories: { fixture: entry } }) });
+  expect(auditSummary(report())).toMatchObject({ passed: false });
+  expect(auditSummary(report(), true)).toMatchObject({ passed: true, counts: { high: 1 }, locallyPatched: [bracesRemediation.advisory] });
+  expect(auditSummary(report({ ...advisory, github_advisory_id: "GHSA-unreviewed" }), true).passed).toBe(false);
+  expect(auditSummary(report({ ...advisory, findings: [{ version: "3.0.3", paths: [bracesRemediation.path, ".>another>braces"] }] }), true).passed).toBe(false);
+  expect(auditSummary(report({ ...advisory, findings: [{ version: "3.0.2", paths: [bracesRemediation.path] }] }), true).passed).toBe(false);
+  expect(auditSummary(report(advisory, 2), true).passed).toBe(false);
+  expect(auditSummary({ ...report(advisory, 0), status: 0 }, true).passed).toBe(false);
+  expect(auditSummary({ status: 0, stdout: "null" }, true).passed).toBe(false);
+  expect(auditSummary({ status: 1, stdout: "unavailable" }, true).passed).toBe(false);
+});
+it("requires the installed parser, patch, manifest binding and lockfile to match remediation", () => {
+  expect(verifyBracesRemediation()).toBe(true);
+  for (const target of ["lib/parse.js", bracesRemediation.patch, "package.json", "pnpm-lock.yaml"]) {
+    expect(verifyBracesRemediation(path => {
+      const text = readFileSync(path, "utf8");
+      if (path.replace(/\\/g, "/").endsWith(target)) return target === "package.json" ? "{}" : "tampered";
+      return text;
+    })).toBe(false);
+  }
 });

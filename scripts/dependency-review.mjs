@@ -1,15 +1,23 @@
 import { spawnSync } from "node:child_process";
 import { parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
+import { bracesRemediation, verifyBracesRemediation } from "./dependency-patches.mjs";
 
-export function auditSummary(result) {
+export function auditSummary(result, bracesPatchVerified = false) {
   let data;
   try { data = JSON.parse(result.stdout); } catch { return { available: false, passed: false }; }
-  if (![0, 1].includes(result.status) || !data.metadata?.vulnerabilities || data.error) return { available: false, passed: false };
+  if (![0, 1].includes(result.status) || !data?.metadata?.vulnerabilities || data.error) return { available: false, passed: false };
   const levels = ["info", "low", "moderate", "high", "critical"];
   if (!levels.every(key => Number.isInteger(data.metadata.vulnerabilities[key]) && data.metadata.vulnerabilities[key] >= 0)) return { available: false, passed: false };
   const counts = Object.fromEntries(levels.map(key => [key, data.metadata.vulnerabilities[key]]));
-  return { available: true, passed: Object.values(counts).every(count => count === 0), counts };
+  const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+  const advisories = Object.values(data.advisories ?? {});
+  if (total === 0) return { available: true, passed: result.status === 0 && advisories.length === 0, counts };
+  const patched = bracesPatchVerified && total === 1 && advisories.length === 1 && counts.high === 1 && advisories.every(advisory =>
+    advisory.github_advisory_id === bracesRemediation.advisory && advisory.module_name === "braces" && advisory.severity === "high" &&
+    Array.isArray(advisory.findings) && advisory.findings.length === 1 && advisory.findings.every(finding =>
+      finding.version === "3.0.3" && Array.isArray(finding.paths) && finding.paths.length === 1 && finding.paths[0] === bracesRemediation.path));
+  return { available: true, passed: patched, counts, locallyPatched: patched ? [bracesRemediation.advisory] : [] };
 }
 export function imageSummary(result) {
   let data;
@@ -28,8 +36,9 @@ export function reviewDependencies(values, execute = spawnSync) {
   const run = (binary, args) => execute(binary, args, { encoding: "utf8", windowsHide: true, shell: false, timeout: 360000, maxBuffer: 32 * 1024 * 1024 });
   // Launch pnpm through Node on Windows; do not use shell interpolation.
   const audit = args => process.platform === "win32" && process.env.npm_execpath ? run(process.execPath, [process.env.npm_execpath, ...args]) : run(pnpm, args);
-  const application = auditSummary(audit(["audit", "--prod", "--json"]));
-  const tooling = auditSummary(audit(["audit", "--json"]));
+  const patched = verifyBracesRemediation();
+  const application = auditSummary(audit(["audit", "--prod", "--json"]), patched);
+  const tooling = auditSummary(audit(["audit", "--json"]), patched);
   let image = { available: false, passed: false };
   if (values.scanner && values["image-archive"]) {
     const version = run(values.scanner, ["--version", "--format", "json"]);

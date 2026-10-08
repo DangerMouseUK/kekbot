@@ -35,6 +35,7 @@ Read only the material needed for the requested scope. The [foundation guide](do
 - Use checked-in SQL migrations and metadata. Do not rewrite released migrations or generate migrations at startup. Preserve backup compatibility or document an explicit upgrade boundary.
 - Keep one runtime per local SQLite installation. Builds/tests must not start live jobs. Preserve bounded processing, durable leases, snapshot recovery and explicit media resume after restart.
 - Avoid new production dependencies unless justified. Pin exact additions and review licenses/notices.
+- Dependency remediations must preserve tooling behavior. Keep local patches scoped and checked in, with exploit/compatibility tests and a removal condition. `pnpm dependencies:audit` retains raw counts and verifies the exact local braces patch; never replace this with a global advisory ignore or call a patched registry finding a clean raw scan.
 
 ## Documentation quality and evidence
 

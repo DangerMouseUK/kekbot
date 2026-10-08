@@ -15,12 +15,12 @@ pnpm install --frozen-lockfile
 pnpm dependencies:check
 ```
 
-The second command is offline. It validates pins and the review-record structure, **not vulnerability status or acceptance**. Ordinary CI also audits production npm dependencies.
+The second command is offline. It validates pins and the review-record structure, **not vulnerability status or acceptance**. Ordinary CI runs `pnpm dependencies:audit` against both production and development dependencies. That networked check retains registry counts and verifies any exact local remediation described below.
 
 ## Make a maintenance PR
 
 1. Select compatible upstream versions intentionally. Read release/security notes, Node/native SQLite compatibility and any migration or browser changes. Do not run blanket audit fixes or add unexplained overrides.
-2. Update exact versions and the lockfile together. Review additions/removals, licenses and notices; runtime notices still follow [Dependencies](DEPENDENCIES.md).
+2. Update exact versions and the lockfile together. Review additions/removals, licenses and notices; runtime notices still follow [Dependencies](DEPENDENCIES.md). A necessary transitive override must be exact and scoped to its parent. A local patch needs checked-in source, exploit/compatibility regressions, a removal condition and an explicitly verified audit treatment; never exclude an advisory globally.
 3. Run `pnpm check`, `pnpm build`, `pnpm test:standalone` and `pnpm test:e2e`. Require the Linux container/proxy/storage/installer checks for the resulting source. Add focused regression tests for changed behavior.
 4. Prepare a new candidate and repeat the affected acceptance checks. Never carry a dependency sign-off over to different source or image bytes.
 
@@ -28,7 +28,7 @@ Normal maintenance targets main. An urgent security patch may target an affected
 
 ## Review a candidate
 
-From the candidate checkout, `pnpm dependencies:review` audits both production dependencies and the full development/tooling tree. It prints aggregate counts only. It returns nonzero for findings, unavailable/malformed audit responses or a missing image scan. It never installs updates or changes evidence records.
+From the candidate checkout, `pnpm dependencies:audit` audits production dependencies and the full development/tooling tree. `pnpm dependencies:review` adds the image check. Both print aggregate counts and identifiers of verified local remediations, without raw provider responses or paths. Unresolved findings and unavailable/malformed responses return nonzero; the complete review also fails on a missing image scan. Neither command installs updates or changes evidence records.
 
 For the image check, use a trusted local **Trivy 0.75.0** executable, verified against the checksum in its [official release](https://github.com/aquasecurity/trivy/releases/tag/v0.75.0). On the Linux build host, save the already-tested candidate image into private storage and run:
 
@@ -62,4 +62,13 @@ Before the first stable release, there is no supported stable version. Afterward
 <a id="review-record"></a>
 ## Current review record
 
-No frozen candidate has dependency sign-off. The local 2026-10-08 production npm audit was clean; the full audit reported two development-tool advisories: esbuild via drizzle-kit ([GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99)) and braces via the Next ESLint tooling ([GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)). These remain unresolved review items. No exception or dependency upgrade is implied by adding this policy. A fresh full image review and license sign-off are still required for a release.
+No frozen candidate has dependency sign-off. The two development-tool findings observed on 2026-10-08 are remediated as follows:
+
+| Advisory | Affected path and remedy | Evidence and removal condition |
+| --- | --- | --- |
+| [esbuild cross-origin development-server reads](https://github.com/evanw/esbuild/security/advisories/GHSA-67mh-4wv8-2f99) | Drizzle's legacy loader selected esbuild 0.18.20. An exact parent-scoped override selects 0.25.12, already used elsewhere in this lockfile; the upstream fix starts at 0.25.0. | The actual loader dependency rejects cross-origin reads and still transforms TypeScript. Drizzle generates/checks migrations normally. Remove the override when the loader selects a fixed version itself. |
+| [braces recursion exhaustion](https://github.com/micromatch/braces/issues/70) | Next's ESLint tooling uses braces 3.0.3; no fixed upstream release was available. The [checked-in patch](../patches/braces@3.0.3.patch) caps AST nesting at 100 in the shared parser, including mixed braces/parentheses. Escaped/quoted literals and ordinary glob behavior remain intact. | Regression tests exercise string aliases, malicious root globs, the depth boundary and the real Next link rule. Remove the patch and its audit treatment together when a tested upstream fix becomes available. |
+
+**Raw `pnpm audit` still reports one high advisory for braces 3.0.3 and exits nonzero.** Registry version checks cannot identify a local code patch. `pnpm dependencies:audit` reports that count unchanged and lists the advisory under `locallyPatched` only after [verification](../scripts/dependency-patches.mjs) confirms the manifest binding, lockfile patch identity, checked-in patch checksum and installed parser checksum. It accepts only that exact version and dependency path. A missing/modified patch, another path, another advisory or an audit error fails. This is an identified code remediation, not a claim that the raw scan is clean.
+
+The local production audit has zero findings. No production package was added, no lint rules were removed, and no blanket advisory ignore is configured. Application/tooling/image/license acceptance remains pending until a frozen candidate receives all four reviews; the local patch must be included in that tooling review.
