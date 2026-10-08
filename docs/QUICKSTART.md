@@ -16,6 +16,8 @@ This walkthrough gives you an isolated dashboard with synthetic configurations, 
 
 ## Prerequisites
 
+The local source path uses Node/pnpm. A Linux host can instead use the [guided terminal wizard](INSTALLER.md) in fixture mode with Python 3, Git and Docker; Windows/macOS container evaluation follows [Docker Desktop](DOCKER_DESKTOP.md). Contributor `pnpm check` also needs Python 3.10+ for offline installer contracts, with no pip dependencies.
+
 - Git and a terminal: Bash on Linux/macOS or PowerShell on Windows.
 - [Node.js](https://nodejs.org/en/download) **24.21.0** and [pnpm](https://pnpm.io/installation) **10.26.0**. With Node installed, `npm install --global pnpm@10.26.0` installs the pinned package manager.
 - A native build toolchain if a prebuilt SQLite binary is unavailable: Python and C++ build tools (`python3 make g++` on Ubuntu; Visual Studio Build Tools with Desktop development with C++ on Windows; Xcode Command Line Tools on macOS).

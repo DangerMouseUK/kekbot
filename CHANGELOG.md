@@ -2,6 +2,10 @@
 
 ## 0.1.0-dev.0 — Local product build, unreleased
 
+- Fixed guided lifecycle recovery: prepare Caddy before creating installation state, attempt shutdown even when final/failure record writes fail, and preserve incomplete update/rollback guards and checkpoints during retained uninstall. Added portable failure regressions and clarified operator recovery guidance.
+
+- Added a guided Linux terminal installer, explicit updater with stopped-host backups and separate-root rollback, status/start/stop, and an uninstaller that retains data by default with an additional typed purge. Version selection supports latest stable (fail-closed until publication), exact releases, branches, PR heads, full commits and local audited source/image bundles. Added offline contract/failure tests, a real-image Linux CI lifecycle rehearsal and complete managed-host guides; provider/independent-installer acceptance remains pending.
+
 - Expanded the public handbook with first-session, account/capability, Docker Desktop, complete CLI, field/example and action references. Added detailed command/timer/moderation/economy/activity workflows, installation checkpoints, separate-key mounts, monitoring and recovery procedures. CI now checks every configuration field is documented, validates all 12 JSON examples against strict schemas and parses handbook Compose overrides against the base service. Historical evidence and pending live release gates are unchanged.
 
 - Reworked the public README and contributor/agent guidance; added a documentation index and dedicated fixture, installation, configuration, provider, user, OBS, troubleshooting and recovery guides. Documentation checks now validate local heading/evidence anchors as well as files; existing acceptance results remain unchanged.

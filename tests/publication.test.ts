@@ -38,6 +38,14 @@ describe("publication boundary", () => {
     expect(repo.check().status).toBe(0);
   });
 
+  it("rejects Python bytecode which can contain private local paths", () => {
+    const repo = checkout();
+    writeFileSync(join(repo.cwd, "compiled.pyc"), "synthetic compiled artifact");
+    const result = repo.check();
+    expect(result.status).toBe(1); expect(result.stderr).toContain("private artifact cannot be published");
+    expect(result.stderr).not.toContain("synthetic compiled artifact");
+  });
+
   it("rejects forced tracking of ignored runtime config without printing its values", () => {
     const repo = checkout();
     writeFileSync(join(repo.cwd, ".gitignore"), "*.env\n");

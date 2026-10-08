@@ -1,7 +1,7 @@
 # KekBot: Open-Source, Self-Hosted Kick Control Room
 
-Version: 1.1 draft for the fresh repository
-Date: 2026-10-01
+Version: 1.2 draft for the fresh repository
+Date: 2026-10-08
 Status: Product specification; foundation proved historically; product build and automated campaign complete; live acceptance and stable release pending
 License: MIT for newly authored KekBot code
 Audience: Individual Kick creators, their moderators, and open-source contributors
@@ -123,6 +123,10 @@ The app image runs as a non-root user. The installation guide explains data owne
 The distribution must contain usable commands for initialization, diagnostics, consistent backup, restore, and safe owner recovery. Those commands and their output must be documented and tested in the fresh repository; command names are chosen during implementation.
 
 Version pinning is the default. Updates are explicit, with release notes, a pre-upgrade backup, schema compatibility checks, and a rehearsed recovery procedure. Unattended upgrades are later scope.
+
+Provide an explained terminal installer, updater and uninstaller for the supported Linux host. The walkthrough covers every host/source/distribution choice, reviews changes before applying, and hands provider consent and module settings to their documented browser workflows. Latest accepted stable release is the default when releases exist; until then, require explicit evaluation input rather than silently falling back to development. Support exact published releases, repository branches, PR heads, full commits and audited local bundles, with source-build and prebuilt-image formats, immutable identities and verified checksums.
+
+Updates prepare the candidate before downtime, preserve original keys, create a stopped-host database/asset checkpoint and retain the previous image. Failed migration/startup requires explicit recovery into new storage, not downgrading newer data. Uninstall retains data by default; permanent purge requires an additional typed review, stays within the managed installation and explains provider cleanup and independent recovery requirements. The installer does not alter SSH, firewall/DNS or external provider applications.
 
 A demo or fixture mode is permitted for contributors, but is explicitly selected, clearly labelled, uses separate data, and cannot send real provider actions. Missing credentials or storage in a real installation produce an actionable setup state or failure, never a silent demo fallback.
 

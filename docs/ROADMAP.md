@@ -2,7 +2,7 @@
 
 This is a release-scope/dependency reference, not an installation guide. Use [milestones](MILESTONES.md) for the current sequence and dated results, [release readiness](RELEASE_READINESS.md) for unresolved gates, and [the handbook](README.md) to install/use the current candidate. Requirements remain in the two identical PRDs; documentation changes do not retroactively accept planned scenarios.
 
-Updated: 2026-10-07. MIT, Next.js, one self-hosted installation per creator.
+Updated: 2026-10-08. MIT, Next.js, one self-hosted installation per creator.
 
 This is the executable roadmap for both PRDs. They currently contain the same specification; update them together. Discord and YouTube are optional integrations to enable, but their complete supported workflows are required v0.1 capabilities.
 
@@ -66,6 +66,8 @@ The complete v1 widget inventory remains PRD section 11.4: event feed, goals/mul
 After v1: ARM64, optional TTS, supported clip helpers, OBS scene control, declarative community packs, additional streaming platforms, and deeper owner APIs. Executable extensions require a trust model. Multi-channel/hosted offerings need a separate PRD.
 
 ## Release evidence and defaults
+
+The distribution increment now includes a [guided terminal lifecycle](INSTALLER.md): latest stable by default, explicit release/branch/PR/commit/bundle evaluation, source or prebuilt image, checkpointed updates/rollback and safe removal. Build/fixture evidence belongs in Milestone 16; published artifacts and unaided/live recovery still require Milestones 18–19. No deployment or publication is implied by installer preparation.
 
 - Run targeted type/lint/unit/SQLite/browser checks and inspect final changes for accidental edits, secrets, debug code, and unnecessary complexity.
 - Provider tests cover signature/body trust, wrong channel/guild, replay, malformed input, scopes/auth, 429, uncertain sends, and safe refresh repair. Never enable provider mutations from fixtures.

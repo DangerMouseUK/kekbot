@@ -27,6 +27,8 @@ Before an independent installer trial, hand the operator the root README and [in
 
 ## Supported candidate versions
 
+The [interactive installer](INSTALLER.md) supports repository branches, PR heads and exact commits through source builds, plus published/local audited source and Linux amd64 image bundles. Its default discovery uses GitHub's latest stable release and fails closed until stable metadata/assets exist. Host updates/removal follow [updating](UPDATING.md) and [uninstalling](UNINSTALLING.md); no releases are published by the installer.
+
 | Component | Supported candidate |
 | --- | --- |
 | Node.js / pnpm | 24.21.0 / 10.26.0; exact CI pins in `.node-version` and `package.json` |
@@ -96,6 +98,8 @@ Use [release-evidence.json](release-evidence.json) as the machine-readable sign-
 Keep identifying addresses/accounts, grants, payloads, raw reports and detailed operations in protected private evidence outside the source checkout. Public evidence contains source/image identity, scenario/date/outcome and sanitised defects. Never paste private provider configuration into this index.
 
 ## Final publication gate
+
+Publish all exact package assets under their recorded names, including `release.json` and `SHA256SUMS`; automatic GitHub source downloads alone are insufficient for the wizard. Preserve `sourceArchive`, immutable `image.imageId`, platform/schema/backup fields and accepted metadata (the packaging status remains `acceptance-verified-unpublished`, its pre-publication provenance). Only designate an actually accepted v1-or-later release as latest stable. The release's source archive contains the matching host tool/guides; review the tool before sudo. Prebuilt distribution avoids rebuilding an accepted image; source-build distribution produces a new image needing its own verification. Checksums are integrity evidence, not signed publisher authentication. Rehearse both installer formats and a published-release upgrade/removal before final distribution sign-off.
 
 Publication is a separate owner-authorized operation. Before publishing, verify final PRD coverage, live and independent-operator evidence, supported versions, security reporting, release notes, dependency/base-image licenses, repository/history/image scans, config/support export redaction and archive checksums. Check that the intended tag/version is unused; never move an existing public release tag or silently replace its artifacts.
 

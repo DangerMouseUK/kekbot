@@ -38,6 +38,7 @@ The public operator path is [installation](INSTALLATION.md) → [providers](PROV
 - [Automated campaign and live preparation — 2026-10-07](#automated-campaign-and-live-preparation--2026-10-07)
 - [Milestones 18–19 autonomous preparation — 2026-10-07](#milestones-1819-autonomous-preparation--2026-10-07)
 - [Public documentation campaign — 2026-10-08](#public-documentation-campaign--2026-10-08)
+- [Guided host lifecycle — 2026-10-08](#guided-host-lifecycle--2026-10-08)
 - [Next work](#next-work)
 <!-- contents:end -->
 
@@ -624,6 +625,12 @@ Validation used application baseline `2c911f8953b9bb006651b10500d2042bc3004a0e` 
 - Redacted Gitleaks 8.30.1 scans of the public candidate export and existing complete Git history passed. Runtime/fixture files stayed outside the publication set. GitHub PR CI supplies candidate-specific Linux/browser/container checks; no new live provider, public TLS renewal or unaided independent-install result is claimed.
 
 Documentation preparation does not accept any of the 33 live/operator gates. Fresh deployment and Milestones 18–19 remain pending as below.
+
+## Guided host lifecycle — 2026-10-08
+
+Milestone 16 distribution now includes the explained Linux terminal installer/updater/uninstaller, immutable source/image choices, latest-stable fail-closed discovery, stopped-host snapshots, failed-update checkpoints, separate-root rollback, retained-data removal/resume and scoped typed purge. The [installer guide](INSTALLER.md), [update guide](UPDATING.md), [removal guide](UNINSTALLING.md) and [implementation/tests](../installer/README.md) cover the new interface and manual/managed boundary. No application schema/dependency or historical acceptance identity changes.
+
+Source `1d9bda80edfb7f3e047a4ac08dd85eaa8d9ae779` passed [CI run 37810963864](https://github.com/DangerMouseUK/kekbot/actions/runs/37810963864) on 2026-10-08: all six ordinary jobs, 115 application tests, all 24 offline host contracts on Linux, three browser engines, and the audited-image install/failed-update/new-root rollback/update/removal/resume/purge rehearsal. [PR #5](https://github.com/DangerMouseUK/kekbot/pull/5) also extends that rehearsal to the verified source-bundle build and signed fixture intake with a custom host port; its latest CI identifies those results. Fixtures do not establish O02, public TLS, real provider delivery or an actual published-release install. Milestones 18–19 and all existing live sign-off gates remain pending.
 
 ## Next work
 

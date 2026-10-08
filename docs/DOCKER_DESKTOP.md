@@ -14,6 +14,8 @@ This is an isolated **fixture** evaluation on Windows or macOS using Linux conta
 
 ## Prerequisites and storage
 
+The [guided host wizard](INSTALLER.md) is Linux x86-64 only; it must not run through WSL against Docker Desktop's remote VM paths. Use this separate named-volume procedure on Windows/macOS. Managed host updates/uninstall do not adopt this evaluation's manual Compose project.
+
 Install Git and [Docker Desktop](https://docs.docker.com/desktop/). Select Linux containers; Windows uses the WSL 2 backend. Confirm `docker version` and `docker compose version` in your terminal. Host Node/pnpm is unnecessary because the image builds the application. Allow enough Docker VM memory for compilation; the unaccepted 2 GiB runtime reference target is not a build-memory guarantee.
 
 Use a Docker named volume for SQLite/assets inside the Linux VM, rather than a synced/cloud/network folder. This guide uses a separate Compose project named `kekbot-eval`. Do not reuse a live project's volume or runtime file.
