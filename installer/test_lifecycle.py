@@ -362,10 +362,13 @@ class RecoveryFailures(unittest.TestCase):
     def test_diagnostics_reject_checkout_and_nonprivate_directory(self):
         with self.assertRaises(core.Problem):
             core.Diagnostics(Path(core.__file__).resolve().parent)
+        with self.assertRaises(core.Problem):
+            core.Diagnostics(Path(core.__file__).resolve().parent / ".." / "installer")
         if os.name == "posix":
             self.root.mkdir(mode=0o700, exist_ok=True)
             directory = self.root / "public-diagnostics"
             directory.mkdir(mode=0o755)
+            directory.chmod(0o755)  # Wizard tests may have set a restrictive process umask.
             with self.assertRaises(core.Problem):
                 core.Diagnostics(directory)
 

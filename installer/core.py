@@ -35,7 +35,7 @@ class Problem(Exception):
 class Diagnostics:
     """Opt-in bounded metadata only: never command arguments, bodies or output."""
     def __init__(self, directory):
-        self.directory = no_links(Path(directory))
+        self.directory = no_links(Path(directory)).resolve()
         checkout = Path(__file__).resolve().parent.parent
         if not Path(directory).is_absolute() or checkout == self.directory or checkout in self.directory.parents:
             raise Problem("Diagnostics require an absolute private directory outside the source/tool checkout.")
