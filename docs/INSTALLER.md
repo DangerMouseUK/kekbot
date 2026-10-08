@@ -119,6 +119,14 @@ With the defaults, all private installation files stay outside source:
 
 Fixture mode uses `data/fixture`. The root/environment/record are protected for the host administrator. App data is owned by UID/GID 1000; the container runs non-root. Images are selected by immutable image ID and Compose never pulls a mutable tag automatically. Certificate volumes are separate Docker storage. No system service, cron job, firewall rule, SSH change or provider application is created; Docker's restart policy starts containers after daemon/host restart.
 
+For a signed synthetic chat event on a managed **fixture** host, use the container's internal loopback port for this one CLI invocation. The browser origin keeps its chosen host port. Replace root/project if needed:
+
+```sh
+sudo docker compose -p kekbot -f /srv/kekbot/compose.json exec --env KEKBOT_PUBLIC_URL=http://127.0.0.1:3000 kekbot node src/cli.ts fixture-event
+```
+
+Expect HTTP status `200` with `accepted: true` from verified intake and a succeeded simulated reply in local diagnostics. The event sender does not contact Kick. Do not change a live runtime into fixture mode or use this invocation as proof of live delivery.
+
 The wizard fixes normal safe runtime choices: jobs enabled, proof controls off, framework telemetry off, local data and default separate key/proof files. Provider bootstrap secrets stay empty; owners enter integration credentials through encrypted **Connections** settings. [Configuration](CONFIGURATION.md), [dashboard fields](CONFIGURATION_FIELDS.md) and [accounts](ACCOUNTS.md) explain every remaining runtime/module/permission option.
 
 Do not hand-edit `installation.json` or generated `compose.json`. Changing mode, data/key paths, project or proxy topology underneath the tool invalidates its recovery assumptions. Custom secret mounts/topologies use the manual deployment procedure; do not mix its `dc` helper with managed Compose. Ordinary environment edits require deliberate recreation and provider validation; keep the public origin aligned with the recorded topology. There is no automatic adoption/migration of a manual installation.

@@ -36,6 +36,9 @@ def main():
                 documents = db.execute("SELECT count(*) FROM documents").fetchone()[0]
             if accounts != 1 or documents < 18:
                 raise Problem("Fresh fixture installation was not seeded.")
+            event = json.loads(engine.compose(initial, "exec", "--no-TTY", "--env", "KEKBOT_PUBLIC_URL=http://127.0.0.1:3000", "kekbot", "node", "src/cli.ts", "fixture-event"))
+            if event.get("status") != 200 or not event.get("result", {}).get("accepted"):
+                raise Problem("Managed fixture intake failed through the container's internal loopback port.")
             key = (root / "data/fixture/secrets/encryption.key").read_bytes()
             asset = root / "data/fixture/assets/recovery-check.txt"
             asset.write_text("synthetic asset")
@@ -71,6 +74,10 @@ def main():
                 raise Problem("Failed-update rollback did not restore the previous image into a new root.")
             if (root / restored["data"] / "fixture/secrets/encryption.key").read_bytes() != key or (root / restored["data"] / "fixture/assets/recovery-check.txt").read_text() != "synthetic asset":
                 raise Problem("Rollback did not preserve original key and asset.")
+            source_stage = private / "source-stage"
+            source_stage.mkdir()
+            source_target = prepare_target("bundle", str(bundles[0].resolve()), "source", source_stage)
+            engine.stage_image(source_target)
             updated = engine.update(derived(False))
             if updated["imageId"] == initial["imageId"]:
                 raise Problem("Successful update did not switch image identity.")
@@ -81,7 +88,7 @@ def main():
             engine.uninstall(purge=True, backup_first=False)
             if root.exists():
                 raise Problem("Explicit purge retained managed files.")
-            print("Managed bundle install, failed update, separate-root rollback, successful update, retained-data uninstall/resume and explicit purge passed with isolated fixtures.")
+            print("Both bundle formats, managed install, failed update, separate-root rollback, successful update, retained-data uninstall/resume and explicit purge passed with isolated fixtures.")
         finally:
             if root.exists() and (root / "compose.json").exists():
                 state = engine.load()

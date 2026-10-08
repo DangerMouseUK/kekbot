@@ -52,4 +52,6 @@ Read the review and type `APPLY`. Rollback stops the current app. If no migratio
 
 Rollback returns to the snapshot time: later chat/history/configuration/queue changes are absent. Provider tokens refreshed after the snapshot may no longer work and need reauthorization. Never start the old data root beside the recovered one. A consumed rollback checkpoint is cleared; future updates create a new one.
 
+External effects after that snapshot may already have occurred even though their local records are absent. Reconcile actual chat/moderation/Discord outcomes before resending or replaying anything; restoration is not permission to repeat uncertain effects.
+
 On interruption, check status before restarting. `updating`, `update-failed`, `rolling-back` and `rollback-failed` require recovery; ordinary Start cannot bypass them. A hard host/process kill may prevent immediate cleanup, so verify the actual container state too. If rollback cannot complete, keep the record, backup, keys and failed roots intact and use [manual empty-target restore](BACKUP_RECOVERY.md#restore-into-a-separate-data-root). There is no downgrade SQL or blind retry of external effects.

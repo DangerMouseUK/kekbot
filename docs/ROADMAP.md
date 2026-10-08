@@ -2,7 +2,7 @@
 
 This is a release-scope/dependency reference, not an installation guide. Use [milestones](MILESTONES.md) for the current sequence and dated results, [release readiness](RELEASE_READINESS.md) for unresolved gates, and [the handbook](README.md) to install/use the current candidate. Requirements remain in the two identical PRDs; documentation changes do not retroactively accept planned scenarios.
 
-Updated: 2026-10-07. MIT, Next.js, one self-hosted installation per creator.
+Updated: 2026-10-08. MIT, Next.js, one self-hosted installation per creator.
 
 This is the executable roadmap for both PRDs. They currently contain the same specification; update them together. Discord and YouTube are optional integrations to enable, but their complete supported workflows are required v0.1 capabilities.
 

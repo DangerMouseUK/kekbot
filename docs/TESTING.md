@@ -65,7 +65,7 @@ Run the Compose validation and Caddy adaptation commands from [.github/workflows
 
 ## GitHub Actions
 
-After candidate archive audit/checksums, the container job runs `sudo python3 -B installer/smoke.py` against a uniquely named fixture installation. It loads the actual audited bundle, initializes/seeds, preserves a local asset/key, deliberately fails an update with a broken maintenance image, restores into a new root with the old image, succeeds with a new image, removes/resumes containers while retaining data, then explicitly purges only that fixture root. No public TLS, live integrations or independent installer are implied; raw files/credentials remain on the ephemeral runner.
+After candidate archive audit/checksums, the container job runs `sudo python3 -B installer/smoke.py` against a uniquely named fixture installation. It loads the actual audited image bundle, initializes/seeds, sends a signed fixture event through the container's internal port, preserves a local asset/key, deliberately fails an update with a broken maintenance image, restores into a new root with the old image, builds the verified source-bundle format, succeeds with a new image, removes/resumes containers while retaining data, then explicitly purges only that fixture root. No public TLS, live integrations or independent installer are implied; raw files/credentials remain on the ephemeral runner.
 
 Pushes to `main`, pull requests and manual workflow runs execute the read-only CI workflow on Ubuntu 24.04. Feature-branch pushes use their pull request's campaign; before opening a PR, maintainers can invoke it manually. This avoids duplicate push/PR runs cancelling each other's checks. A new commit cancels only the superseded campaign for that branch.
 
