@@ -63,6 +63,26 @@ test("SSE recovers an invalid cursor and closes on session revocation", async ({
   } finally { abort.abort(); reader.releaseLock(); }
 });
 
+test("an owner-granted admin can invite a reader through the UI without delegating more authority", async ({ request, browser }) => {
+  const { csrf } = await login(request);
+  const invitation = await (await operation(request, csrf, "account.invite", { role: "admin", permissions: ["invite", "configure"] })).json();
+  const context = await browser.newContext({ baseURL: origin });
+  try {
+    const login = await context.request.post("/api/auth", { headers: { Origin: origin }, data: { action: "invite", token: invitation.token, username: "inviting-admin", password } });
+    expect(login.ok()).toBe(true); const adminCsrf = (await login.json()).csrf;
+    const page = await context.newPage(); await page.goto("/");
+    await page.getByRole("button", { name: "Accounts", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Invite an operator" })).toBeVisible();
+    await expect(page.getByLabel("Role")).toHaveValue("readonly");
+    expect(await page.getByLabel("Role").locator("option").allTextContents()).not.toContain("Moderator");
+    await expect(page.getByRole("button", { name: "Revoke sessions" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Create one-day invitation" }).click();
+    await expect(page.getByRole("status")).toContainText('"token"');
+    expect((await operation(context.request, adminCsrf, "account.invite", { role: "moderator" })).status()).toBe(403);
+    expect((await operation(context.request, adminCsrf, "account.invite", { role: "admin", permissions: ["invite"] })).status()).toBe(403);
+  } finally { await context.close(); }
+});
+
 test("all dashboard panels pass axe checks, keyboard navigation and responsive layout without executable templates", async ({ page, request }) => {
   test.setTimeout(120000);
   const { csrf, cookie } = await login(request);
@@ -87,6 +107,14 @@ test("all dashboard panels pass axe checks, keyboard navigation and responsive l
     }
   }
   await page.getByRole("button", { name: "Commands", exact: true }).click(); await expect(page.getByRole("heading", { name: literal, exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Moderation", exact: true }).click();
+  const incident = page.locator("form").filter({ has: page.getByRole("button", { name: "Start incident mode" }) });
+  await incident.getByLabel("Incident preset").selectOption("links");
+  await incident.getByLabel("I have reviewed the temporary warning rules").check();
+  await incident.getByRole("button", { name: "Start incident mode" }).click();
+  await expect(page.getByText(/links preset active until/)).toBeVisible();
+  await page.getByRole("button", { name: "Stop incident mode" }).click();
+  await expect(page.getByText(/No temporary preset active/)).toBeVisible();
   expect(await page.evaluate(() => Reflect.get(globalThis, "__kekbotXss"))).toBeUndefined();
   for (const width of [360, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });

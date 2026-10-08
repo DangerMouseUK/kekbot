@@ -85,6 +85,8 @@ At least two independent owners must use separate provider applications, channel
 
 Maintain a private evidence row for each L/P scenario:
 
+The [release evidence index](release-evidence.json) mirrors these 31 scenarios and adds O01/O02 for independent owners/installers. It starts entirely pending. Record sanitized dated public summaries in [RELEASE_READINESS.md](RELEASE_READINESS.md) only after the frozen source/image passes; raw evidence remains private. [RELEASING.md](RELEASING.md) explains the separate candidate and sign-off commits, image identity and fail-closed stable check. A hosted full-duration fixture soak is additional automated evidence and does not pass this campaign.
+
 | Scenario | Candidate/image | Operator label | Date | Outcome | Evidence location | Defect/retest |
 | --- | --- | --- | --- | --- | --- | --- |
 | L01–L24 / P01–P07 | Exact source/image | A/B/C | UTC date | Pending / pass / fail / unavailable | Private reference only | Sanitised issue or retest reference |

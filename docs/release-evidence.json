@@ -1,0 +1,175 @@
+{
+  "format": "kekbot-release-evidence",
+  "version": 1,
+  "candidate": {
+    "sourceRef": null,
+    "imageDigest": null
+  },
+  "gates": {
+    "L01": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L02": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L03": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L04": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L05": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L06": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L07": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L08": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L09": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L10": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L11": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L12": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L13": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L14": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L15": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L16": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L17": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L18": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L19": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L20": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L21": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L22": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L23": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "L24": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "P01": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "P02": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "P03": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "P04": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "P05": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "P06": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "P07": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "O01": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    },
+    "O02": {
+      "outcome": "pending",
+      "date": null,
+      "reference": null
+    }
+  }
+}

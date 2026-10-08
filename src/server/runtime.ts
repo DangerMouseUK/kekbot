@@ -119,8 +119,9 @@ export class Runtime {
         return;
       }
       if (job.kind === "kick.reply") {
-        const input = JSON.parse(job.payload) as { text?: string; actor?: Actor; permission?: Permission };
+        const input = JSON.parse(job.payload) as { text?: string; actor?: Actor; permission?: Permission; timerId?: string; timerVersion?: number; scheduledAt?: number };
         if (input.actor && input.permission) this.bot.state.assertActor(input.actor, input.permission);
+        if (job.id.startsWith("timer:") && !this.bot.automation.timerDeliveryAllowed(input)) throw new AppError("timer_no_longer_eligible", 409);
         if (this.config.mode === "fixture") {
           this.repository.store.sqlite.transaction(() => { this.repository.set("fixture_last_reply", job.id); confirmed(); }).immediate();
           return;

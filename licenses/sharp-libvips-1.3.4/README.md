@@ -1,0 +1,7 @@
+# sharp-libvips 1.3.4 notices
+
+KekBot does not modify the upstream native libraries. The locked Next.js dependency installs platform-specific `@img/sharp-libvips-*` binaries. Their declared license is LGPL-3.0-or-later; the additional libraries and terms are listed in the unchanged [upstream notice](THIRD-PARTY-NOTICES.md). [LICENSE.PACKAGING](LICENSE.PACKAGING) is Apache-2.0 for the packaging scripts, not a replacement license for the native libraries.
+
+These files come from sharp-libvips release `v1.3.4`, commit `ebb95f8add54eee8bed840e3fb587e4cbec857d7`, and the GNU [LGPLv3](https://www.gnu.org/licenses/lgpl-3.0.txt) / [GPLv3](https://www.gnu.org/licenses/gpl-3.0.txt) texts. The build also copies the installed package's `README.md` and `versions.json` into its image notice directory; that inventory identifies the actual native component versions.
+
+Upstream [source versions](https://github.com/lovell/sharp-libvips/blob/ebb95f8add54eee8bed840e3fb587e4cbec857d7/versions.properties), [build recipe](https://github.com/lovell/sharp-libvips/blob/ebb95f8add54eee8bed840e3fb587e4cbec857d7/build.sh) and [release workspace](https://github.com/lovell/sharp-libvips/releases/tag/v1.3.4) provide provenance and rebuilding instructions. Preserve these notices and recipients' rights to replace/debug the dynamically linked libraries. Final binary redistribution review, including corresponding source and each bundled library's notices, remains part of stable release preparation.

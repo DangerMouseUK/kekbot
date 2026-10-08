@@ -2,7 +2,7 @@
 import type { Actor, Permission } from "../server/auth.ts";
 import type { ConfigDocument } from "../server/domain/catalog.ts";
 export type Row = Record<string, unknown>;
-export type Snapshot = { settings: Row; documents: ConfigDocument[]; player: { state: string; version: number; current: string | null; volume: number; error?: string }; media: Row[]; jobs: Row[]; audit: Row[]; viewers: Row[]; leaderboard: Row[]; redemptions: Row[]; incidents: Row[]; activities: Row[]; accounts?: Row[]; tokens?: Row[]; assets?: Row[]; kick: Row; integrations: Record<string, boolean>; diagnostics: Row; mode: string; healthy: boolean };
+export type Snapshot = { settings: Row; documents: ConfigDocument[]; player: { state: string; version: number; current: string | null; volume: number; error?: string }; media: Row[]; jobs: Row[]; audit: Row[]; viewers: Row[]; leaderboard: Row[]; redemptions: Row[]; incidents: Row[]; incidentMode?: { preset: string; endsAt: number } | null; activities: Row[]; accounts?: Row[]; tokens?: Row[]; assets?: Row[]; kick: Row; integrations: Record<string, boolean>; diagnostics: Row; mode: string; healthy: boolean };
 export type Session = { claimed: boolean; actor: Actor & { username: string } | null; csrf?: string; mode: string };
 export type Run = (action: string, input?: Row) => Promise<void>;
 export function permitted(actor: Actor | null, permission: Permission) { return Boolean(actor && (actor.role === "owner" || actor.role === "admin" && actor.permissions.includes(permission) || actor.role === "moderator" && ["operate", "moderate", "media", "engage"].includes(permission))); }

@@ -17,7 +17,7 @@ export async function control(app: Runtime, actor: Actor, input: unknown) {
       return document;
     }
     case "config.delete": return state.remove(actor, id, z.number().int().positive().parse(data.version)) ?? { deleted: true };
-    case "account.invite": return app.auth.invite(actor, z.string().parse(data.role), z.array(z.string()).parse(data.permissions ?? []));
+    case "account.invite": state.assertActor(actor, "invite"); return app.auth.invite(actor, z.string().parse(data.role), z.array(z.string()).parse(data.permissions ?? []));
     case "account.disable": return app.auth.disable(actor, id, z.boolean().parse(data.disabled)) ?? { updated: true };
     case "account.revoke": state.assertActor(actor, "accounts"); state.db.prepare("DELETE FROM sessions WHERE account_id=?").run(id); state.audit(actor.id, "account.revoke_sessions", id); return { revoked: true };
     case "integration.save": { const result = state.saveSecret(actor, z.string().parse(data.provider), data.data); if (data.provider === "kick") app.kick.invalidate(); return result; }

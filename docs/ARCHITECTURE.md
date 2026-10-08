@@ -1,6 +1,6 @@
 # KekBot architecture decisions
 
-Updated: 2026-10-07. Status: foundation live gate passed historically; local product build implemented; bulk/live acceptance pending.
+Updated: 2026-10-07. Status: foundation live gate passed historically; product build and automated candidate campaign complete; live acceptance/release pending.
 
 ## ADR 001 — One self-hosted application
 

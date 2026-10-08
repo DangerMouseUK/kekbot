@@ -29,15 +29,40 @@ export function evaluateRule(rule: z.infer<typeof configSchemas.rule>, content: 
 export class ModerationService {
   readonly state: State;
   constructor(state: State) { this.state = state; }
+  incident(actor: Actor, input: unknown) {
+    this.state.assertActor(actor, "moderate");
+    const mode = z.object({ preset: z.enum(["links", "burst", "combined"]), minutes: z.number().int().min(1).max(120), acknowledge: z.literal(true) }).parse(input);
+    return this.state.db.transaction(() => {
+      const active = { preset: mode.preset, endsAt: Date.now() + mode.minutes * 60000 };
+      this.state.repository.set("incident_mode", JSON.stringify(active));
+      this.state.audit(actor.id, "moderation.incident.start", mode.preset);
+      return active;
+    }).immediate();
+  }
+  stopIncident(actor: Actor) {
+    this.state.assertActor(actor, "moderate");
+    this.state.db.transaction(() => {
+      this.state.repository.set("incident_mode", "null");
+      this.state.audit(actor.id, "moderation.incident.stop", "instance");
+    }).immediate();
+    return { stopped: true };
+  }
+  private incidentRules(now: number) {
+    const mode = JSON.parse(this.state.repository.setting("incident_mode") ?? "null") as { preset: string; endsAt: number } | null;
+    if (!mode || mode.endsAt <= now) return [];
+    const types = mode.preset === "combined" ? ["link", "burst"] : [mode.preset === "links" ? "link" : "burst"];
+    return types.map(type => ({ id: `incident-mode:${type}`, data: configSchemas.rule.parse({ name: `Incident mode ${type}`, type, threshold: 5, windowSeconds: 10, action: "warn", endsAt: mode.endsAt }) }));
+  }
   inspect(message: ChatMessage, receiptId: string) {
     if (this.state.settings.moderationPaused) return false;
     const role = chatRole(message), viewer = String(message.sender.user_id), now = Date.now();
     const history = JSON.parse(this.state.repository.setting(`chat_window:${viewer}`) ?? "[]") as { text: string; at: number }[];
-    const matched = this.state.list("rule").find(rule => evaluateRule(rule.data, message.content, role, history, now));
+    // Existing rules retain priority. Temporary presets never overwrite them.
+    const matched = [...this.state.list("rule"), ...this.incidentRules(now)].find(rule => evaluateRule(rule.data, message.content, role, history, now));
     this.state.repository.set(`chat_window:${viewer}`, JSON.stringify([...history.filter(m => now - m.at <= 600000).slice(-98), { text: message.content.slice(0, 500), at: now }]));
     if (!matched) return false;
-    const previous = (this.state.db.prepare("SELECT count(*) AS n FROM incidents WHERE viewer=? AND at>?").get(viewer, now - 3600000) as { n: number }).n;
-    const action = matched.data.escalation && previous >= 2 ? "timeout" : matched.data.action;
+    const previous = (this.state.db.prepare("SELECT count(*) AS n FROM incidents WHERE viewer=? AND rule=? AND at>?").get(viewer, matched.id, now - matched.data.escalationWindowSeconds * 1000) as { n: number }).n;
+    const action = matched.data.escalation && previous >= matched.data.escalationAfter ? matched.data.escalationAction : matched.data.action;
     const id = `moderation:${receiptId}`, jobId = `action:${id}`;
     this.state.db.prepare("INSERT OR IGNORE INTO incidents(id,viewer,rule,action,reason,job_id,at) VALUES(?,?,?,?,?,?,?)").run(id, viewer, matched.id, action, matched.data.name, jobId, now);
     this.state.effect(jobId, "kick.action", { action, userId: message.sender.user_id, messageId: message.message_id, reason: matched.data.name, duration: matched.data.duration });

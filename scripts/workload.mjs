@@ -11,7 +11,7 @@ import { initialize } from "../src/server/maintenance.ts";
 import { readConfig } from "../src/server/config.ts";
 import { seedFixture } from "../src/server/fixture-seed.ts";
 
-// The full profile is deliberately opt-in. CI runs the short functionality check.
+// Ordinary CI uses smoke; an explicit workflow dispatch can run the full soak.
 const { values } = parseArgs({ options: { smoke: { type: "boolean" }, reference: { type: "boolean" }, "remote-config": { type: "string" } } });
 const reference = Boolean(values.reference), remoteConfig = values["remote-config"];
 if (reference && values.smoke) throw new Error("invalid_workload_arguments");

@@ -6,6 +6,8 @@ KekBot source and its built-in CSS themes are MIT licensed. User-uploaded assets
 
 `pnpm build` also copies license/notice files from the actual target-platform production dependency graph (including bundled notices) to ignored `output/licenses`. Images include these under `/app/THIRD_PARTY_LICENSES` with a name/version/license index. Platform-conditional native packages can differ from this development inventory; their installed notices and licenses remain authoritative.
 
+Builds fail if an installed production package has no notice or reviewed version-matched fallback. [Supplemental upstream notices](../licenses/README.md) cover packages whose locked npm tarballs omit license text. The candidate package includes the image's notice tree and checks its inventory before export. Node/Debian base-image notices remain in the image; this table inventories application packages rather than the OS.
+
 | Package | Locked versions | License |
 | --- | --- | --- |
 | @babel/code-frame | 7.29.7 | MIT |

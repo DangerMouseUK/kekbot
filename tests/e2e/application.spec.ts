@@ -94,6 +94,10 @@ test("signed Discord approval reaches a fixture player and a duplicate completio
     await page.getByRole("button", { name: "Finish fixture item" }).click();
     await expect.poll(async () => (await (await request.get("/api/control")).json()).media.find((row: { id: string }) => row.id === item.id).status).toBe("completed");
     state = await (await request.get("/api/control")).json(); expect(state.player.current).toBe(pending!.id); expect(youtubeRequests).toBe(0);
+    const label = await operation(request, csrf, "config.save", { kind: "widget", data: { name: "Current requester", type: "nowplaying" } });
+    const labelToken = await operation(request, csrf, "token.create", { name: "Requester label", kind: "widget", scopes: [`widget:${label.id}`] });
+    const labelPage = await obs.newPage(); await labelPage.goto(`/widgets/${label.id}?token=${labelToken.token}`);
+    await expect(labelPage.getByText("Requested by Fixture viewer", { exact: true })).toBeVisible();
     await operation(request, csrf, "token.revoke", { id: read.id });
     await expect(page.getByRole("status")).toContainText("invalid_or_revoked_access_token");
     expect((await request.post(`/api/player/${source.id}`, { headers: { Authorization: `Bearer ${read.token}` }, data: { action: "lease" } })).status()).toBe(401);

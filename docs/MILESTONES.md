@@ -60,7 +60,7 @@ The default order is numerical. The dependencies identify the capabilities each 
 | 16 | Distribution, maintenance and complete documentation | 2–15 | Build complete — source/package and Linux image/proxy/recovery checks passed; live acceptance pending |
 | 17 | Bulk automated testing and candidate hardening | 2–16 build complete | Accepted — automated candidate campaign passed 2026-10-07; live acceptance remains Milestone 18 |
 | 18 | New deployment, live trials and operational acceptance | 17; test hosts and operators | Prepared — runbook/harness ready; deployment deferred by owner |
-| 19 | Stable v1 release and project completion | 17–18 accepted | Planned |
+| 19 | Stable v1 release and project completion | 17–18 accepted | Prepared — audit, release gates and candidate packaging verified; final live acceptance/publication pending |
 
 ### Relationship to release versions
 
@@ -416,6 +416,8 @@ Use synthetic traffic for sustained/burst load; do not flood real provider chat 
 
 **Outcome:** the declared self-hosted product is ready for independent public use.
 
+**Current status:** prepared for the final live/sign-off campaign; autonomous audit and candidate tooling have passed the checks below. Stable sign-off is pending Milestone 18. The [complete requirement audit](RELEASE_READINESS.md) covers R01–R60 and all declared widgets/journeys. [Release tooling and instructions](RELEASING.md) prepare clean versioned source/image/notices/checksum bundles and reject stable sign-off while required evidence is absent. All 33 live/operator entries in [release-evidence.json](release-evidence.json) remain pending. No deployment, provider consent, tag, registry upload or GitHub release is authorized by candidate preparation.
+
 Finish:
 
 - Reconcile every v1 PRD requirement with an implementation and evidence record, including the complete widget inventory and all user journeys.
@@ -540,8 +542,39 @@ The latest short workload completed 400/400 decisions and fixture replies with z
 
 Earlier CI attempts exposed missing public-origin configuration and an incorrect HTTP Host header in the container driver. The driver was corrected without changing application permissions or TLS verification, and the full campaign above passed afterwards. The workload also led to the lease/batching/update fixes described above; their regression checks passed. No unresolved automated gate failure remains for this candidate.
 
-Physical host failure, real provider/OBS behaviour, public certificate renewal, reference-host targets and independent operators have no new acceptance result. Deployment is explicitly deferred by the owner; Milestone 18 is prepared, not accepted. Milestone 19 remains planned.
+Physical host failure, real provider/OBS behaviour, public certificate renewal, reference-host targets and independent operators have no new acceptance result. Deployment is explicitly deferred by the owner; Milestone 18 is prepared, not accepted. Milestone 19's subsequent autonomous preparation is recorded below; final sign-off remains pending.
+
+## Milestones 18–19 autonomous preparation — 2026-10-07
+
+**Milestones 18 and 19 are prepared, not accepted.** The requirement crosswalk covers 60 groups of normative PRD requirements, all 18 widget families and three themes, with implementation/test links and explicit external gates. The audit closed configurable escalation, expiring incident mode, media validation replies/requester labels, restricted admin invitations and queued timer eligibility gaps. It added no production dependency or database migration.
+
+[CI run 37681486063](https://github.com/DangerMouseUK/kekbot/actions/runs/37681486063) passed all six ordinary jobs for head `131421efc7babab0c2b0a7d5dc7a0d2f01a074c2`: publication/document/evidence/type/lint checks, **107 unit/integration cases across 18 files**, migration metadata, production dependency audit, production build/standalone recovery, all **11 browser cases in Chromium, Firefox and WebKit**, the short five-client workload and Linux container/TLS/SSE/recovery checks. The stable checker deliberately fails on all 33 pending live/operator gates and unmatched candidate/version fields. Separate tests prove missing gates, impossible dates, missing evidence anchors and incorrect frozen-source identity fail closed.
+
+[Packaging rehearsal 37680522119](https://github.com/DangerMouseUK/kekbot/actions/runs/37680522119) passed all six jobs for source `6162bc28193aa6cc4cc76d0bee871c37ad31ac8a`. Its **unaccepted** Linux/amd64 image ID is `sha256:e8d7fbab0b5e8c3434fd16b347c323ba748914bed097cd6c9baed3d5696c8cc1`. All six application layers plus image metadata passed private-file/redacted secret checks; only narrowly validated Next-generated metadata fields with empty Server Action maps are excepted. The exported image loaded with its recorded identity and initialized/seeded/diagnosed a fresh volume as non-root with a read-only root and no network access. All downloaded archive/metadata checksums matched. The notices archive contains 35 dependency entries and 181 unique, non-empty notice files, including separate native-library provenance.
+
+The optional GitHub artifact contains only public source/image/notices/checksum bundles and expires after 14 days. Source archive `06f4caa056c117f0d62c90451cb5e3ebdefa3715` also passed a fresh-directory frozen-lockfile installation, production build and redacted source scan outside the checkout. These are candidate distribution rehearsals, not published-artifact or independent-operator acceptance.
+
+Final publication checks cover the complete public file set, Git history and commit metadata, installation addresses/personal paths, empty provider examples, image layers and downloaded source. No provider credential or installation detail was found; public aliases/noreply identities and required upstream attribution are retained. Raw reports, fixture credentials, runtime data and private operator records stay outside the publication set. No test host, live provider action, registry image, tag or GitHub release was created.
+
+### Full-duration synthetic soak
+
+The [full-duration soak job](https://github.com/DangerMouseUK/kekbot/actions/runs/37678168180/job/112986957003) **passed** on 2026-10-07 for source `d269afa39214384669da80a46456ba4836d46bc0`. It submitted 25 signed commands/second for 3,600 seconds and 100/second for 60 seconds, with five Chromium sources, backlog drainage and application restart. All **96,000 requests produced 96,000 decisions and 96,000 fixture replies**, with zero failed operations or driver errors.
+
+| Hosted-CI measurement | Result |
+| --- | --- |
+| Peak sampled application RSS | 492.15 MiB |
+| Peak sampled pending decisions + replies | 16 |
+| Post-burst backlog drainage | 516.39 ms |
+| HTTP intake p95 | 60.57 ms |
+| Receipt-to-decision p95 | 120 ms |
+| Receipt-to-fixture-reply p95 | 151 ms |
+| Restart readiness | 956.99 ms |
+| Five-client visible-update probes | 305.04 / 291.15 / 285.08 ms |
+
+These are shared hosted-runner measurements, not reference-host or real-provider acceptance. Application source and the workload driver are unchanged between that soak and candidate `5305f202cddbdf100c835aa47a9f9ce8a5ab77da`; subsequent changes concern release tooling, license packaging, tests and documentation. The same initial workflow's packaging job failed on framework-generated key classification; the corrected packaging runs below passed. The passing soak job must not be described as an entirely passing initial workflow.
+
+[Final candidate rehearsal 37684049586](https://github.com/DangerMouseUK/kekbot/actions/runs/37684049586) passed all six ordinary jobs, including 107 unit/integration cases and all 11 browser cases in each engine. Its source is `5305f202cddbdf100c835aa47a9f9ce8a5ab77da` and retained Linux/amd64 image ID is `sha256:722d3727e9465d3a8e6e6cff8072fa94e71f89078a5caa578f60dc7ce521ee53`. The downloaded candidate's source/image/notices/metadata checksums all matched. The [PR verification run](https://github.com/DangerMouseUK/kekbot/actions/runs/37684054756) also passed all six ordinary jobs. These artifacts remain unaccepted; all 33 live/operator gates remain pending.
 
 ## Next work
 
-The build gate for Milestone 16 and the automated campaign for Milestone 17 are complete. When the owner authorises deployment, schedule Milestone 18 on fresh infrastructure using the live runbook, isolated provider apps, verified host identity and protected runtime storage. Do not reuse old host details or infer missing live outcomes from automation. Stable release publication waits for Milestone 19 and explicit authorisation.
+The build gate for Milestone 16, automated Milestone 17 campaign and autonomous Milestones 18–19 preparation are complete. When the owner authorises deployment, run Milestone 18 on fresh infrastructure using the live runbook, isolated provider apps, verified host identity and protected runtime storage. Complete reference-host measurements, independent owner/installer trials and another-host restoration; then finish Milestone 19's stable sign-off, authorized publication and published-artifact clean installation. Do not reuse old host details or infer missing live outcomes from automation.

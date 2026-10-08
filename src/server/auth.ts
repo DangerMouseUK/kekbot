@@ -5,7 +5,7 @@ import { AppError } from "./errors.ts";
 import type { Repository } from "./storage/repository.ts";
 
 export const roles = ["owner", "admin", "moderator", "readonly"] as const;
-export const permissions = ["configure", "operate", "moderate", "media", "engage", "accounts", "maintenance", "integrations", "tokens"] as const;
+export const permissions = ["configure", "operate", "moderate", "media", "engage", "invite", "accounts", "maintenance", "integrations", "tokens"] as const;
 export type Permission = typeof permissions[number];
 export type Actor = { id: string; role: typeof roles[number]; permissions: Permission[]; capabilityId?: string; discord?: { guild: string; channel: string; roles: string[]; user: string } };
 type Account = { id: string; username: string; password: string; role: Actor["role"]; permissions: string; disabled: number };
@@ -100,21 +100,32 @@ export class AuthService {
   logout(sessionId: string) { this.db.prepare("DELETE FROM sessions WHERE id=?").run(sessionId); }
 
   invite(actor: Actor, role: string, grants: string[] = []) {
-    authorize(actor, "accounts");
+    authorize(actor, "invite");
     z.enum(["admin", "moderator", "readonly"]).parse(role);
-    const allowed = z.array(z.enum(permissions)).max(9).parse(grants).filter(p => !["accounts", "integrations", "maintenance", "tokens"].includes(p));
+    const allowed = z.array(z.enum(permissions)).max(10).parse(grants).filter(p => !["accounts", "integrations", "maintenance", "tokens"].includes(p));
+    this.assertInvitationGrant(actor.id, role, allowed);
     const token = randomToken();
     this.db.prepare("INSERT INTO invitations(id,role,permissions,expires_at,created_by) VALUES(?,?,?,?,?)").run(digest(token), role, JSON.stringify(allowed), Date.now() + 86400000, actor.id);
     this.audit(actor.id, "account.invite", role);
     return { token, expiresAt: Date.now() + 86400000 };
   }
 
+  private assertInvitationGrant(creator: string, role: string, grants: Permission[]) {
+    const current = this.db.prepare("SELECT role,permissions FROM accounts WHERE id=? AND disabled=0").get(creator) as { role: Actor["role"]; permissions: string } | undefined;
+    if (!current) throw new AppError("invitation_creator_unavailable", 403);
+    const actor: Actor = { id: creator, role: current.role, permissions: JSON.parse(current.permissions) };
+    authorize(actor, "invite");
+    const effective = role === "moderator" ? ["operate", "moderate", "media", "engage"] : role === "admin" ? grants : [];
+    if (actor.role !== "owner" && (grants.includes("invite") || effective.some(permission => !actor.permissions.includes(permission as Permission)))) throw new AppError("invitation_exceeds_admin_grant", 403);
+  }
+
   async acceptInvite(token: string, input: unknown) {
     const parsed = credentials.parse(input);
     const password = await hashPassword(parsed.password);
     return this.db.transaction(() => {
-      const invite = this.db.prepare("SELECT * FROM invitations WHERE id=? AND used_at IS NULL AND expires_at>?").get(digest(token), Date.now()) as { role: string; permissions: string } | undefined;
+      const invite = this.db.prepare("SELECT * FROM invitations WHERE id=? AND used_at IS NULL AND expires_at>?").get(digest(token), Date.now()) as { role: string; permissions: string; created_by: string } | undefined;
       if (!invite) throw new AppError("invitation_invalid_or_expired", 403);
+      this.assertInvitationGrant(invite.created_by, invite.role, JSON.parse(invite.permissions));
       if (this.db.prepare("SELECT 1 FROM accounts WHERE username=?").get(parsed.username)) throw new AppError("username_unavailable", 409);
       const id = randomUUID();
       this.db.prepare("INSERT INTO accounts(id,username,password,role,permissions,created_at) VALUES(?,?,?,?,?,?)").run(id, parsed.username, password, invite.role, invite.permissions, Date.now());
