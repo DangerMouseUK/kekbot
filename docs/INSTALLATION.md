@@ -1,0 +1,125 @@
+# Install KekBot
+
+This guide installs the **unreleased development candidate** from source on a Linux x86-64 host. Use it for controlled evaluation. Stable distribution, unaided installer trials and full-product live acceptance are pending. There is currently no published stable image or automated host installer. For a safe local demonstration, use the [quickstart](QUICKSTART.md). Return to the [documentation index](README.md).
+
+## Requirements
+
+| Requirement | What you need |
+| --- | --- |
+| Host | Linux x86-64; Ubuntu 24.04 LTS is the CI/example platform |
+| Resources | Local persistent disk; 2 vCPU / 2 GiB is the unaccepted reference runtime target. Allow additional memory for builds; 4 GiB is an evaluation starting point, not a proven minimum. |
+| Software | Git, Docker Engine and the Docker Compose plugin |
+| Reachability | Publicly trusted HTTPS, an operator-controlled hostname or public IPv4, inbound TCP 80/443 for the bundled proxy |
+| Authority | Trusted host access, a Kick creator account and an application you own; Discord/YouTube are optional |
+| Storage | A writable data root plus separately protected recovery keys and backups outside the checkout |
+
+Install Docker from its [official Ubuntu guide](https://docs.docker.com/engine/install/ubuntu/); other distributions should use their official Docker instructions. Confirm `docker version` and `docker compose version` work for your deployment user. Docker access grants extensive host authority. Host access, OS updates, SSH identity verification, firewall rules and provider-console access remain the operator's responsibility; KekBot does not change them.
+
+Run one application replica. SQLite on NFS/SMB, shared volumes across replicas and ARM64 distribution are unsupported. Keep the host running for callbacks/jobs. A sleeping desktop cannot operate a live bot reliably. Windows/macOS can evaluate containers with Docker Desktop; the source [quickstart](QUICKSTART.md) is the simpler offline path.
+
+## 1. Choose an HTTPS origin
+
+The standard example uses `https://kekbot.example`. **Replace this reserved example hostname with your own** and point its public DNS record at your server. Route TCP 80/443 to that host and avoid publishing a broken AAAA record. Do not expose application port 3000 publicly.
+
+A domain is optional: the [public-IP variant](#public-ip-https-variant) uses trusted short-lived IP certificates. Provider acceptance must still be checked for your installation. A private LAN origin cannot receive provider callbacks from the internet.
+
+## 2. Prepare source and private storage
+
+These commands are for Bash on the Linux host. The paths are illustrative; use a dedicated runtime location outside the Git checkout.
+
+```sh
+sudo install -d -m 0755 /srv/kekbot
+sudo install -d -m 0755 -o "$(id -u)" -g "$(id -g)" /srv/kekbot/source
+sudo install -d -m 0700 -o 1000 -g 1000 /srv/kekbot/data /srv/kekbot/backups
+git clone https://github.com/DangerMouseUK/kekbot.git /srv/kekbot/source
+cd /srv/kekbot/source
+git rev-parse HEAD
+sudo install -m 0600 -o "$(id -u)" -g "$(id -g)" .env.example /srv/kekbot/runtime.env
+```
+
+Record the full checked-out SHA privately; select an exact reviewed commit before building. `main` changes over time and is not a release version. Edit `/srv/kekbot/runtime.env` with your editor. Keep the template's other entries and set:
+
+```dotenv
+KEKBOT_MODE=live
+KEKBOT_RUN_JOBS=1
+KEKBOT_ENABLE_PROOF=0
+KEKBOT_PUBLIC_URL=https://kekbot.example
+KICK_CHAT_TYPE=user
+```
+
+Leave provider ID/secret/broadcaster fields empty for now; enter them in **Connections** after owner setup. `user` explicitly sends as the authorized creator account. The template's `bot` setting instead selects Kick's official bot delivery mode, whose channel/account availability must be verified. The developer app's name does not determine the sender identity.
+
+## 3. Build and initialize
+
+Compose's environment-file and host-data variables are **host shell variables**, separate from the runtime file. Re-enter them in each maintenance shell. The helper below consistently selects the same Compose project and domain proxy:
+
+```sh
+export KEKBOT_ENV_FILE=/srv/kekbot/runtime.env
+export KEKBOT_HOST_DATA_DIR=/srv/kekbot/data
+export KEKBOT_SOURCE_REF="$(git rev-parse HEAD)"
+export KEKBOT_DOMAIN=kekbot.example
+dc() { docker compose -p kekbot -f compose.yaml -f compose.proxy.yaml "$@"; }
+dc config --quiet
+dc build
+dc run --rm --no-deps kekbot node src/cli.ts init
+```
+
+The image pins Node/pnpm and runs as UID/GID **1000**. Source builds need no host Node installation. `init` creates/migrates the database and creates keys/tokens without replacing existing keys. It prints paths, never their contents. The standard database is `/data/live/kekbot.sqlite` inside the container and `/srv/kekbot/data/live/kekbot.sqlite` on this host.
+
+The initial encryption key is `/srv/kekbot/data/live/secrets/encryption.key`. Protect an independent copy before relying on backups. The key is a separate file and is excluded from database/asset backups. [Configuration](CONFIGURATION.md#secrets-and-storage) explains separate key mounts; [recovery](BACKUP_RECOVERY.md) explains their use.
+
+## 4. Start and verify HTTPS
+
+```sh
+dc up -d
+dc ps
+curl --fail --silent --show-error https://kekbot.example/api/health/live
+curl --fail --silent --show-error https://kekbot.example/api/health/ready
+dc exec kekbot node src/cli.ts doctor
+```
+
+Allow initial certificate issuance/startup time before treating a readiness failure as a fault. Expect HTTP 200 from both health endpoints, container status healthy and database integrity `ok`. Check `dc logs --tail=100 kekbot proxy` locally if needed. **Do not use `curl -k` or bypass certificate validation.** These checks establish startup, not live provider acceptance.
+
+Caddy certificate/configuration state persists in Compose volumes. Keep those volumes across rebuilds and restarts; do not use `down -v` during routine maintenance. The app binds only to host loopback `127.0.0.1:3000`; Caddy connects over the private Compose network. The examples do not enable access logging because OBS URLs contain read tokens.
+
+## 5. Claim the owner account
+
+On the trusted host, read the setup-token file at the path reported by `init` (host default `/srv/kekbot/data/live/secrets/setup.token`). Use a local protected terminal/editor; never paste the token into a public issue or record it in the checkout.
+
+Open **your final HTTPS origin** in a browser. On **Claim this installation**, enter the token and choose a username (3–32 characters: letters/numbers, `_`, `-`, `.`; first character alphanumeric) and password (12–256 characters). Select **Create owner account**. Usernames are stored lowercase. There are no default live credentials or registration for a second owner.
+
+The token expires after one hour. If the host is unclaimed, stop KekBot with `dc stop kekbot`, rerun the `init` command, then `dc up -d`. A claimed owner uses [host recovery](BACKUP_RECOVERY.md#recover-the-owner), not setup renewal.
+
+## 6. Connect and run your first session
+
+1. Follow [Kick setup](PROVIDERS.md#kick) to create your app, resolve the creator ID, authorize and subscribe.
+2. Optionally connect [Discord](PROVIDERS.md#discord) and [YouTube](PROVIDERS.md#youtube).
+3. Create a command and preview it, then send it in **the configured creator's Kick chat**. Verify the actual reply identity and delivery outcome.
+4. Add [OBS sources](OBS.md) and test an alert/media request explicitly before relying on them on stream.
+5. Invite trusted operators with the appropriate [roles](USER_GUIDE.md#accounts-and-permissions).
+6. Create and restore a [backup](BACKUP_RECOVERY.md), and review [daily operations](OPERATIONS.md).
+
+Keep proof controls disabled for normal use. The [live campaign](LIVE_ACCEPTANCE.md) defines the outstanding release checks; a successful install or OAuth screen alone does not complete them.
+
+## Public-IP HTTPS variant
+
+Use this variant **instead of** the domain override. Source/data/configuration/owner steps remain the same. Set `KEKBOT_PUBLIC_URL` in the private runtime file to `https://<PUBLIC_IPV4>` and replace this placeholder with your actual public address:
+
+```sh
+export KEKBOT_PUBLIC_IP='<PUBLIC_IPV4>'
+dc() { docker compose -p kekbot -f compose.yaml -f compose.ip.yaml "$@"; }
+dc config --quiet
+dc build
+dc run --rm --no-deps kekbot node src/cli.ts init
+dc up -d
+```
+
+Verify both HTTPS health endpoints using that numeric origin with normal certificate validation. Register that exact origin's provider callback paths. A historical Kick IP callback proof passed; the current full product and other providers still need their live checks.
+
+The example pins Caddy 2.11.6 and Let's Encrypt's `shortlived` ACME profile. [IP certificates last approximately six days](https://letsencrypt.org/2026/01/15/6day-and-ip-general-availability); automated renewal, persistent certificate volumes and continuous certificate-validation reachability are essential. Actual renewal is a pending operational acceptance gate. Certificate transparency makes the certified address public. Never switch between domain/IP configurations without deliberately updating the public origin and provider callbacks.
+
+## Existing reverse proxy
+
+Use the base `compose.yaml` without either Caddy override and forward your HTTPS origin to loopback port 3000. Keep TLS verification enabled, preserve original provider request bodies, allow 64 KiB on `/api/providers/*` and 12 MiB on application routes, and disable caching/buffering for SSE. Preserve `Origin` and streaming behavior. Avoid URL/query logging for widget routes. The checked [Caddy file](../deploy/Caddyfile) is a reference; custom proxies require their own validation.
+
+For restarts, backups, relocation, upgrades and rollback, continue with [operations](OPERATIONS.md) and [backup/recovery](BACKUP_RECOVERY.md). For errors, see [troubleshooting](TROUBLESHOOTING.md).

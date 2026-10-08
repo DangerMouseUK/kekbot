@@ -4,6 +4,8 @@ Updated: 2026-10-07. MIT, Next.js, one self-hosted installation per creator.
 
 This is the executable roadmap for both PRDs. They currently contain the same specification; update them together. Discord and YouTube are optional integrations to enable, but their complete supported workflows are required v0.1 capabilities.
 
+Use the [documentation index](README.md) for installation/user guides and [milestones](MILESTONES.md) for the current build/acceptance status. This page records release-capability dependencies and historical evidence; it is not a setup walkthrough.
+
 ## Evidence states
 
 **Planned**: no implementation. **Implemented**: code exists, verification pending. **Fixture-tested**: relevant local checks pass. **Live-tested**: a real provider/operator scenario has recorded evidence. **Blocked**: a required external input or acceptance step is unavailable. A release gate passes only when its complete required evidence exists.

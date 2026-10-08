@@ -1,6 +1,8 @@
 # KekBot architecture decisions
 
-Updated: 2026-10-07. Status: foundation live gate passed historically; product build and automated candidate campaign complete; live acceptance/release pending.
+Updated: 2026-10-08. Status: foundation live gate passed historically; product build and automated candidate campaign complete; live acceptance/release pending.
+
+This is the design reference for contributors. Use [installation](INSTALLATION.md) for deployment, [configuration](CONFIGURATION.md) for runtime inputs, and [contributing](../CONTRIBUTING.md) for the source map/workflow. Return to the [documentation index](README.md).
 
 ## ADR 001 — One self-hosted application
 
@@ -16,7 +18,7 @@ Job state is pending/running/succeeded/failed/uncertain. Leases recover abandone
 
 An instance lease prevents a second runtime or offline maintenance process from operating concurrently. It renews every five seconds independently of provider I/O. A dead instance lease expires within 30 seconds; startup waits for its expiry. Multiple replicas/network-filesystem SQLite remain unsupported.
 
-Use a real SQLite backup snapshot, not a copy of a live WAL database. Foundation backups require the application to be stopped and include local assets/checksums. Restore validates schema, mode, original key fingerprint, database integrity, and asset hashes before publishing to new storage. Never overwrite an existing installation during restore.
+Use a real SQLite backup snapshot, not a copy of a live WAL database. Backups require the application to be stopped and include local assets/checksums. Restore validates schema, mode, original key fingerprint, database integrity, and asset hashes before publishing to new storage. Never overwrite an existing installation during restore; follow [backup/recovery ordering](BACKUP_RECOVERY.md).
 
 ## ADR 003 — Explicit runtime lifecycle
 
@@ -32,7 +34,7 @@ Node 24's built-in asynchronous Argon2id uses 64 MiB / three passes / one lane w
 
 Kick requests use fixed official hosts with redirects rejected and timeouts bounded. Verification uses the original request bytes and a key from the trusted Kick endpoint, never a caller header. Intake accepts documented chat/follow/stream and subscription variants for the configured broadcaster only. Its provisional signed-timestamp window is 48 hours with five minutes of future tolerance, based on documented retries extending beyond a day; live retry observations must confirm or revise this before release.
 
-## ADR 005 — Web interfaces and later modules
+## ADR 005 — Web interfaces and media recovery
 
 Use Next.js route handlers with uncached operational responses. Authenticated SSE uses durable IDs, bounded replay and snapshot recovery; active sessions/source tokens are rechecked. Browser, signed Discord, verified Kick and scoped owner API actions call shared domain services. Discord interaction tokens are encrypted in durable jobs and never retained in receipt bodies.
 

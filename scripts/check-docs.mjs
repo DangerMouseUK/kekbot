@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, isAbsolute, relative, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { checkMarkdownLinks } from "./markdown-links.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], { cwd: root, encoding: "utf8", windowsHide: true })
@@ -8,16 +9,8 @@ const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclud
 const problems = [];
 for (const file of files) {
   const markdown = readFileSync(resolve(root, file), "utf8");
-  // This repository uses inline links. External URLs and anchors are not fetched.
-  for (const link of markdown.matchAll(/!?\[[^\]]*\]\((<[^>]+>|[^\s)]+)(?:\s+"[^"]*")?\)/g)) {
-    const target = link[1].replace(/^<|>$/g, "");
-    if (/^(?:[a-z][a-z0-9+.-]*:|#)/i.test(target)) continue;
-    const path = resolve(root, dirname(file), decodeURIComponent(target.split(/[?#]/)[0]));
-    const fromRoot = relative(root, path);
-    if (isAbsolute(fromRoot) || fromRoot === ".." || fromRoot.startsWith("../") || fromRoot.startsWith("..\\") || !existsSync(path)) {
-      problems.push(`${file}: missing or out-of-repository link ${target}`);
-    }
-  }
+  // Inline local links and Markdown fragments are checked; external URLs are not fetched.
+  problems.push(...checkMarkdownLinks(root, file, markdown));
 }
 const primary = readFileSync(resolve(root, "docs/PRD.md"), "utf8").replace(/\r\n/g, "\n");
 const selfHosted = readFileSync(resolve(root, "docs/PRD-self-hosted.md"), "utf8").replace(/\r\n/g, "\n");
@@ -27,4 +20,4 @@ if (problems.length) {
   process.stderr.write(`${problems.join("\n")}\n`);
   process.exit(1);
 }
-process.stdout.write(`Checked local links in ${files.length} Markdown files and matching PRDs.\n`);
+process.stdout.write(`Checked local links/anchors in ${files.length} Markdown files and matching PRDs.\n`);

@@ -2,6 +2,8 @@
 
 Development API version: `v1`; implementation: `0.1.0-dev.0`, schema 2. Routes are dynamic/no-store. This is a pre-release interface; compatibility beyond the declared configuration/backup versions is not yet promised.
 
+Start with [installation](INSTALLATION.md) and [provider setup](PROVIDERS.md) for a working host, [the user guide](USER_GUIDE.md) for dashboard actions, and [configuration](CONFIGURATION.md) for environment/storage defaults. Return to the [documentation index](README.md).
+
 ## Authentication boundaries
 
 Dashboard operations use the HttpOnly `kekbot_session` cookie. `GET /api/auth` returns the current actor and CSRF token; mutation requests require matching Origin, `Content-Type: application/json` and `X-CSRF-Token`. No route accepts roles or actors supplied in request JSON. Domain services recheck permissions for mutations; deferred actions recheck current authority at execution.
@@ -84,7 +86,7 @@ Temporary incident mode uses `moderation.incident.start` with `preset` (`links`,
 
 Kinds: command, timer, alert, widget, rule, goal, reward, poll, raffle, note, guild and singleton settings (`instance`). `config.save` takes `kind`, optional `id`, `data`, and the current `version` for updates. `config.delete` takes `id`/`version`; settings cannot be deleted.
 
-Dashboard-only owner operations additionally manage accounts/invitations, encrypted integration settings, assets, read/player/API tokens, privacy exports/erasure, redacted support data and native configuration import/export. Pure `command.preview`, `timer.preview`, `alert.preview` and `moderation.test` do not enqueue live effects. Accounts/permissions and complete field workflows are described in [OPERATIONS.md](OPERATIONS.md).
+Dashboard-only owner operations additionally manage accounts/invitations, encrypted integration settings, assets, read/player/API tokens, privacy exports/erasure, redacted support data and native configuration import/export. Pure `command.preview`, `timer.preview`, `alert.preview` and `moderation.test` do not enqueue live effects. See [accounts/permissions](USER_GUIDE.md#accounts-and-permissions), [daily workflows](USER_GUIDE.md), [OBS credentials](OBS.md) and [privacy/export operations](OPERATIONS.md).
 
 Configuration envelope: `{"format":"kekbot-config","version":1,"documents":[…],"assets":[…]}`. Portable kinds are commands/timers/alerts/widgets/rules/goals/rewards/settings. Each asset carries its original ID/name and base64 bytes. Import validates and remaps references to newly created local IDs; it never writes a caller-supplied path. Merge skips existing document IDs; replace removes the portable set before saving the validated replacement. A preview enumerates create/conflict/remove/asset decisions. Unsupported formats fail explicitly. Use full backups for account/history migration and larger asset sets.
 

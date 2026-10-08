@@ -1,8 +1,10 @@
 # KekBot project milestones
 
-Updated: 2026-10-07. Target: complete the declared stable v1 product.
+Updated: 2026-10-08. Target: complete the declared stable v1 product.
 
 This is the milestone plan for upcoming work. It groups the requirements in the [PRD](PRD.md) and the identical [self-hosted PRD](PRD-self-hosted.md) into substantial build stages, followed by a bulk testing and release phase. The existing [roadmap](ROADMAP.md) remains the detailed feature and evidence reference; this document sets the working sequence and testing schedule. [Architecture decisions](ARCHITECTURE.md) continue to apply.
+
+For installation and daily use, start at the [documentation index](README.md). Project evidence below remains tied to its recorded source/date; documentation improvements alone do not accept a live milestone.
 
 ## Working approach
 
@@ -574,6 +576,19 @@ The [full-duration soak job](https://github.com/DangerMouseUK/kekbot/actions/run
 These are shared hosted-runner measurements, not reference-host or real-provider acceptance. Application source and the workload driver are unchanged between that soak and candidate `5305f202cddbdf100c835aa47a9f9ce8a5ab77da`; subsequent changes concern release tooling, license packaging, tests and documentation. The same initial workflow's packaging job failed on framework-generated key classification; the corrected packaging runs below passed. The passing soak job must not be described as an entirely passing initial workflow.
 
 [Final candidate rehearsal 37684049586](https://github.com/DangerMouseUK/kekbot/actions/runs/37684049586) passed all six ordinary jobs, including 107 unit/integration cases and all 11 browser cases in each engine. Its source is `5305f202cddbdf100c835aa47a9f9ce8a5ab77da` and retained Linux/amd64 image ID is `sha256:722d3727e9465d3a8e6e6cff8072fa94e71f89078a5caa578f60dc7ce521ee53`. The downloaded candidate's source/image/notices/metadata checksums all matched. The [PR verification run](https://github.com/DangerMouseUK/kekbot/actions/runs/37684054756) also passed all six ordinary jobs. These artifacts remain unaccepted; all 33 live/operator gates remain pending.
+
+## Public documentation campaign — 2026-10-08
+
+The dedicated documentation change adds a task-based index, fixture quickstart, Linux source/container installation, complete environment/storage reference, owner-controlled provider setup, user workflows, OBS/media, troubleshooting and stopped-host recovery/upgrade guides. README, CONTRIBUTING and AGENTS now direct each audience to those guides. Existing references link to the current procedures; historical evidence and product requirements remain unchanged.
+
+Validation used application baseline `2c911f8953b9bb006651b10500d2042bc3004a0e` with documentation/checker changes in the review branch:
+
+- `pnpm check`: publication policy, Markdown files/heading fragments, matching PRDs, release evidence, types/lint and **112 tests across 19 files** passed. Five added documentation tests cover valid/invalid headings, explicit evidence anchors, duplicate heading slugs, fenced examples, encoded filenames and repository boundaries.
+- A clean `git archive` of that application baseline passed `pnpm install --frozen-lockfile` outside the checkout. The CLI sequence used `node --env-file=.env.local src/cli.ts` for `init`, `fixture-seed`, `fixture-event`, `doctor`, `backup`, `restore` and `recover-owner`. A temporary dev server used matching loopback origin/port 3199 with the same dev-server arguments as the quickstart; generated credentials remained private. Login, all 18 seeded widgets, signed event processing without an open dashboard, lease-expiry-aware backup, a synthetic asset's separate-root restoration and owner recovery passed.
+- The walkthrough caught and corrected the missing explicit local public-origin setting; the restore instructions explicitly prepare every parent/mode/secrets directory for UID/GID 1000. These are documentation corrections, not application changes.
+- Redacted Gitleaks 8.30.1 scans of the public candidate export and existing complete Git history passed. Runtime/fixture files stayed outside the publication set. GitHub PR CI supplies candidate-specific Linux/browser/container checks; no new live provider, public TLS renewal or unaided independent-install result is claimed.
+
+Documentation preparation does not accept any of the 33 live/operator gates. Fresh deployment and Milestones 18–19 remain pending as below.
 
 ## Next work
 

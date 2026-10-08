@@ -1,10 +1,12 @@
 # Foundation harness and acceptance
 
-This document preserves Milestone 1's historical provider/durability proof and its reusable diagnostic workflow. That live gate passed on 2026-10-02; the original droplet was destroyed before the local product build. The current development build adds accounts and modules documented in [OPERATIONS.md](OPERATIONS.md), [API.md](API.md) and [MILESTONES.md](MILESTONES.md). Historical evidence below applies to the identified foundation snapshot, not to untested later features.
+This document preserves Milestone 1's historical provider/durability proof and its reusable diagnostic workflow. That live gate passed on 2026-10-02; the original droplet was destroyed before the local product build. Historical evidence below applies to the identified foundation snapshot, not to untested later features.
+
+**New operators:** start with [installation](INSTALLATION.md), [provider setup](PROVIDERS.md), [OBS](OBS.md) and [backup/recovery](BACKUP_RECOVERY.md). Normal operation uses local accounts with proof tools disabled. This page is for explicitly enabled diagnostics. The current [API](API.md), [milestones](MILESTONES.md) and [documentation index](README.md) cover the assembled product.
 
 ## Local fixture proof
 
-Copy `.env.example` to `.env.local`, select `KEKBOT_MODE=fixture`, set `KICK_BROADCASTER_USER_ID=123`, keep `KEKBOT_RUN_JOBS=1`, explicitly enable `KEKBOT_ENABLE_PROOF=1` for this diagnostic workflow, and leave all live Kick credentials unset.
+Copy `.env.example` to `.env.local`, select `KEKBOT_MODE=fixture`, set `KICK_BROADCASTER_USER_ID=123` and `KEKBOT_PUBLIC_URL=http://127.0.0.1:3000`, keep `KEKBOT_RUN_JOBS=1`, explicitly enable `KEKBOT_ENABLE_PROOF=1` for this diagnostic workflow, and leave all live Kick credentials unset. Open that exact local origin.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -114,7 +116,7 @@ docker build -t kekbot:ci .
 pnpm test:container
 ```
 
-The smoke script creates and cleans up only its own named test container/volume. CI does not push images. Core operation does not contact project infrastructure; live Kick mode contacts `id.kick.com` and `api.kick.com`. Enabled Discord uses `discord.com` API endpoints; YouTube metadata uses `www.googleapis.com` and its visible player uses official YouTube embed resources. Current module setup is in OPERATIONS.md. Framework telemetry is disabled in build/start/container paths; set the included flag during development.
+The smoke script creates and cleans up only its own named test container/volume. CI does not push images. Core operation does not contact project infrastructure; live Kick mode contacts `id.kick.com` and `api.kick.com`. Enabled Discord uses `discord.com` API endpoints; YouTube metadata uses `www.googleapis.com` and its visible player uses official YouTube embed resources. Current module setup is in the [provider](PROVIDERS.md) and [user](USER_GUIDE.md) guides. Framework telemetry is disabled in build/start/container paths; set the included flag during development.
 
 ## Backup and restore
 
@@ -138,7 +140,7 @@ pnpm start
 
 Restore validates mode/schema/key/integrity/checksums, removes stale runtime leases, and publishes the restored database only after validation. Current code supports schema 1–2 backups and backup format 1. Restored schema 1 storage upgrades on the next writable open; run stopped-host `init` after restore before `doctor` if an upgrade/setup is required. Reconfigure provider applications and reauthorize when moving callback addresses.
 
-For containers, stop Compose and use a one-off `node src/cli.ts backup` or `restore` command with an additional host-mounted backup directory. The backup destination must be outside `/data/live` or `/data/fixture`. Prepare the new data root **and its mode directory** as writable by UID/GID 1000; manually creating only a nested `secrets` directory can leave its parent root-owned. Keep secret files readable only by the application user. No restore overwrites existing data. `recover-owner` is now available with audited revocation in the account build; follow OPERATIONS.md for protected-password-file recovery.
+For containers, stop Compose and use a one-off `node src/cli.ts backup` or `restore` command with an additional host-mounted backup directory. The backup destination must be outside `/data/live` or `/data/fixture`. Prepare the new data root **and its mode directory** as writable by UID/GID 1000; manually creating only a nested `secrets` directory can leave its parent root-owned. Keep secret files readable only by the application user. No restore overwrites existing data. Follow the [current backup/recovery guide](BACKUP_RECOVERY.md) for container commands and audited owner recovery.
 
 ## Historical foundation acceptance evidence
 
