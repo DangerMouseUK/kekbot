@@ -83,7 +83,7 @@ export class MediaService {
           .regex(/^[A-Za-z0-9_-]+$/)
           .parse(input.cursor);
         cursor = z
-          .object({ at: z.number().int().nonnegative(), id: z.string().min(1).max(100) })
+          .object({ at: z.number().int().nonnegative(), id: z.string().min(1).max(256) })
           .strict()
           .parse(JSON.parse(Buffer.from(input.cursor, "base64url").toString()));
       } catch {

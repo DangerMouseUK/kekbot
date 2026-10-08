@@ -35,6 +35,10 @@ it("keeps a full active queue visible after years of history and paginates tied 
   expect(() => bot.media.history({ cursor: "modified" })).toThrow("invalid_media_history_cursor");
   const first = bot.media.history({ limit: "10" }); add.run("new-history", "failed", 1, 300);
   expect(bot.media.history({ cursor: first.nextCursor!, limit: "10" }).items.some(row => first.items.some(old => old.id === row.id))).toBe(false);
+  // Intake permits 128-character delivery IDs; media adds its own prefix.
+  add.run(`request:${"x".repeat(128)}`, "failed", 1, 400);
+  const longIdPage = bot.media.history({ limit: "1" });
+  expect(bot.media.history({ cursor: longIdPage.nextCursor!, limit: "1" }).items[0].id).toBe("new-history");
 });
 
 it("scrubs expired failed/successful payloads, keeps audit metadata and encrypts uncertain delivery without retry", () => {
