@@ -2,6 +2,21 @@
 
 This guide installs the **unreleased development candidate** from source on a Linux x86-64 host. Use it for controlled evaluation. Stable distribution, unaided installer trials and full-product live acceptance are pending. There is currently no published stable image or automated host installer. For a safe local demonstration, use the [quickstart](QUICKSTART.md). Return to the [documentation index](README.md).
 
+<!-- contents:start -->
+**On this page**
+
+- [Requirements](#requirements)
+- [1. Choose an HTTPS origin](#1-choose-an-https-origin)
+- [2. Prepare source and private storage](#2-prepare-source-and-private-storage)
+- [3. Build and initialize](#3-build-and-initialize)
+- [4. Start and verify HTTPS](#4-start-and-verify-https)
+- [5. Claim the owner account](#5-claim-the-owner-account)
+- [6. Connect and run your first session](#6-connect-and-run-your-first-session)
+- [Returning to the installation](#returning-to-the-installation)
+- [Public-IP HTTPS variant](#public-ip-https-variant)
+- [Existing reverse proxy](#existing-reverse-proxy)
+<!-- contents:end -->
+
 ## Requirements
 
 | Requirement | What you need |
@@ -16,6 +31,8 @@ This guide installs the **unreleased development candidate** from source on a Li
 Install Docker from its [official Ubuntu guide](https://docs.docker.com/engine/install/ubuntu/); other distributions should use their official Docker instructions. Confirm `docker version` and `docker compose version` work for your deployment user. Docker access grants extensive host authority. Host access, OS updates, SSH identity verification, firewall rules and provider-console access remain the operator's responsibility; KekBot does not change them.
 
 Run one application replica. SQLite on NFS/SMB, shared volumes across replicas and ARM64 distribution are unsupported. Keep the host running for callbacks/jobs. A sleeping desktop cannot operate a live bot reliably. Windows/macOS can evaluate containers with Docker Desktop; the source [quickstart](QUICKSTART.md) is the simpler offline path.
+
+For step-by-step Windows/macOS container evaluation use [Docker Desktop fixtures](DOCKER_DESKTOP.md). The rest of this guide runs in **Bash on the Linux host**, from `/srv/kekbot/source` after cloning. Commands using `sudo` need host administrator authority; Docker commands need access to the daemon. Replace example domains/paths deliberately before execution.
 
 ## 1. Choose an HTTPS origin
 
@@ -37,7 +54,11 @@ git rev-parse HEAD
 sudo install -m 0600 -o "$(id -u)" -g "$(id -g)" .env.example /srv/kekbot/runtime.env
 ```
 
-Record the full checked-out SHA privately; select an exact reviewed commit before building. `main` changes over time and is not a release version. Edit `/srv/kekbot/runtime.env` with your editor. Keep the template's other entries and set:
+Record the full checked-out SHA privately; select an exact reviewed commit before building. `main` changes over time and is not a release version.
+
+To select a specific reviewed revision before building, use `git switch --detach REVIEWED_FULL_SHA`, replacing that label with its full commit. `git status --short` should be empty. Record any private overrides outside the checkout so an upgrade does not mix public source edits with runtime configuration.
+
+Edit `/srv/kekbot/runtime.env` with your editor. Keep the template's other entries and set:
 
 ```dotenv
 KEKBOT_MODE=live
@@ -100,6 +121,27 @@ The token expires after one hour. If the host is unclaimed, stop KekBot with `dc
 6. Create and restore a [backup](BACKUP_RECOVERY.md), and review [daily operations](OPERATIONS.md).
 
 Keep proof controls disabled for normal use. The [live campaign](LIVE_ACCEPTANCE.md) defines the outstanding release checks; a successful install or OAuth screen alone does not complete them.
+
+Follow the [first-session walkthrough](FIRST_SESSION.md) for concrete starting values and expected results. At the end you should have one verified command, a deliberately configured timer, an OBS manual alert and a tested recovery checkpoint. Optional modules can remain disabled while these work.
+
+## Returning to the installation
+
+Keep your private operator record with the source SHA, image ID, data root, runtime file, proxy choice, external mounts and independent-key location. In every new maintenance shell, `cd /srv/kekbot/source`, repeat the exports and define `dc` exactly as in step 3 (including any private overrides). The helper is a shell function, not a globally installed command.
+
+Use `dc ps` and `dc exec kekbot node src/cli.ts doctor` for status. Use `dc stop kekbot` and `dc up -d kekbot` for a clean stop/start. Do not rerun setup, seeding or clone over a working installation. Environment edits require recreation; dashboard edits usually do not. [CLI reference](CLI.md) and [operations](OPERATIONS.md) cover maintenance.
+
+### Installation checkpoint
+
+| Check | Expected result | If it fails |
+| --- | --- | --- |
+| Public HTTPS health requests | HTTP 200 with trusted certificate | Check DNS/ports/proxy/clock; never disable validation |
+| Container | Healthy, non-root user, persistent `/data` mount | Inspect bounded logs and UID/GID permissions |
+| Owner claim | Your local owner can sign in; claim cannot repeat | Check token expiry/origin; use recovery once claimed |
+| Background work | Processes with dashboard closed | Check jobs enabled and instance lease/readiness |
+| Persistence | Settings survive container restart | Verify the same project/data root on both starts |
+| Backup recovery | Separate target restores records/assets with original key | Follow empty-target ordering and inspect checksum errors |
+
+Installation-specific checks belong in private operator evidence. A new host still needs actual provider permissions, OBS delivery and certificate-renewal verification.
 
 ## Public-IP HTTPS variant
 

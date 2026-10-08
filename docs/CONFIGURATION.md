@@ -2,6 +2,16 @@
 
 Use this reference alongside [installation](INSTALLATION.md), [provider setup](PROVIDERS.md) and [operations](OPERATIONS.md). Source defaults are defined in [config.ts](../src/server/config.ts); module fields/defaults are defined in [catalog.ts](../src/server/domain/catalog.ts). Return to the [documentation index](README.md).
 
+<!-- contents:start -->
+**On this page**
+
+- [Runtime environment](#runtime-environment)
+- [Compose host variables](#compose-host-variables)
+- [Secrets and storage](#secrets-and-storage)
+- [Dashboard settings](#dashboard-settings)
+- [Configuration precedence and change scope](#configuration-precedence-and-change-scope)
+<!-- contents:end -->
+
 ## Runtime environment
 
 Source commands load `.env.local` through Node's environment-file option. Containers read the private file selected by Compose's `KEKBOT_ENV_FILE`. Editing an environment file requires recreating the container (`dc up -d --force-recreate kekbot` using the installation helper); `docker compose restart` alone does not load changed environment values. Dashboard module/provider changes take effect without a server restart.
@@ -58,6 +68,35 @@ Fixture mode uses `fixture/` and generates additional RSA/Ed25519 signing files 
 
 For a separately mounted encryption key, place the original/generated key in protected host storage, bind-mount it at a container path such as `/run/secrets/kekbot-key`, and set `KEKBOT_ENCRYPTION_KEY_FILE` to **that container path**. Use a private Compose override outside the checkout and include it with every lifecycle/CLI command. Provision the key before making a read-only mount; `init` can create a missing key only at a writable path. Apply the same principle to proof/provider secret files.
 
+### Separate key mount example
+
+After the first stopped-host `init`, copy the original key into separately protected storage. These Bash commands assume the installation guide's default paths; they preserve the original file:
+
+```sh
+sudo install -d -m 0700 -o 1000 -g 1000 /srv/kekbot/private-keys
+sudo install -m 0600 -o 1000 -g 1000 /srv/kekbot/data/live/secrets/encryption.key /srv/kekbot/private-keys/encryption.key
+```
+
+Set `KEKBOT_ENCRYPTION_KEY_FILE=/run/secrets/kekbot-key` in the private runtime environment. Create `/srv/kekbot/secrets.compose.yaml` outside source:
+
+```yaml
+services:
+  kekbot:
+    volumes:
+      - /srv/kekbot/private-keys/encryption.key:/run/secrets/kekbot-key:ro
+```
+
+Include it last on **every** command, for example:
+
+```sh
+dc() { docker compose -p kekbot -f compose.yaml -f compose.proxy.yaml -f /srv/kekbot/secrets.compose.yaml "$@"; }
+dc config --quiet
+dc up -d --force-recreate kekbot
+dc exec kekbot node src/cli.ts doctor
+```
+
+Retain the same key bytes and an independent protected recovery copy. Merely moving a key within one disk is not independent backup. If a mount fails, stop and check the path/permissions; do not generate a replacement key for an existing database. IP installations substitute their IP proxy override.
+
 Backups contain encrypted database records and assets, but **exclude these secret files, environment configuration and proof captures**. An independent protected copy of the original encryption key is essential to recovery. Caddy certificate/configuration state uses separate Docker volumes; preserving the application directory alone does not preserve certificates. See [backup and recovery](BACKUP_RECOVERY.md).
 
 ## Dashboard settings
@@ -75,3 +114,20 @@ Owners edit singleton **Instance settings** in **Maintenance**. Lists use one va
 | Chat / receipts / summaries / security audits retention | 7 / 30 / 90 / 365 days |
 
 Roles, secret management, source/API tokens and guild mappings have separate permissions. Changing a setting does not grant a missing provider scope. The [user guide](USER_GUIDE.md), [privacy operations](OPERATIONS.md#privacy-and-retention) and [API](API.md) explain the supported actions and retention limits.
+
+The [complete dashboard field reference](CONFIGURATION_FIELDS.md) covers every command, timer, alert, widget, rule, goal, reward, activity, note, guild and settings property. Examples in [docs/examples](examples/README.md) are validated by CI against the same strict schemas used for saves/imports.
+
+## Configuration precedence and change scope
+
+| Input | Effective behavior | How to apply a change |
+| --- | --- | --- |
+| Process environment / selected runtime file | Read at startup; an already-set process variable takes precedence over Node's env-file loading | Recreate container or restart source process |
+| Compose `environment` | Overrides service `env_file`, including `/data`, internal hostname and port | Recreate with the same complete Compose file set |
+| `KICK_CLIENT_SECRET_FILE` | Read file instead of inline client-secret environment value | Replace protected file and recreate/restart |
+| Saved Kick application settings | Encrypted dashboard settings override environment bootstrap | Save the complete form, reauthorize, reconcile subscriptions |
+| Module documents/settings | Read from SQLite; versioned edits apply at runtime | Save, inspect current state and affected queued work |
+| Discord/YouTube settings | Encrypted dashboard-only inputs; no environment alternative | Save complete replacement settings and verify actual action |
+
+Never switch a live database into fixture operation. Mode selects separate subdirectories under the data root; it does not convert existing data. Keep proof tools off except during the explicitly controlled diagnostic workflow.
+
+Startup still validates configured secret-file paths even when saved integration settings take precedence. Remove obsolete bootstrap file variables deliberately; do not leave them pointing to deleted files. The installation key and proof-token files are always required runtime material.

@@ -9,3 +9,18 @@ Do not put credentials, private chat history, or exploit details affecting an op
 Reports should describe the affected version, deployment mode, entry point, required permissions, impact, and a minimal redacted reproduction. Do not test against another operator's installation without authorization.
 
 The expected boundaries are one creator per installation, server-side role authorization, independently verified provider callbacks, isolated fixture data/actions, encrypted provider credentials, scoped widget/player credentials, and local durable state. Missing credentials never enable demo mode. Arbitrary executable extensions and multiple replicas sharing a SQLite file are outside the initial supported deployment.
+
+## What to include privately
+
+- Affected source commit/version and installation mode; avoid actual host addresses unless privately necessary.
+- Entry point and minimum required authority, such as a viewer message, Discord role, widget credential or local account.
+- Expected boundary, observed impact and a minimal synthetic/redacted reproduction.
+- Whether data, external actions or credentials could be affected, and any safe mitigation you have already verified.
+
+Do not include a usable secret in the initial report. Maintainers may arrange a protected exchange if further evidence is necessary. There is no published response-time guarantee or bug-bounty program. Do not perform destructive testing, load testing or provider mutations against an installation you do not control.
+
+## Operator response to exposed credentials
+
+Revoke/rotate the affected credential at its authority boundary: provider portal for application secrets/grants, Maintenance for source/player/API tokens, Accounts for operator sessions/access, and the host's own tools for SSH access. Remove an exposed file from public artifacts, but do not assume deletion invalidates a copied credential. Owner recovery revokes that owner's sessions/access tokens; it does not rotate provider secrets or other users' sessions.
+
+Preserve relevant evidence privately and review actual provider outcomes before repeating uncertain actions. Follow [recovery](docs/BACKUP_RECOVERY.md) for storage compromise and [operations](docs/OPERATIONS.md) for data retention. Losing the original installation key prevents the supported encrypted-data restore path; keep it independently protected.

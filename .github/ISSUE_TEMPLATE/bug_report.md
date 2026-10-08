@@ -14,9 +14,11 @@ Check docs/TROUBLESHOOTING.md first. Use the documentation template for missing 
 
 **Steps to reproduce**
 
+Include the affected module, required role/capability, expected result and first failing boundary. A synthetic fixture reproduction is preferred when possible.
+
 **Version and environment**
 
-Commit/version, Node and pnpm versions, operating system, source/container installation, and live/fixture mode.
+Commit/version, Node and pnpm versions where applicable, operating system/architecture, shell, source/container installation, and live/fixture mode. For containers include the source revision label/image identity, not your host address.
 
 **Redacted evidence**
 

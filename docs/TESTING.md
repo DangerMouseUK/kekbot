@@ -2,6 +2,17 @@
 
 KekBot is a development candidate, not an accepted stable release. This guide covers Milestone 17's assembled-product checks. [Live acceptance](LIVE_ACCEPTANCE.md) covers Milestone 18. The [milestones](MILESTONES.md) record results and outstanding gates. Use [quickstart](QUICKSTART.md) for local setup, [installation](INSTALLATION.md) for hosting and [backup/recovery](BACKUP_RECOVERY.md) for maintenance procedures. Return to the [documentation index](README.md).
 
+<!-- contents:start -->
+**On this page**
+
+- [Safety and isolation](#safety-and-isolation)
+- [Run the campaign](#run-the-campaign)
+- [GitHub Actions](#github-actions)
+- [Coverage and limits](#coverage-and-limits)
+- [Workload and recovery harness](#workload-and-recovery-harness)
+- [Security and release evidence](#security-and-release-evidence)
+<!-- contents:end -->
+
 ## Safety and isolation
 
 All automated tests use synthetic accounts, generated RSA/Ed25519 signing keys, private temporary directories and real SQLite. Fixture mode refuses live integration configuration and provider mutations. The fixture player does not contact YouTube. Never supply Kick, Discord or YouTube credentials to CI. Builds disable background jobs and framework telemetry; runtime tests enable jobs explicitly.
@@ -25,6 +36,20 @@ pnpm test:workload
 ```
 
 `pnpm check` runs publication policy, local documentation links/heading fragments and matching PRDs, release-evidence validity, TypeScript, ESLint, and the complete Vitest suite. Documentation checks validate relative files, heading/explicit-anchor destinations and repository boundaries; fenced examples are ignored. External links require editorial review and are not fetched by CI. The browser suite starts the production standalone build on loopback with fresh isolated data. Run a build after changing application code; otherwise browser tests exercise the previous build.
+
+### Select checks by change
+
+| Change | Run | Additional review |
+| --- | --- | --- |
+| Prose/navigation | `pnpm check`, `git diff --check` | Actual labels, commands, external official references and publication privacy |
+| Configuration docs/examples | Same; `docs:check` validates all fields and 12 strict-schema examples | Defaults versus editor starting values, units and domain semantics |
+| Setup/recovery procedure | Same plus fresh external-fixture rehearsal | File permissions, host/container paths, stopped maintenance and original key |
+| Runtime/UI/packaging | Same plus build, standalone and E2E | Linux container/proxy/storage CI; affected failure/permission boundaries |
+| Provider integration | Relevant signed/provider tests plus ordinary runtime checks | Explicit authorized live campaign separately; no live CI credentials |
+
+For a focused Vitest run use `pnpm exec vitest run tests/docs.test.ts` (replace the path with the affected suite). For a focused browser case use `pnpm test:e2e --grep "test name"` after building. Full ordinary CI still runs on the PR. Documentation-only changes do not need repeated workload/soak runs unless they alter the measurement procedure.
+
+`docs:check` also checks complete field rows against `catalog.ts` and validates every file in [examples](examples/README.md) with its strict schema. The pure [documentation contract checker](../scripts/documentation-contracts.mjs) imports no runtime or provider client. Unit tests prove it fails on missing/stale fields and invalid/unknown examples without printing their values. Linux CI additionally runs `node scripts/check-doc-compose.mjs`: Docker Compose parses the handbook's Desktop/key-mount YAML against the real base service, checking amd64/named-volume/read-only-key properties without starting services or printing expanded values. See [documentation maintenance](DOCUMENTATION.md) for checks that automation cannot establish.
 
 Linux container checks additionally require Docker Engine/Compose:
 

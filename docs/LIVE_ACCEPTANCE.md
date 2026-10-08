@@ -4,6 +4,17 @@ This is Milestone 18's operator runbook for the complete candidate. **Deployment
 
 Complete [automated candidate verification](TESTING.md) first. Use [installation](INSTALLATION.md), [provider setup](PROVIDERS.md), [OBS](OBS.md) and [backup/recovery](BACKUP_RECOVERY.md) for actual procedures, [API](API.md) for contracts and [milestones](MILESTONES.md) for sign-off. Return to the [documentation index](README.md). This document contains reusable examples only. Keep actual infrastructure/provider details and detailed results in a private operator setup record outside the checkout, with protected credential/evidence files referenced rather than copied into it.
 
+<!-- contents:start -->
+**On this page**
+
+- [Candidate and environment record](#candidate-and-environment-record)
+- [Infrastructure and secure installation](#infrastructure-and-secure-installation)
+- [Provider setup and complete creator sessions](#provider-setup-and-complete-creator-sessions)
+- [Failure, privacy and recovery campaign](#failure-privacy-and-recovery-campaign)
+- [Reference workload and measurements](#reference-workload-and-measurements)
+- [Independent operators and sign-off](#independent-operators-and-sign-off)
+<!-- contents:end -->
+
 ## Candidate and environment record
 
 Before testing, record privately:
@@ -15,6 +26,12 @@ Before testing, record privately:
 - Private locations of runtime configuration, installation key, provider credentials, persistent storage and tested backup. Verify keys/backups are available before relying on restoration.
 
 Do not count different browser profiles or two directories on one installation as independent owners or another-host restoration.
+
+### Campaign order and pause points
+
+Start with L01–L07: infrastructure, trust, claim and the first real provider path. If public callbacks or creator authorization fail, record that failure and resolve ingress/identity before attempting downstream features. Continue through creator sessions, failure/recovery and reference measurements only on the identified candidate. Observe L06 renewal over its actual schedule rather than replacing it with a configuration check.
+
+Keep a private scenario ledger with pending/pass/fail/unavailable, evidence location and retest reason. A scenario requiring another person, paid event, host or explicit destructive test waits for that input; perform independent safe scenarios meanwhile. No missing result is a pass. After a code/image change, freeze the new candidate and rerun affected checks; preserve previous results under their original identities.
 
 ## Infrastructure and secure installation
 
@@ -31,7 +48,7 @@ For IP ingress, check current Kick callback acceptance early; historical accepta
 
 ## Provider setup and complete creator sessions
 
-Use dedicated test accounts/channels and owner-controlled applications. Select the required scopes from OPERATIONS.md; broad test permissions are not normal installation defaults. Discord and YouTube may be disabled in ordinary installations, but both complete workflows must pass release acceptance. Never print secrets in shell arguments, logs or public evidence.
+Use dedicated test accounts/channels and owner-controlled applications. Select the required scopes from [provider setup](PROVIDERS.md); broad test permissions are not normal installation defaults. Discord and YouTube may be disabled in ordinary installations, but both complete workflows must pass release acceptance. Never print secrets in shell arguments, logs or public evidence.
 
 | ID | Procedure | Required result |
 | --- | --- | --- |
@@ -82,6 +99,8 @@ The harness reports receipt-to-decision including queue wait, rather than preten
 ## Independent operators and sign-off
 
 At least two independent owners must use separate provider applications, channels, installations and storage and complete the live sessions. Three independent operators must install from the public documentation without maintainer intervention; at least two also complete those sessions. Record assistance, failures and usability/accessibility feedback honestly. Include keyboard-only navigation, intended display sizes, contrast/reduced-motion checks, and assistive-technology review beyond automated axe coverage.
+
+Give each installer the [public README](../README.md), [installation](INSTALLATION.md) and [first-session walkthrough](FIRST_SESSION.md). Record OS/shell, guide revision, where they stopped, any help and whether expected outcomes were recognizable. Fix documentation defects through review and retest that journey; do not erase assistance from the original trial record.
 
 Maintain a private evidence row for each L/P scenario:
 

@@ -4,6 +4,20 @@ Development API version: `v1`; implementation: `0.1.0-dev.0`, schema 2. Routes a
 
 Start with [installation](INSTALLATION.md) and [provider setup](PROVIDERS.md) for a working host, [the user guide](USER_GUIDE.md) for dashboard actions, and [configuration](CONFIGURATION.md) for environment/storage defaults. Return to the [documentation index](README.md).
 
+For every supported action, payload, capability and Discord/API availability, use the [action reference](API_ACTIONS.md). For every configuration property, use the [field reference](CONFIGURATION_FIELDS.md) and [schema-checked JSON examples](examples/README.md). The source currently has no generated OpenAPI contract; those references describe the development interface.
+
+<!-- contents:start -->
+**On this page**
+
+- [Authentication boundaries](#authentication-boundaries)
+- [Examples](#examples)
+- [Route inventory](#route-inventory)
+- [Configurations and actions](#configurations-and-actions)
+- [Live state and playback](#live-state-and-playback)
+- [Failures and durability](#failures-and-durability)
+- [Fixture workload metrics](#fixture-workload-metrics)
+<!-- contents:end -->
+
 ## Authentication boundaries
 
 Dashboard operations use the HttpOnly `kekbot_session` cookie. `GET /api/auth` returns the current actor and CSRF token; mutation requests require matching Origin, `Content-Type: application/json` and `X-CSRF-Token`. No route accepts roles or actors supplied in request JSON. Domain services recheck permissions for mutations; deferred actions recheck current authority at execution.
@@ -60,6 +74,32 @@ POST this JSON to `/api/v1/control` with the appropriate bearer token. Updates i
 
 IDs in these examples must be replaced with actual values obtained privately. Ban/delete/bulk require explicit acknowledgement; a bulk input uses numeric `targets` (up to 20 unique viewers), `operation`, `reason` and `acknowledge:true`. The API does not automatically retry arbitrary caller POSTs with a new ID; query current state before retrying a response whose outcome is unknown.
 
+### Read state without putting a token in shell history
+
+Create a named API token with `read` in **Maintenance**, then save its one-time value in a protected file outside source. This Bash example runs with Node 24 from any working directory. Replace the origin and file path in the script; it reads the credential from disk, rejects redirects and prints only aggregate state counts:
+
+```sh
+node --input-type=module <<'JS'
+import { readFileSync } from 'node:fs';
+const origin = 'https://kekbot.example';
+try {
+  const token = readFileSync('/private/kekbot-api.token', 'utf8').trim();
+  const response = await fetch(`${origin}/api/v1/control`, {
+    headers: { Authorization: `Bearer ${token}` },
+    redirect: 'error', signal: AbortSignal.timeout(10000)
+  });
+  if (!response.ok) throw new Error(`http_${response.status}`);
+  const { version, state } = await response.json();
+  console.log(JSON.stringify({ version, documents: state.documents.length, jobs: state.jobs.length }));
+} catch {
+  console.error('API read failed; inspect authorization, origin and connectivity privately.');
+  process.exitCode = 1;
+}
+JS
+```
+
+For a mutation, add the needed scope and JSON action body; do not log the authorization header or full operational snapshot. Owner API credentials cannot authenticate SSE/dashboard routes. Session-based integrations instead need the cookie/CSRF/Origin contract and must handle expiry; prefer API tokens for external automation.
+
 Temporary incident mode uses `moderation.incident.start` with `preset` (`links`, `burst`, `combined`), integer `minutes` (1–120) and `acknowledge:true`; stop with `moderation.incident.stop`. Presets warn, exempt moderators/broadcaster, expire durably, preserve normal rules and respect emergency pause. Rule configuration supports `escalationAfter` previous matching-rule incidents, `escalationWindowSeconds` and `escalationAction`, with existing defaults of 2 / 3600 / timeout. Media validation queues one final chat outcome for viewer requests; source snapshots include only a requester display name. Dashboard-only `invite` grants cannot be issued through integration API tokens.
 
 ## Route inventory
@@ -75,6 +115,7 @@ Temporary incident mode uses `moderation.incident.start` with `preset` (`links`,
 | `POST /api/providers/discord/interactions` | Original-byte Ed25519 signature, timestamp/application/guild/channel checks; PING or durable deferred interaction. |
 | `GET /api/events` | Local session SSE; session rechecked continuously. |
 | `GET /api/widgets/:id?token=…` | Exact widget read token; minimal snapshot. `stream=1` selects SSE. |
+| `GET /widgets/:id?token=…` | Browser Source HTML entry; player pages also use their separate credential fragment. |
 | `POST /api/player/:id` | Separate exact player bearer token; `lease` and bound completion/error acknowledgements. |
 | `GET /api/assets/:id` | Local session or alerts-widget read token; recognized safe file types, nosniff. |
 | `GET /api/health/live`, `/api/health/ready` | Public liveness / worker readiness, no private diagnostics. |
@@ -88,7 +129,7 @@ Kinds: command, timer, alert, widget, rule, goal, reward, poll, raffle, note, gu
 
 Dashboard-only owner operations additionally manage accounts/invitations, encrypted integration settings, assets, read/player/API tokens, privacy exports/erasure, redacted support data and native configuration import/export. Pure `command.preview`, `timer.preview`, `alert.preview` and `moderation.test` do not enqueue live effects. See [accounts/permissions](USER_GUIDE.md#accounts-and-permissions), [daily workflows](USER_GUIDE.md), [OBS credentials](OBS.md) and [privacy/export operations](OPERATIONS.md).
 
-Configuration envelope: `{"format":"kekbot-config","version":1,"documents":[…],"assets":[…]}`. Portable kinds are commands/timers/alerts/widgets/rules/goals/rewards/settings. Each asset carries its original ID/name and base64 bytes. Import validates and remaps references to newly created local IDs; it never writes a caller-supplied path. Merge skips existing document IDs; replace removes the portable set before saving the validated replacement. A preview enumerates create/conflict/remove/asset decisions. Unsupported formats fail explicitly. Use full backups for account/history migration and larger asset sets.
+Configuration envelope: `{"format":"kekbot-config","version":1,"documents":[…],"assets":[…]}`. Portable kinds are commands/timers/alerts/widgets/rules/goals/rewards/settings. Each asset carries its original ID/name and base64 bytes. Document IDs are retained; newly uploaded asset IDs are generated locally and alert references are remapped. Import never writes a caller-supplied path. Merge skips existing document IDs; replace removes the portable set before saving the validated replacement. A preview enumerates create/conflict/remove/asset decisions. Unsupported formats fail explicitly. Use full backups for account/history migration and larger asset sets.
 
 ## Live state and playback
 

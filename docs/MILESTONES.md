@@ -6,6 +6,41 @@ This is the milestone plan for upcoming work. It groups the requirements in the 
 
 For installation and daily use, start at the [documentation index](README.md). Project evidence below remains tied to its recorded source/date; documentation improvements alone do not accept a live milestone.
 
+The public operator path is [installation](INSTALLATION.md) → [providers](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [operations](OPERATIONS.md) → [recovery](BACKUP_RECOVERY.md). Field/action/CLI references and automated documentation contracts support Milestone 16. Independent operators must still complete that path without maintainer intervention for later acceptance gates.
+
+<!-- contents:start -->
+**On this page**
+
+- [Working approach](#working-approach)
+- [Milestone overview](#milestone-overview)
+- [Milestone 1 — Foundation proof and public repository](#milestone-1--foundation-proof-and-public-repository)
+- [Milestone 2 — Installation, accounts and permissions](#milestone-2--installation-accounts-and-permissions)
+- [Milestone 3 — Shared dashboard, settings and live state](#milestone-3--shared-dashboard-settings-and-live-state)
+- [Milestone 4 — Kick commands, timers and connection management](#milestone-4--kick-commands-timers-and-connection-management)
+- [Milestone 5 — Discord notifications and operator controls](#milestone-5--discord-notifications-and-operator-controls)
+- [Milestone 6 — Alerts, assets and initial OBS sources](#milestone-6--alerts-assets-and-initial-obs-sources)
+- [Milestone 7 — YouTube validation and durable request queue](#milestone-7--youtube-validation-and-durable-request-queue)
+- [Milestone 8 — Connected media workflow and OBS playback](#milestone-8--connected-media-workflow-and-obs-playback)
+- [Milestone 9 — Automated and advanced moderation](#milestone-9--automated-and-advanced-moderation)
+- [Milestone 10 — Goals, stream presentation and theme packs](#milestone-10--goals-stream-presentation-and-theme-packs)
+- [Milestone 11 — Points, estimated watchtime and rewards](#milestone-11--points-estimated-watchtime-and-rewards)
+- [Milestone 12 — Polls, raffles and engagement controls](#milestone-12--polls-raffles-and-engagement-controls)
+- [Milestone 13 — Expanded commands and complete widget set](#milestone-13--expanded-commands-and-complete-widget-set)
+- [Milestone 14 — Analytics, privacy, retention and support diagnostics](#milestone-14--analytics-privacy-retention-and-support-diagnostics)
+- [Milestone 15 — Configuration portability and owner integration API](#milestone-15--configuration-portability-and-owner-integration-api)
+- [Milestone 16 — Distribution, maintenance and complete documentation](#milestone-16--distribution-maintenance-and-complete-documentation)
+- [Milestone 17 — Bulk automated testing and candidate hardening](#milestone-17--bulk-automated-testing-and-candidate-hardening)
+- [Milestone 18 — New deployment, live trials and operational acceptance](#milestone-18--new-deployment-live-trials-and-operational-acceptance)
+- [Milestone 19 — Stable v1 release and project completion](#milestone-19--stable-v1-release-and-project-completion)
+- [Requirements coverage](#requirements-coverage)
+- [After stable v1](#after-stable-v1)
+- [Local implementation evidence — 2026-10-07](#local-implementation-evidence--2026-10-07)
+- [Automated campaign and live preparation — 2026-10-07](#automated-campaign-and-live-preparation--2026-10-07)
+- [Milestones 18–19 autonomous preparation — 2026-10-07](#milestones-1819-autonomous-preparation--2026-10-07)
+- [Public documentation campaign — 2026-10-08](#public-documentation-campaign--2026-10-08)
+- [Next work](#next-work)
+<!-- contents:end -->
+
 ## Working approach
 
 - Milestone 1 is complete. Its foundation proof and publication checks were completed on 2026-10-02, with the resulting work recorded in commit `72d14a1`.

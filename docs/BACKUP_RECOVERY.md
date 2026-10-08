@@ -2,11 +2,33 @@
 
 This guide covers the development candidate, SQLite schema 2 and backup format 1. It assumes the Linux paths and Compose project from [installation](INSTALLATION.md). Keep backups, keys, credentials and private evidence outside Git. Return to the [documentation index](README.md).
 
+<!-- contents:start -->
+**On this page**
+
+- [What a backup contains](#what-a-backup-contains)
+- [Open a maintenance shell](#open-a-maintenance-shell)
+- [Create a snapshot](#create-a-snapshot)
+- [Restore into a separate data root](#restore-into-a-separate-data-root)
+- [Recover the owner](#recover-the-owner)
+- [Upgrade and rollback](#upgrade-and-rollback)
+<!-- contents:end -->
+
 ## What a backup contains
 
 `backup` creates a consistent SQLite snapshot, uploaded assets and a final checksum manifest. It includes accounts, configuration, encrypted integration records, receipts/jobs, queue, ledgers and history. It excludes environment files, encryption/setup/proof/fixture signing secrets and proof captures.
 
 Backups contain private history and are **not encrypted by the backup command**. Protect them and keep an independent, securely stored copy. Checksums detect corruption; they do not authenticate a backup against an attacker replacing its contents. Preserve the **original encryption key separately**. Losing it loses access to encrypted grants/settings and prevents the supported restore path.
+
+### Choose the right export
+
+| Need | Use | It does not replace |
+| --- | --- | --- |
+| Disaster recovery, accounts/history/queue/assets | Stopped-host CLI backup + separately protected original key/runtime record | Off-host protected copies and a restore rehearsal |
+| Reusable commands/themes/rules/goals | Native configuration export/import | Account/history backup; provider setup |
+| A viewer's retained information | Owner viewer export | Complete backup or automatic erasure of all identifiers |
+| A support report | Redacted support export, reviewed before sharing | Raw logs/database or proof of complete provider delivery |
+
+Retain several dated recovery points according to your own storage/privacy needs, including a pre-upgrade copy. Keep at least one backup/key copy off the application host. No scheduled backup or automatic cloud upload is configured by KekBot.
 
 ## Open a maintenance shell
 
@@ -30,12 +52,17 @@ Stop the app before initialization/migration, seeding, backup, restore or owner 
 ```sh
 dc stop kekbot
 dc run --rm --no-deps -v /srv/kekbot/backups:/backups kekbot node src/cli.ts backup /backups/before-upgrade
-dc up -d kekbot
 ```
 
 The destination must be **new** and outside the active mode directory. Change `before-upgrade` for each snapshot. Prepare the host backup mount writable by UID/GID 1000 (installation already creates it). Confirm success and the presence of `manifest.json` before treating it as a backup. That file is written last; a missing manifest means incomplete. Keep earlier known-good backups.
 
+After confirming success, `dc up -d kekbot` starts the original installation again. If you are continuing immediately into restore/upgrade, leave it stopped and follow that procedure instead.
+
 Copy the snapshot and separately protected original key to independent storage. Record application source/image, schema, mode and date. A backup becomes useful evidence when you actually restore it into a separate target and inspect the result.
+
+### Backup failure handling
+
+If the command fails, leave the previous known-good backup untouched. Check the sanitized error, free space/inodes, destination permissions and instance lease. An incomplete destination can contain a database or assets without a final manifest; do not label it valid or edit hashes to make it pass. Retry into a different new directory after fixing the cause. Start the original application only when storage is healthy and no maintenance process remains active.
 
 ## Restore into a separate data root
 
@@ -74,6 +101,18 @@ dc exec kekbot node src/cli.ts doctor
 ```
 
 Check integrity, accounts/configuration/assets, persisted balances/queue and receipt replay protection. Media should be paused pending moderator resume. Remember the new data-root variable in future shells; otherwise you can accidentally select the old installation. Normal restore preserves database sessions/source tokens. If the old host was untrusted, deliberately revoke/replace copied authority and provider credentials.
+
+### Recovery inspection checklist
+
+- Doctor reports integrity `ok` and the expected schema; readiness becomes healthy.
+- Sign in with a restored account and verify a non-owner's restricted access.
+- Confirm a known command/configuration, uploaded image/sound and expected queue/ledger record.
+- Confirm the current media item is preserved and paused; do not resume until the intended single player connects.
+- Verify receipt/job state through a controlled retained-event test, not arbitrary live mutation replay.
+- Confirm the public origin, provider callback addresses, subscriptions and credentials are intended for this host.
+- Record the restored source/image/data root privately; stop the old instance before exposing the replacement.
+
+A separate directory on the same machine is a useful rehearsal. It does not satisfy the release requirement to restore onto another host.
 
 ## Recover the owner
 

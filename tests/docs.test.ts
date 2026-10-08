@@ -3,6 +3,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { checkMarkdownLinks, markdownAnchors } from "../scripts/markdown-links.mjs";
+import { checkConfigurationReference } from "../scripts/documentation-contracts.mjs";
+import { configSchemas } from "../src/server/domain/catalog.ts";
 
 const directories: string[] = [];
 afterEach(() => {
@@ -39,5 +41,23 @@ describe("documentation navigation", () => {
     const root = mkdtempSync(join(tmpdir(), "kekbot-docs-test-")); directories.push(root);
     writeFileSync(join(root, "a guide.md"), "# Overview");
     expect(checkMarkdownLinks(root, "README.md", '[guide](a%20guide.md#overview) [web](https://kekbot.example/guide#step)')).toEqual([]);
+  });
+});
+
+describe("documentation configuration contracts", () => {
+  const schemas = { command: configSchemas.command };
+  const reference = `\n## command\n${Object.keys(schemas.command.shape).map(field => `| \`${field}\` | documented |`).join("\n")}\n`;
+  const example = { command: { name: "Example", trigger: "!example", responses: ["Hello, {user}!"] } };
+  it("accepts a complete field reference and a strict real-schema example", () => {
+    expect(checkConfigurationReference(schemas, reference, example)).toEqual([]);
+  });
+  it("rejects missing/stale reference fields and missing or invalid examples", () => {
+    expect(checkConfigurationReference(schemas, reference.replace("`trigger`", "`removedField`"), {})).toEqual(expect.arrayContaining([
+      "Field reference missing command.trigger", "Field reference contains unknown command.removedField", "Missing configuration example: command"
+    ]));
+    const problems = checkConfigurationReference(schemas, reference, { command: { ...example.command, unexpected: "private-input-marker" }, unsupported: {} });
+    expect(problems.some(problem => problem.startsWith("Invalid configuration example: command"))).toBe(true);
+    expect(problems).toContain("Unknown configuration example: unsupported");
+    expect(problems.join("\n")).not.toContain("private-input-marker");
   });
 });

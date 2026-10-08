@@ -12,6 +12,16 @@ Replace `https://kekbot.example` with your own origin (or your configured truste
 
 Credential fields in **Connections** are write-only and encrypted on the host. Blank fields after saving do not mean a saved secret disappeared. Check setup/connection state and a real permitted action. Provider scope selection never grants local dashboard permissions.
 
+<!-- contents:start -->
+**On this page**
+
+- [Kick](#kick)
+- [Discord](#discord)
+- [YouTube](#youtube)
+- [Change or revoke credentials](#change-or-revoke-credentials)
+- [Connection acceptance checklist](#connection-acceptance-checklist)
+<!-- contents:end -->
+
 ## Kick
 
 ### 1. Identify the creator
@@ -22,7 +32,7 @@ The developer app's display name, client ID, channel slug and numeric **broadcas
 
 ### 2. Create your application
 
-Open Kick's developer application settings while signed into the app-owning account. Create an application with a name/description, the exact redirect URL above, **webhooks enabled**, and the exact webhook URL. Follow [Kick's app setup](https://docs.kick.com/getting-started/kick-apps-setup) if the portal layout changes.
+Enable two-factor authentication on the app-owning Kick account, then open **Account settings → Developer** at [Kick's developer settings](https://kick.com/settings/developer). Create an application with a name/description, the exact redirect URL above, **webhooks enabled**, and the exact webhook URL. Kick's [official app setup](https://raw.githubusercontent.com/KickEngineering/KickDevDocs/main/getting-started/kick-apps-setup.md) documents the 2FA prerequisite. If the portal rejects a callback origin, resolve that before entering credentials into KekBot.
 
 Select the scopes the current dashboard authorization requests:
 
@@ -112,13 +122,19 @@ Media controls appear when media is enabled. An approval notification provides i
 
 Discord requires the initial response within three seconds; KekBot verifies/commits the interaction, defers the response, and runs effects in the worker. Repeated interaction IDs do not repeat actions. Routing/mappings are rechecked before deferred work executes. Notification sends disable mentions. See the [interaction contract](https://docs.discord.com/developers/interactions/receiving-and-responding).
 
+### Discord grant examples
+
+For a media team, grant `media` to its role in the **Roles** JSON field. For a user who can pause timers/send alerts but cannot moderate, grant only `operate` in **Users**. Repeat an ID with a different permission to grant additional capabilities. Keep IDs quoted as strings. A member with no mappings must be denied even if Discord itself permits slash-command use. Discord Administrator permission does not bypass KekBot's grant checks.
+
+Use one deliberate route for each intended guild/channel combination. Routing determines both notifications and the channel where controls are allowed; a command in another channel is denied. Avoid overlapping contradictory routes. Selecting Events does not grant control permissions. After editing routes, register commands and test both allowed and denied identities again. The [action table](API_ACTIONS.md) lists precisely which operations are available through slash commands.
+
 ## YouTube
 
 YouTube is optional and needed for real media metadata validation/playback.
 
 1. Create/select a project you control in [Google Cloud Console](https://console.cloud.google.com/).
 2. Enable **YouTube Data API v3** in **APIs & Services → Library**.
-3. Create an API key in **Credentials**. Restrict its API access to YouTube Data API v3 and its application usage to the intended server, for example the server's outbound IP where appropriate. A browser-referrer restriction does not fit KekBot's server-side metadata requests. Follow [Google's setup guidance](https://developers.google.com/youtube/v3/getting-started).
+3. Create an API key in **Credentials**. Restrict its API access to YouTube Data API v3 and its application usage to the intended server, for example the server's outbound IP where appropriate. A browser-referrer restriction does not fit KekBot's server-side metadata requests. Follow [Google's setup guidance](https://developers.google.com/youtube/v3/getting-started) and [key restriction guidance](https://docs.cloud.google.com/docs/authentication/api-keys-best-practices).
 4. In KekBot **Connections**, save the key in the YouTube form. A user OAuth grant is unnecessary for public video metadata.
 5. In **Maintenance → Edit settings**, enable **Media enabled**. Review approval policy, maximum duration, queue capacity, per-user limit, cooldown and blocked uploaders/titles. Keep auto approval off for the first trial.
 6. Complete the [request → approval → OBS playback walkthrough](OBS.md#youtube-request-and-approval-walkthrough). If using Discord, register commands again after enabling media.
@@ -128,3 +144,14 @@ Metadata uses the official [videos.list API](https://developers.google.com/youtu
 ## Change or revoke credentials
 
 Rotate compromised credentials in the provider portal and replace the encrypted settings in Connections. Confirm the new configuration with an actual permitted action. For Kick, reauthorize and subscribe again. For Discord, verify endpoint signatures and bot sends; update the public key if the app changes. For YouTube, revalidate a request and review quotas. Treat leaked OBS/API tokens separately: revoke them in **Maintenance**. See [troubleshooting](TROUBLESHOOTING.md) and [recovery](BACKUP_RECOVERY.md).
+
+## Connection acceptance checklist
+
+| Boundary | Configuration alone proves | Verify before relying on it |
+| --- | --- | --- |
+| Kick app | IDs/secret and callbacks were entered | Correct creator/scopes, signed event receipt, actual reply identity, refresh and subscription repair |
+| Discord app | Application/key/token were stored | Signed endpoint PING, registered guild command, mapped/denied users, bot channel send and correct routing |
+| YouTube key | Metadata credential was stored | Valid/invalid request outcomes, quota handling, actual visible OBS video/audio and advancement |
+| Disabled integration | Optional module is not configured | Unrelated commands/accounts/storage still operate; no fabricated connected status |
+
+Do not share provider request/response URLs or authorization redirects: they can contain credentials, codes or state. Keep diagnostics bounded and redact before reporting. Provider portal labels/requirements can change; the official references above were reviewed for this documentation update on 2026-10-08. Current full-product live acceptance remains pending.

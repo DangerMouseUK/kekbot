@@ -6,6 +6,19 @@ This crosswalk covers the normative scope in both identical [PRDs](PRD.md). It l
 
 Operator journeys are documented separately in [installation](INSTALLATION.md), [provider setup](PROVIDERS.md), [user workflows](USER_GUIDE.md), [OBS](OBS.md) and [recovery](BACKUP_RECOVERY.md). Documentation coverage does not pass the independent-installer or live gates. Return to the [documentation index](README.md).
 
+The handbook additionally includes [first session](FIRST_SESSION.md), [accounts/capabilities](ACCOUNTS.md), [Docker Desktop fixtures](DOCKER_DESKTOP.md), complete [CLI](CLI.md), [field/example](CONFIGURATION_FIELDS.md) and [action](API_ACTIONS.md) references. [Documentation verification](DOCUMENTATION.md) checks navigation/schema examples and rehearses changed procedures. This 2026-10-08 editorial review does not change historical acceptance results or the pending gate index.
+
+<!-- contents:start -->
+**On this page**
+
+- [Ownership, journeys and installation](#ownership-journeys-and-installation)
+- [Storage, authority and live interfaces](#storage-authority-and-live-interfaces)
+- [Kick, moderation, presentation and Discord](#kick-moderation-presentation-and-discord)
+- [Media, engagement and operations](#media-engagement-and-operations)
+- [Quality, distribution and completion](#quality-distribution-and-completion)
+- [Acceptance record](#acceptance-record)
+<!-- contents:end -->
+
 ## Ownership, journeys and installation
 
 | ID | PRD requirement | Implementation / reusable guidance | Automated evidence | Remaining acceptance |
