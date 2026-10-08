@@ -1,4 +1,6 @@
 """Offline tests: no Docker daemon, GitHub traffic or provider accounts required."""
+import contextlib
+import errno
 import io
 import json
 import os
@@ -231,6 +233,119 @@ class Contracts(unittest.TestCase):
         self.assertEqual(spec["services"]["proxy"]["image"], IMAGE)
         self.assertEqual(spec["volumes"]["certificates"]["name"], "kekbot-test-certificates")
         self.assertTrue(spec["services"]["proxy"]["volumes"][0]["read_only"])
+
+
+class RecoveryFailures(unittest.TestCase):
+    """Real private records; Docker is simulated. Linux retains real flock."""
+
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory(prefix="kekbot-recovery-test-")
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name) / "installation"
+        ownership = patch.object(core.os, "chown", create=True)
+        ownership.start()
+        self.addCleanup(ownership.stop)
+        # The engine's production path/ownership rules target Linux. Exercise
+        # its failure transitions on Windows too without weakening those rules.
+        if os.name == "nt":
+            replacement = patch.object(core, "validate_root", return_value=self.root)
+            replacement.start()
+            self.addCleanup(replacement.stop)
+        self.engine = core.Installation(self.root, command=lambda _args, **_kwargs: "", progress=lambda _message: None)
+        if os.name == "nt":
+            replacement = patch.object(self.engine, "lock", side_effect=contextlib.nullcontext)
+            replacement.start()
+            self.addCleanup(replacement.stop)
+
+    def record(self, **overrides):
+        self.root.mkdir(mode=0o700, exist_ok=True)
+        current = state(**overrides)
+        self.engine.save(current)
+        self.engine.configure(current)
+        return current
+
+    def test_proxy_preparation_failure_leaves_no_installation_and_can_retry(self):
+        options = core.validate_options("kekbot-test", "live", "domain", "https://bot.example", 3210, "user")
+        for failure in ("build", "inspect", "identity"):
+            def command(args, **_kwargs):
+                if (args[:2] == ["docker", "build"] and failure == "build") or (args[:3] == ["docker", "image", "inspect"] and failure == "inspect"):
+                    raise core.Problem("simulated proxy preparation failure")
+                return "invalid" if args[:3] == ["docker", "image", "inspect"] else ""
+
+            with self.subTest(failure=failure), patch.object(self.engine, "command", side_effect=command), patch.object(self.engine, "stage_image", return_value=IMAGE), patch.object(core.socket, "socket"), self.assertRaises(core.Problem):
+                self.engine.install(options, target())
+            self.assertFalse(self.root.exists())
+
+        def command(args, **_kwargs):
+            return IMAGE if args[:3] == ["docker", "image", "inspect"] else ""
+
+        with patch.object(self.engine, "command", side_effect=command), patch.object(self.engine, "stage_image", return_value=IMAGE), patch.object(self.engine, "cli", return_value={}), patch.object(self.engine, "wait_ready"), patch.object(core.socket, "socket"):
+            installed = self.engine.install(options, target())
+        self.assertEqual(installed["status"], "ready")
+        self.assertEqual(self.engine.load()["proxyImageId"], IMAGE)
+
+    def assert_shutdown_after_record_failure(self, action):
+        if action != "install":
+            self.record(**({"imageId": IMAGE, "status": "update-failed", "previous": dict(state=state(), backup=None, phase="stopping")} if action == "rollback" else {}))
+        actual_save = self.engine.save
+        failures, commands = [], []
+
+        def save(current):
+            if current["status"] in ("ready", action + "-failed"):
+                failures.append(current["status"])
+                raise OSError(errno.ENOSPC, "simulated full storage")
+            actual_save(current)
+
+        with patch.object(self.engine, "save", side_effect=save), patch.object(self.engine, "stage_image", return_value=IMAGE), patch.object(self.engine, "backup", return_value="backups/checkpoint"), patch.object(self.engine, "cli", return_value={}), patch.object(self.engine, "wait_ready"), patch.object(self.engine, "compose", side_effect=lambda _state, *args: commands.append(args) or ""), patch.object(core.socket, "socket"):
+            with self.assertRaises(OSError) as raised:
+                if action == "install":
+                    self.engine.install(state()["options"], target())
+                elif action == "update":
+                    self.engine.update(target())
+                else:
+                    self.engine.rollback()
+        self.assertEqual(raised.exception.errno, errno.ENOSPC)
+        self.assertEqual(failures, ["ready", action + "-failed"])
+        self.assertTrue(any(args[0] == "up" for args in commands))
+        self.assertEqual(commands[-1], ("stop",) if action == "install" else ("stop", "kekbot"))
+        pending = {"install": "installing", "update": "updating", "rollback": "rolling-back"}[action]
+        self.assertEqual(self.engine.load()["status"], pending)
+
+    def test_install_stops_even_if_final_and_failure_record_writes_fail(self):
+        self.assert_shutdown_after_record_failure("install")
+
+    def test_update_stops_even_if_final_and_failure_record_writes_fail(self):
+        self.assert_shutdown_after_record_failure("update")
+
+    def test_rollback_stops_even_if_final_and_failure_record_writes_fail(self):
+        self.assert_shutdown_after_record_failure("rollback")
+
+    def test_retained_uninstall_preserves_incomplete_operation_and_checkpoint(self):
+        checkpoint = dict(state=state(), backup="backups/checkpoint", phase="migrating")
+        for status in ("updating", "update-failed", "rolling-back", "rollback-failed"):
+            for backup_first in (True, False):
+                with self.subTest(status=status, backup_first=backup_first):
+                    self.record(status=status, imageId=IMAGE, previous=checkpoint)
+                    with patch.object(self.engine, "backup", return_value="backups/removal") as backup, patch.object(self.engine, "compose") as compose:
+                        self.engine.uninstall(backup_first=backup_first)
+                    self.assertEqual(backup.called, backup_first)
+                    compose.assert_called_once_with(unittest.mock.ANY, "down", "--remove-orphans")
+                    retained = self.engine.load()
+                    self.assertEqual(retained["status"], status)
+                    self.assertEqual(retained["previous"], checkpoint)
+                    with patch.object(self.engine, "stage_image") as stage, patch.object(self.engine, "cli") as cli:
+                        with self.assertRaises(core.Problem):
+                            self.engine.start()
+                        with self.assertRaises(core.Problem):
+                            self.engine.update(target())
+                        stage.assert_not_called()
+                        cli.assert_not_called()
+                    self.assertEqual(self.engine.load(), retained)
+
+    def test_explicit_purge_can_retire_an_incomplete_installation(self):
+        self.record(status="update-failed", imageId=IMAGE, previous=dict(state=state(), backup="backups/checkpoint", phase="migrating"))
+        self.engine.uninstall(purge=True, backup_first=False)
+        self.assertFalse(self.root.exists())
 
 
 @unittest.skipUnless(os.name == "posix", "Lifecycle locking/ownership are Linux-only; CI exercises the real daemon")

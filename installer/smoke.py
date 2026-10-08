@@ -69,6 +69,19 @@ def main():
             except Problem:
                 if engine.load()["status"] != "update-failed":
                     raise
+            checkpoint = engine.load()["previous"]
+            engine.uninstall(backup_first=False)
+            retained = engine.load()
+            if retained["status"] != "update-failed" or retained["previous"] != checkpoint:
+                raise Problem("Retained removal cleared the failed-update recovery checkpoint.")
+            for action in (engine.start, lambda: engine.update(target)):
+                try:
+                    action()
+                except Problem as error:
+                    if not str(error).startswith("Resolve"):
+                        raise
+                else:
+                    raise Problem("Retained removal bypassed failed-update recovery.")
             restored = engine.rollback()
             if restored["imageId"] != initial["imageId"] or not restored["data"].startswith("recovery/"):
                 raise Problem("Failed-update rollback did not restore the previous image into a new root.")

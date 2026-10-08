@@ -410,6 +410,15 @@ class Installation:
     def configure(self, state):
         write_private(self.root / "compose.json", json.dumps(compose_spec(self.root, state), indent=2) + "\n")
 
+    def fail_and_stop(self, state, status, *services):
+        state["status"] = status
+        try:
+            self.save(state)
+        finally:
+            # A full/read-only filesystem must not prevent runtime shutdown.
+            with contextlib.suppress(Problem):
+                self.compose(state, "stop", *services)
+
     def compose(self, state, *args):
         return self.command(["docker", "compose", "--project-name", state["options"]["project"], "--file", str(self.root / "compose.json"), *args], cwd=self.root)
 
@@ -456,10 +465,29 @@ class Installation:
             except OSError as error:
                 raise Problem("A selected application/proxy port is unavailable. Choose a free port or an existing reverse proxy.") from error
         image_id = self.stage_image(target)
+        tool = Path(__file__).resolve().parent
+        deploy = tool.parent / "deploy"
+        if not deploy.is_dir():
+            deploy = tool / "deploy"
+        proxy_files = ("Caddyfile", "Caddyfile.ip", "Caddy.Dockerfile")
+        proxy_image_id = None
+        if options["proxy"] in ("domain", "ip"):
+            self.progress("Building the pinned Caddy proxy before creating installation state. DNS and ports remain your responsibility.")
+            with tempfile.TemporaryDirectory(prefix="kekbot-proxy-stage-") as temporary:
+                context = Path(temporary)
+                for name in proxy_files:
+                    shutil.copyfile(deploy / name, context / name)
+                proxy_tag = "kekbot-caddy-managed:" + uuid.uuid4().hex
+                self.command(["docker", "build", "--file", str(context / "Caddy.Dockerfile"), "--tag", proxy_tag, str(context)])
+                proxy_image_id = self.command(["docker", "image", "inspect", "--format", "{{.Id}}", proxy_tag])
+                if not IMAGE_ID.fullmatch(proxy_image_id):
+                    raise Problem("Proxy image identity could not be verified. No installation state was created.")
         self.root.mkdir(parents=True, mode=0o700)
         self.root.chmod(0o700)
         state = dict(format="kekbot-installation", version=1, id=uuid.uuid4().hex, status="installing", options=options, data="data", imageId=image_id,
                      target={key: target[key] for key in ("kind", "value", "distribution", "sourceRef", "version", "accepted")}, previous=None)
+        if proxy_image_id:
+            state["proxyImageId"] = proxy_image_id
         self.save(state)
         with self.lock():
             data = self.root / "data"
@@ -468,22 +496,13 @@ class Installation:
             for name in ("backups", "recovery", "tool", "proxy"):
                 (self.root / name).mkdir(mode=0o700)
             os.chown(self.root / "backups", 1000, 1000)
-            tool = Path(__file__).resolve().parent
             for name in ("core.py", "kekbot.py"):
                 shutil.copyfile(tool / name, self.root / "tool" / name)
-            deploy = tool.parent / "deploy"
-            if not deploy.is_dir():
-                deploy = tool / "deploy"
-            for name in ("Caddyfile", "Caddyfile.ip", "Caddy.Dockerfile"):
+            for name in proxy_files:
                 shutil.copyfile(deploy / name, self.root / "proxy" / name)
             shutil.copytree(self.root / "proxy", self.root / "tool" / "deploy")
             mode, origin = options["mode"], options["origin"]
             write_private(self.root / "runtime.env", f"KEKBOT_MODE={mode}\nKEKBOT_RUN_JOBS=1\nKEKBOT_ENABLE_PROOF=0\nNEXT_TELEMETRY_DISABLED=1\nKEKBOT_PUBLIC_URL={origin}\nKICK_CHAT_TYPE={options['chatType']}\nKICK_CLIENT_ID=\nKICK_CLIENT_SECRET=\nKICK_BROADCASTER_USER_ID={'123' if mode == 'fixture' else ''}\n")
-            if options["proxy"] in ("domain", "ip"):
-                self.progress("Building the pinned Caddy proxy. DNS and ports remain your responsibility.")
-                proxy_tag = "kekbot-caddy-managed:" + uuid.uuid4().hex
-                self.command(["docker", "build", "--file", str(self.root / "proxy" / "Caddy.Dockerfile"), "--tag", proxy_tag, str(self.root / "proxy")])
-                state["proxyImageId"] = self.command(["docker", "image", "inspect", "--format", "{{.Id}}", proxy_tag])
             self.configure(state)
             self.save(state)
             try:
@@ -494,14 +513,11 @@ class Installation:
                     self.cli(state, "fixture-seed")
                 self.compose(state, "up", "--detach", "--no-build")
                 self.wait_ready(state)
-            except BaseException:
-                state["status"] = "install-failed"
+                state["status"] = "ready"
                 self.save(state)
-                with contextlib.suppress(Problem):
-                    self.compose(state, "stop")
+            except BaseException:
+                self.fail_and_stop(state, "install-failed")
                 raise
-            state["status"] = "ready"
-            self.save(state)
         return state
 
     def backup(self, state):
@@ -551,10 +567,7 @@ class Installation:
                 self.save(state)
                 return state
             except BaseException:
-                state["status"] = "update-failed"
-                self.save(state)
-                with contextlib.suppress(Problem):
-                    self.compose(state, "stop", "kekbot")
+                self.fail_and_stop(state, "update-failed", "kekbot")
                 raise
 
     def rollback(self):
@@ -598,10 +611,7 @@ class Installation:
                 self.save(state)
                 return state
             except BaseException:
-                current["status"] = "rollback-failed"
-                self.save(current)
-                with contextlib.suppress(Problem):
-                    self.compose(current, "stop", "kekbot")
+                self.fail_and_stop(current, "rollback-failed", "kekbot")
                 raise
 
     def start(self):
@@ -632,7 +642,10 @@ class Installation:
             if backup_first:
                 self.backup(state)
             self.compose(state, "down", "--remove-orphans")
-            state["status"] = "uninstalled"
+            # Removing containers must not clear an incomplete operation's
+            # recovery guard or allow another update to replace its checkpoint.
+            if state["status"] in ("ready", "stopped", "uninstalled"):
+                state["status"] = "uninstalled"
             self.save(state)
             if purge:
                 # Refuse hidden mount/symlink surprises. Never use docker prune

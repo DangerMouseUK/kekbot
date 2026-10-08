@@ -9,7 +9,7 @@ This guide covers a [managed installation](INSTALLER.md). It requires trusted Li
 | Goal | Wizard action | Retained |
 | --- | --- | --- |
 | Pause the host | Stop | All containers/configuration/data/keys/certificates/images; restart later |
-| Remove running services, preserve recovery | Uninstall → Containers only (default) | All files, backups, keys, images and certificate volumes; Start can resume |
+| Remove running services, preserve recovery | Uninstall → Containers only (default) | All files, backups, keys, images and certificate volumes; completed installations can resume; incomplete updates still require recovery |
 | Permanently retire local state | Uninstall → Purge | Only unrelated resources, Docker images and independently stored recovery material remain |
 
 From **Bash on the Linux host**, replacing the path when necessary:
@@ -31,6 +31,8 @@ sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action start
 ```
 
 Start checks the existing database and recreates the recorded version; it does not reseed fixtures, create a new owner or migrate a failed update. Keep the original images available and resolve incomplete update state through rollback first.
+
+Removing containers from an interrupted or failed update/rollback preserves its incomplete status and original checkpoint. Status still reports that recovery is required; Start and Update remain blocked until recovery completes. If you deliberately retire that installation instead, explicitly confirmed purge remains available. When a pre-removal snapshot cannot run, removal aborts; skip it only under the walkthrough's stated independent-backup or deliberate-retirement conditions.
 
 ## Permanent purge
 

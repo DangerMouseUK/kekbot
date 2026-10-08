@@ -173,7 +173,7 @@ def main():
                 print(action.capitalize() + " complete.")
             elif action == "uninstall":
                 purge = choose("What should be removed?", "Removing containers does not revoke provider grants, delete provider applications, update DNS or remove Docker/Git. Do those separately if retiring the bot. No global Docker prune is ever run.", [
-                    ("Containers only; keep all data (recommended)", "Retain database, assets, keys, environment, backups, management tool, images and certificate volumes. Start can resume this installation.", False),
+                    ("Containers only; keep all data (recommended)", "Retain database, assets, keys, environment, backups, management tool, images and certificate volumes. Completed installations can resume; incomplete updates still require recovery.", False),
                     ("Permanently purge this managed installation", "Delete the entire recorded directory, including backups and keys, and its managed certificate volumes. Docker images and all unrelated resources remain. Recovery is impossible without an independent backup AND original key.", True),
                 ])
                 backup_first = choose("Pre-uninstall backup", "A snapshot includes the database and assets, not encryption keys. In purge mode it is inside the directory being deleted, so it is not a recovery copy. Cancel and copy independent recovery material elsewhere before choosing purge.", [
@@ -181,7 +181,9 @@ def main():
                     ("Skip this snapshot", "Use only if you already have verified independent recovery material or deliberately accept losing it.", False),
                 ])
                 confirm("Final uninstall review", f"Directory: {root}; project: {state['options']['project']}.\n\n{'PERMANENT PURGE: database, assets, keys, environment and every backup below this root will be deleted; managed certificate volumes removed.' if purge else 'Remove containers only. Keep all installation files, keys, data and certificate volumes.'}\n\nPre-uninstall snapshot: {'yes' if backup_first else 'no'}. Verify the directory/project and any independent backup/key copy now.", "DELETE " + state["options"]["project"] if purge else "REMOVE CONTAINERS")
-                installation.uninstall(purge=purge, backup_first=backup_first)
+                removed = installation.uninstall(purge=purge, backup_first=backup_first)
+                if not purge and removed["status"] != "uninstalled":
+                    print("Containers removed; incomplete operation status and recovery checkpoints remain. Inspect status and the recovery guide before starting or updating.")
                 print("Uninstall complete. Revoke provider grants/apps and remove obsolete DNS/firewall rules yourself if retiring this installation.")
         except Cancelled:
             print("\nWalkthrough cancelled. No further actions will run.")

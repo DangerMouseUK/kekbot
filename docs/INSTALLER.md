@@ -150,10 +150,13 @@ Container startup alone does not prove public certificates, callbacks, actual ch
 | No stable release / unknown tag / API limit | Nothing was installed. Retry later or explicitly choose reviewed development/candidate input. Never substitute an unofficial image. |
 | Checksum/unsafe archive/identity mismatch | Stop; obtain a trusted intact bundle. Do not bypass checks. |
 | Image build/load fails before update stop | Current app/data are untouched. Check disk/network/resources and selected source/CI. |
+| Fresh Caddy build/inspection fails | No installation directory or record has been created. Fix disk/network/build prerequisites and retry the same directory. A prepared Docker image may remain. |
 | Fresh install fails | Private root is retained; do not delete keys blindly. Inspect status and prerequisite/port/permission conditions. `Start` can resume only when initialization/doctor already succeeds; otherwise recover manually or choose a new directory. |
 | Update backup fails | No migration was attempted. Roll back resumes the old version against original storage; inspect backup/storage before retrying. |
 | Migration/startup fails or Ctrl+C interrupts update | App remains stopped when cleanup can run. Inspect status; choose **Roll back**. It restores a completed pre-update snapshot into a new root with the original keys, and leaves failed storage intact. |
 | Rollback fails | Preserve checkpoint/data/key files; inspect disk, old-image availability, manifest and permissions. Retry rollback or use manual empty-target recovery. Do not start older code against newer storage. |
+| Record write fails on full/read-only storage | Install/update/rollback cleanup still attempts shutdown. The last durable record may retain its pending status; verify actual container state, fix storage and inspect recovery before resuming. |
+| Containers removed after an incomplete update/rollback | Removal retains the incomplete status and checkpoint. Start and Update remain blocked until recovery completes; container removal never clears that requirement. |
 | Second lifecycle command | Exclusive lock rejects concurrent management. Wait for the first command; do not delete its lock while it is running. |
 | Purge refuses a symlink/mount or volume removal | Containers are removed, files remain. Inspect boundaries privately; never redirect deletion into another directory. |
 

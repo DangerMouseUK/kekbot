@@ -104,6 +104,8 @@ The [guided host tool](INSTALLER.md) is dependency-free Python 3.10+ outside the
 
 Updates stage images before downtime, persist a checkpoint, use the old image for a stopped-host backup and persist migration intent before invoking the new CLI. Linux `flock` serializes management operations; the application retains its independent SQLite runtime lease. Atomic private record writes are flushed before replacement. Failed migrations/startup require explicit recovery; rollback restores into new storage with the original key and old image rather than downgrading newer storage. Default uninstall retains files/certificates; purge requires typed review and rejects link/mount escapes. See [implementation](../installer/README.md) and [tests](TESTING.md).
 
+Proxy preparation finishes before a fresh installation creates its managed record. Install/update/rollback failure cleanup attempts shutdown independently of record-write success, including failure to persist final activation. Container removal preserves incomplete operation status and recovery checkpoints; it cannot make failed data eligible for Start or another Update.
+
 ## References
 
 For a new capability, add its shared domain decision first, then the required route/chat/Discord adapters. Test revoked authority during deferred execution, duplicate receipts, contention and failure classification. Keep provider calls outside transactions. Add only the feature's required checked-in migration, and update operator/API/recovery guidance with the change. A new screen alone does not satisfy a milestone.
