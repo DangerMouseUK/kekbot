@@ -1,0 +1,7 @@
+{
+  "name": "Welcome",
+  "trigger": "!welcome",
+  "responses": ["Welcome, {user}! Thanks for visiting {channel}."],
+  "cooldown": 10,
+  "userCooldown": 30
+}

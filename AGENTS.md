@@ -14,10 +14,12 @@ Use these task-specific starting points:
 
 - Public entry/navigation: [README](README.md), [documentation index](docs/README.md).
 - Local setup: [quickstart](docs/QUICKSTART.md), [contributing](CONTRIBUTING.md).
+- Initial configuration/delegation: [first session](docs/FIRST_SESSION.md), [accounts](docs/ACCOUNTS.md); Windows/macOS containers: [Docker Desktop](docs/DOCKER_DESKTOP.md).
 - Hosting/configuration: [installation](docs/INSTALLATION.md), [configuration](docs/CONFIGURATION.md).
 - Provider/presentation behavior: [providers](docs/PROVIDERS.md), [user guide](docs/USER_GUIDE.md), [OBS](docs/OBS.md).
 - Host/privacy/recovery: [operations](docs/OPERATIONS.md), [backup/recovery](docs/BACKUP_RECOVERY.md).
 - Runtime/contracts: [architecture](docs/ARCHITECTURE.md), [API](docs/API.md).
+- Exhaustive references: [dashboard fields/examples](docs/CONFIGURATION_FIELDS.md), [control actions](docs/API_ACTIONS.md), [CLI](docs/CLI.md).
 - Verification/release: [testing](docs/TESTING.md), [live acceptance](docs/LIVE_ACCEPTANCE.md), [releasing](docs/RELEASING.md).
 
 Read only the material needed for the requested scope. The [foundation guide](docs/FOUNDATION.md) is historical diagnostic evidence; it is not the normal installation path.
@@ -41,6 +43,8 @@ Update relevant guides, CONTRIBUTING, CHANGELOG and architecture/API references 
 Separate planned, implemented, fixture-tested and live-tested outcomes. Record exact commands, source/image and dates. Hosted CI timings do not establish reference-host benchmarks. Real OBS/provider delivery, public certificate renewal, independent operators and another-host restoration require actual evidence. Never mark an unavailable scenario passed.
 
 Maintain [RELEASE_READINESS.md](docs/RELEASE_READINESS.md), [RELEASING.md](docs/RELEASING.md) and [release-evidence.json](docs/release-evidence.json) for release-affecting work. Read the current evidence file instead of assuming a fixed gate count/status. `pnpm release:check` validates evidence structure; stable mode must fail closed on missing acceptance or source/image mismatch.
+
+Follow [documentation maintenance](docs/DOCUMENTATION.md) for repository-wide guide work. `pnpm docs:check` validates local navigation, identical PRDs, every catalog field row and strict-schema JSON examples. Keep UI starting values distinct from schema defaults, exact-role matching distinct from hierarchy, and fixture walkthroughs distinct from real delivery. A guide improvement does not pass an independent-installer gate.
 
 ## Verification
 

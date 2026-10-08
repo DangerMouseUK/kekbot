@@ -1,0 +1,1 @@
+{"name":"Spoiler warning","enabled":false,"type":"phrase","patterns":["synthetic spoiler phrase"],"action":"warn"}

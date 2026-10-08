@@ -3,7 +3,7 @@
 [![CI](https://github.com/DangerMouseUK/kekbot/actions/workflows/ci.yml/badge.svg)](https://github.com/DangerMouseUK/kekbot/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**Your Kick bot, your stream control room, your infrastructure.**
+**A self-hosted Kick bot and stream control room for your creator team.**
 
 KekBot brings Kick chat automation, Discord moderator controls, OBS sources and YouTube requests into a self-hosted dashboard. One installation serves one creator and their moderator team. You own the provider applications, configuration, local accounts and data.
 
@@ -23,13 +23,17 @@ KekBot brings Kick chat automation, Discord moderator controls, OBS sources and 
 
 Discord and YouTube are optional to enable. KekBot runs without a project-operated account, relay or billing service. Enabled integrations contact their official services; OBS YouTube playback contacts YouTube. The [configuration reference](docs/CONFIGURATION.md) explains storage and secrets.
 
-## Get started
+## Choose your starting point
 
-- **Try the dashboard safely:** [local fixture quickstart](docs/QUICKSTART.md). Synthetic data, generated credentials and simulated provider effects; no provider account required.
-- **Run your own bot:** [installation guide](docs/INSTALLATION.md), then [Kick/Discord/YouTube setup](docs/PROVIDERS.md) and [OBS setup](docs/OBS.md).
-- **Use an existing installation:** [user guide](docs/USER_GUIDE.md).
-- **Maintain or recover a host:** [operations](docs/OPERATIONS.md), [backup and recovery](docs/BACKUP_RECOVERY.md), and [troubleshooting](docs/TROUBLESHOOTING.md).
-- **Contribute:** [CONTRIBUTING.md](CONTRIBUTING.md), [architecture](docs/ARCHITECTURE.md) and [testing](docs/TESTING.md).
+| You want to… | Start here | What you need |
+| --- | --- | --- |
+| Explore safely | [Local quickstart](docs/QUICKSTART.md) | Git, pinned Node/pnpm; no provider accounts or Docker |
+| Host a real bot | [Installation](docs/INSTALLATION.md) | Linux x86-64, Docker/Compose, local persistent disk and public HTTPS |
+| Configure a fresh dashboard | [First session](docs/FIRST_SESSION.md) | Owner login and optional provider connections |
+| Join an existing team | [Accounts](docs/ACCOUNTS.md) → [user guide](docs/USER_GUIDE.md) | A private invitation from your installation's operator |
+| Put sources on stream | [OBS and playback](docs/OBS.md) | Owner-created source URLs; OBS Browser Source support |
+| Back up, upgrade or diagnose | [Operations](docs/OPERATIONS.md) → [recovery](docs/BACKUP_RECOVERY.md) | Trusted host access for maintenance commands |
+| Contribute or integrate | [Contributing](CONTRIBUTING.md) → [API](docs/API.md) | An isolated fixture installation |
 
 ### Local fixture setup
 
@@ -64,6 +68,8 @@ Open **http://127.0.0.1:3000**. Read the protected `fixture-account.json` file a
 
 The [complete quickstart](docs/QUICKSTART.md) explains the first command, simulated playback, shutdown and storage. Fixture mode cannot send live provider mutations or play real YouTube videos.
 
+Prefer containers? The [Docker Desktop evaluation guide](docs/DOCKER_DESKTOP.md) covers Windows/macOS with Linux containers and a separate fixture volume, without host Node/pnpm.
+
 ## Hosting requirements
 
 The deployment target is **Linux x86-64**, one long-running application container, local persistent disk and publicly trusted HTTPS for provider callbacks. The included Compose examples build KekBot and an optional Caddy proxy from source. A domain is the usual path; a separate public-IPv4 HTTPS example is available. Windows/macOS can evaluate the Linux container with Docker Desktop or develop from source.
@@ -77,6 +83,9 @@ The [documentation index](docs/README.md) lists every guide, reference and proje
 | Reference | Purpose |
 | --- | --- |
 | [Configuration](docs/CONFIGURATION.md) | Environment variables, file layout, secrets and module defaults |
+| [Dashboard fields](docs/CONFIGURATION_FIELDS.md) | Every editable field, default, unit and bound, with schema-checked examples |
+| [CLI](docs/CLI.md) | Complete command syntax, prerequisites, results and failure handling |
+| [Accounts](docs/ACCOUNTS.md) | Capability matrix, invitations, sessions and access removal |
 | [HTTP API](docs/API.md) | Authentication, scopes, actions, schemas, SSE and error handling |
 | [Architecture](docs/ARCHITECTURE.md) | Runtime, persistence and provider design decisions |
 | [Testing](docs/TESTING.md) | Local checks, fixture isolation, browser and Linux CI coverage |
@@ -89,6 +98,12 @@ The [documentation index](docs/README.md) lists every guide, reference and proje
 Bug reports, documentation fixes and focused contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and [troubleshooting](docs/TROUBLESHOOTING.md#reporting-a-problem) before opening an [issue](https://github.com/DangerMouseUK/kekbot/issues). Use [SECURITY.md](SECURITY.md) for private vulnerability reporting.
 
 GitHub Actions checks documentation/publication policy, secrets, types/lint, real SQLite behavior, production builds, three browser engines and Linux container/proxy/recovery flows. Opt-in synthetic soak and candidate packaging are also available. Passing CI establishes automated evidence; live release gates remain separate.
+
+## Ownership and privacy
+
+Your host retains local accounts and observed viewer activity. Provider grants are encrypted with a separate installation key; keep an independent protected copy because database/asset backups exclude it. Source URLs are private credentials and can be revoked individually. Read [data handling](docs/OPERATIONS.md#privacy-and-retention) before inviting operators or exporting history.
+
+Public examples use synthetic identities and reserved addresses. Keep environment files, databases, source URLs, raw provider payloads and screenshots containing credentials out of issues. KekBot stores what it observes; unavailable viewer counts and estimated watchtime are labeled honestly.
 
 ## License
 

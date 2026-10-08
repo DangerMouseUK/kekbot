@@ -2,6 +2,17 @@
 
 Install/claim KekBot and connect the relevant [providers](PROVIDERS.md) first. Fixtures can exercise source layouts and simulated playback without real YouTube. Real OBS playback/audio and provider delivery remain live acceptance checks. Return to the [documentation index](README.md).
 
+<!-- contents:start -->
+**On this page**
+
+- [Create a source](#create-a-source)
+- [Source types](#source-types)
+- [Follow alert walkthrough](#follow-alert-walkthrough)
+- [YouTube request and approval walkthrough](#youtube-request-and-approval-walkthrough)
+- [Restart, disconnect or playback error](#restart-disconnect-or-playback-error)
+- [Scene and credential checklist](#scene-and-credential-checklist)
+<!-- contents:end -->
+
 ## Create a source
 
 1. Sign in as the owner and open **Widgets → Add widget**.
@@ -41,6 +52,12 @@ To revoke a leaked source, open **Maintenance → Source and API tokens**, revok
 
 Use IDs shown on configuration cards, not their display names. All widgets use built-in themes and literal text; custom executable HTML/script templates are unsupported. Retention limits what historical sources can display.
 
+### Choosing dimensions and targets
+
+Start with 800 × 400 for an alert or compact list, then adjust the widget and OBS source together. Width/height are source pixels, not a promise that every type fits every layout. Review long names/titles and all three themes at your actual scene scale. Use **Reduced motion** for presentation that should minimize animation.
+
+A counter needs a command ID with Counter enabled. A selected poll/raffle/goal needs that document's ID; leaving Target blank follows the type's default selection. A countdown needs a future Ends at value in milliseconds and optional Text. A chat source needs retained chat bodies. A supporter/activity source needs observed support events. A blank source can be an expected empty state rather than a connection failure. [All widget fields](CONFIGURATION_FIELDS.md#widget).
+
 ## Follow alert walkthrough
 
 1. In **Alerts**, upload a supported image/sound if wanted. Copy the returned asset IDs.
@@ -71,3 +88,12 @@ The queue and current item persist. Restart or player disconnection pauses playb
 Only one player can hold the active lease. A second player cannot take over a healthy lease; stale completion callbacks cannot advance a newer item. Close/remove unwanted sources, wait for the old lease to expire (15 seconds), then resume from the intended source. A now-playing or queue source has no playback authority.
 
 For blank sources, lost credentials, autoplay/embedding errors or unexpected audio, see [troubleshooting](TROUBLESHOOTING.md#obs-and-media).
+
+## Scene and credential checklist
+
+- Keep one persistent player Browser Source and reuse that source across scenes. Separate copies can compete for the lease.
+- Preserve the complete source URL, including a player's `#player=` fragment. A read URL alone cannot acknowledge playback.
+- Test actual recorded/stream audio and visible player controls. Monitoring sound locally does not establish output delivery.
+- Revoke both token kinds when replacing a player source. Existing scene collections/exports still contain the old credential values; keep them private.
+- After reconnect/restart, inspect the current item and error before moderator resume. Closing a source is not an end-of-item event.
+- Preview changes separately from live manual alerts. Only actual provider/OBS tests establish those live boundaries.

@@ -10,6 +10,14 @@ KekBot source and its built-in CSS themes are MIT licensed. User-uploaded assets
 
 Builds fail if an installed production package has no notice or reviewed version-matched fallback. [Supplemental upstream notices](../licenses/README.md) cover packages whose locked npm tarballs omit license text. The candidate package includes the image's notice tree and checks its inventory before export. Node/Debian base-image notices remain in the image; this table inventories application packages rather than the OS.
 
+## Refresh and redistribution review
+
+After changing the lockfile, install with the frozen lockfile, run `pnpm licenses list --prod --json` privately, and update the package/version/license rows below without copying local paths or author contacts. Run `pnpm build` to verify notice extraction; Linux container CI checks the target-platform notice inventory and exported package. Do not replace a missing license with a guessed identifier: inspect the exact upstream version and add a reviewed fallback only when justified.
+
+Keep the upstream legal text under `licenses/` unchanged. Generated image notices, native-library version inventories and any corresponding-source obligations still need final redistribution review. A successful notice-copy script does not by itself settle every dependency's legal requirements. [Release procedure](RELEASING.md) describes the distribution gate.
+
+## Locked application inventory
+
 | Package | Locked versions | License |
 | --- | --- | --- |
 | @babel/code-frame | 7.29.7 | MIT |

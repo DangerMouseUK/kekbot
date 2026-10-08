@@ -117,6 +117,8 @@ jobs:
         env:
           KEKBOT_DOMAIN: kekbot.example
           KEKBOT_PUBLIC_IP: 203.0.113.10
+      - name: Validate handbook Compose overrides without starting services
+        run: node scripts/check-doc-compose.mjs
       - name: Check pinned Caddy configurations without issuing certificates
         run: |
           docker build --file deploy/Caddy.Dockerfile --tag kekbot-caddy:2.11.6 .

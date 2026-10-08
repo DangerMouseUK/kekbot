@@ -2,6 +2,18 @@
 
 Start with the symptom below. Work on your own authorized installation and keep diagnostics private until reviewed. Return to the [documentation index](README.md).
 
+<!-- contents:start -->
+**On this page**
+
+- [Collect safe diagnostics](#collect-safe-diagnostics)
+- [Find the failing boundary](#find-the-failing-boundary)
+- [Installation and accounts](#installation-and-accounts)
+- [Kick and Discord](#kick-and-discord)
+- [OBS and media](#obs-and-media)
+- [Storage and recovery](#storage-and-recovery)
+- [Reporting a problem](#reporting-a-problem)
+<!-- contents:end -->
+
 ## Collect safe diagnostics
 
 1. Record the commit/application version, install method, mode and time of failure. For containers, record image ID/source label locally.
@@ -10,6 +22,20 @@ Start with the symptom below. Work on your own authorized installation and keep 
 4. Inspect a bounded local log excerpt, such as `dc logs --tail=100 kekbot proxy`. Review/redact it before sharing. Avoid expanded Compose configuration output; use `config --quiet`.
 
 Doctor's `integrity` should be `ok`. It reports persisted configuration/counts, not a complete provider health test. Owner-only **Generate redacted support data** is safer to share than raw runtime files, but review even that export first.
+
+## Find the failing boundary
+
+Follow the request in order instead of repeatedly sending the same action:
+
+1. **Ingress:** Can a normal TLS client reach health? If not, inspect DNS/ports/certificate/proxy before app credentials.
+2. **Authority:** Can the intended local account sign in and perform that capability? Check Origin, CSRF, current grants and session expiry.
+3. **Intake:** Did a verified receipt arrive for the intended creator/guild/channel? No receipt points to callback/subscription/signature configuration.
+4. **Decision:** Did restrictions, cooldowns, a stale version or invalid input suppress/reject it? Inspect the configuration and sanitized outcome.
+5. **Worker:** Is the job pending/running with a healthy worker? Check jobs enabled, instance lease, storage and backlog.
+6. **External effect:** Is delivery confirmed, failed or uncertain? Inspect the provider before reconciling or repeating it.
+7. **Presentation:** If state is correct but OBS is blank, inspect source type/target, read token, enabled state, retained data and player lease separately.
+
+Record the first failing boundary and time. Avoid changing several unrelated settings at once; confirm the effect of each repair.
 
 ## Installation and accounts
 
@@ -24,6 +50,8 @@ Doctor's `integrity` should be `ok`. It reports persisted configuration/counts, 
 | Login/invitation denied | Check normalized username, disabled account, token expiry/use and creator's current invite authority. Wait for abuse-rate-limit cooldown rather than repeated attempts. |
 | Write denied / CSRF failure | Check current role/grants and use the same exact configured public origin. For the local demo set `KEKBOT_PUBLIC_URL=http://127.0.0.1:3000`, restart and open that exact address. Sign in again after session/password revocation. Do not disable CSRF. |
 | Version conflict (`409`) | Refresh current state and review the other operator's change before resubmitting |
+| Private override/data root seems ignored | Re-enter the host exports and exact `dc` helper in the new shell; service `env_file` does not set Compose interpolation variables |
+| Docker Desktop restarts with empty state | Check the same Compose project and named volume; follow [Desktop evaluation](DOCKER_DESKTOP.md) rather than mixing host/VM paths |
 
 ## Kick and Discord
 
@@ -40,6 +68,14 @@ Doctor's `integrity` should be `ok`. It reports persisted configuration/counts, 
 | Discord notification missing | Check selected event route, bot membership/channel permissions and delivery result |
 
 `pending` means queued; `failed` means a known failure; `uncertain` needs provider inspection before owner reconciliation. Reconciliation records an observed result and never resends. See [delivery outcomes](OPERATIONS.md#delivery-outcomes).
+
+### A command has no reply
+
+First check a verified event from the configured creator's channel. Next check worker/job outcomes. Then review the trigger/alias, Enabled, exact role list, live condition and both cooldowns. Test after the cooldown with one message; rapid retries obscure the cause. Built-ins can also be throttled. If a reply job is uncertain, inspect Kick instead of sending another request. The [command guide](USER_GUIDE.md#commands) describes silence by design.
+
+### A timer has not fired
+
+Wait a full interval, with sufficient intervening chat and the required observed live state. Check both quiet-hour endpoints/timezone and global pause. Pause/restart/offline resets the next due time rather than sending overdue reminders. If a queued reminder says `timer_no_longer_eligible`, inspect changed configuration/version or stream/pause state; the scheduler intentionally refused stale work.
 
 ## OBS and media
 

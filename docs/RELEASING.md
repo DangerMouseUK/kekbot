@@ -4,6 +4,27 @@ The current `0.1.0-dev.0` build is an unreleased candidate. The [requirements au
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
 
+<!-- contents:start -->
+**On this page**
+
+- [Release sequence](#release-sequence)
+- [Supported candidate versions](#supported-candidate-versions)
+- [Autonomous candidate preparation](#autonomous-candidate-preparation)
+- [Freeze and acceptance evidence](#freeze-and-acceptance-evidence)
+- [Final publication gate](#final-publication-gate)
+<!-- contents:end -->
+
+## Release sequence
+
+| Stage | Required input | Result | Still not authorized by this stage |
+| --- | --- | --- | --- |
+| Prepare | Clean reviewed commit, ordinary CI, pinned build tools | Audited unaccepted source/image/notices/checksums | Deployment, stable acceptance, tag/registry publication |
+| Accept | Frozen source/image plus actual live/reference/independent trials | Dated sign-off evidence tied to exact identities | Publishing a different rebuild or moving an existing tag |
+| Publish | Complete acceptance and explicit owner authorization | Exact retained accepted artifacts and immutable version/digest | Claiming a published-install trial before it runs |
+| Verify distribution | Fresh installation using the published artifacts | Final milestone evidence and supported upgrade/recovery instructions | Reusing fixture or same-host evidence for an unavailable live gate |
+
+Before an independent installer trial, hand the operator the root README and [installation](INSTALLATION.md), not private maintainer commands. Use [first session](FIRST_SESSION.md), [provider setup](PROVIDERS.md), [OBS](OBS.md) and [recovery](BACKUP_RECOVERY.md) as the public path. Record where help was required and retest changed instructions. Editorial completeness does not itself pass O02.
+
 ## Supported candidate versions
 
 | Component | Supported candidate |

@@ -4,6 +4,53 @@ Updated: 2026-10-08. Status: foundation live gate passed historically; product b
 
 This is the design reference for contributors. Use [installation](INSTALLATION.md) for deployment, [configuration](CONFIGURATION.md) for runtime inputs, and [contributing](../CONTRIBUTING.md) for the source map/workflow. Return to the [documentation index](README.md).
 
+<!-- contents:start -->
+**On this page**
+
+- [Runtime map](#runtime-map)
+- [ADR 001 — One self-hosted application](#adr-001--one-self-hosted-application)
+- [ADR 002 — SQLite is authoritative](#adr-002--sqlite-is-authoritative)
+- [ADR 003 — Explicit runtime lifecycle](#adr-003--explicit-runtime-lifecycle)
+- [ADR 004 — Authentication and provider trust](#adr-004--authentication-and-provider-trust)
+- [ADR 005 — Web interfaces and media recovery](#adr-005--web-interfaces-and-media-recovery)
+- [ADR 006 — Local module state and portable configuration](#adr-006--local-module-state-and-portable-configuration)
+- [References](#references)
+<!-- contents:end -->
+
+## Runtime map
+
+```mermaid
+flowchart LR
+  Dashboard[Local dashboard session] --> Routes[Next.js route adapters]
+  API[Scoped owner API] --> Routes
+  Kick[Verified Kick intake] --> Receipts[SQLite receipts and jobs]
+  Discord[Signed Discord interaction] --> Receipts
+  Routes --> Domain[Shared domain services]
+  Receipts --> Worker[Bounded background runner]
+  Worker --> Domain
+  Domain --> DB[SQLite state and transactional outbox]
+  DB --> Worker
+  Worker --> Providers[Official provider clients]
+  DB --> SSE[Durable SSE and scoped snapshots]
+  SSE --> Dashboard
+  SSE --> OBS[OBS widgets and single player]
+  OBS --> Ack[Separate player credential and lease]
+  Ack --> Domain
+```
+
+The proxy terminates public HTTPS; the application owns authorization/signature checks. SQLite is the source of truth, not React state or a browser connection. A provider acknowledgement establishes an external result; a local queued decision alone cannot do so. Each ADR below records the consequences of that choice.
+
+| Boundary | Entry points | Invariant |
+| --- | --- | --- |
+| HTTP/UI | `src/app/api`, dashboard/module panels | Validate input/authority; delegate decisions; return uncached sanitized state |
+| Shared state | `domain/catalog.ts`, `domain/state.ts`, `control.ts` | Bounded strict configuration, current capabilities, versions and audited transitions |
+| Modules | Automation, moderation, media, engagement, presentation, operations services | Same decisions regardless of dashboard, chat, Discord or API caller |
+| Durable work | `runtime.ts`, `storage/repository.ts` | Bounded batches/leases; atomic receipt/outbox; explicit uncertain effects |
+| External services | `providers/` | Fixed trusted hosts, original-byte signature inputs, timeouts and safe retry classification |
+| Maintenance | `cli.ts`, `maintenance.ts` | Exclusive stopped-host storage changes; integrity/key/schema validation |
+
+See [HTTP contracts](API.md), [action payloads](API_ACTIONS.md) and [field schemas](CONFIGURATION_FIELDS.md) before changing an interface.
+
 ## ADR 001 — One self-hosted application
 
 Use one pnpm project and a single long-running Node.js 24 runtime. Next.js App Router owns React presentation and HTTP routing. Provider clients, domain services, persistence, and jobs are separate TypeScript modules under `src/server`. No Redis, PostgreSQL, remote object storage, external worker, or multi-customer model is introduced.
@@ -51,6 +98,8 @@ Analytics count only observed events, distinguish viewer samples from totals and
 Current module/service interfaces and operator workflows are documented in [API.md](API.md) and [OPERATIONS.md](OPERATIONS.md). [TESTING.md](TESTING.md) covers failure/concurrency/browser/container campaigns; [LIVE_ACCEPTANCE.md](LIVE_ACCEPTANCE.md) covers real-provider and operational evidence. [MILESTONES.md](MILESTONES.md) separates implementation, automated, live and release gates.
 
 ## References
+
+For a new capability, add its shared domain decision first, then the required route/chat/Discord adapters. Test revoked authority during deferred execution, duplicate receipts, contention and failure classification. Keep provider calls outside transactions. Add only the feature's required checked-in migration, and update operator/API/recovery guidance with the change. A new screen alone does not satisfy a milestone.
 
 - [Next.js self-hosting](https://nextjs.org/docs/app/guides/self-hosting)
 - [Startup instrumentation](https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation)

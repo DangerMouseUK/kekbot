@@ -1,0 +1,9 @@
+{
+  "name": "Chat reminder",
+  "enabled": false,
+  "messages": ["Be kind and avoid spoilers."],
+  "interval": 600,
+  "minMessages": 5,
+  "streamOnly": true,
+  "timezone": "UTC"
+}

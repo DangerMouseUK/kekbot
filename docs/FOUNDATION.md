@@ -4,6 +4,18 @@ This document preserves Milestone 1's historical provider/durability proof and i
 
 **New operators:** start with [installation](INSTALLATION.md), [provider setup](PROVIDERS.md), [OBS](OBS.md) and [backup/recovery](BACKUP_RECOVERY.md). Normal operation uses local accounts with proof tools disabled. This page is for explicitly enabled diagnostics. The current [API](API.md), [milestones](MILESTONES.md) and [documentation index](README.md) cover the assembled product.
 
+Current command syntax is in [CLI](CLI.md); delegated access is in [accounts](ACCOUNTS.md). Run a new diagnostic against new authorized infrastructure and current provider settings. Do not infer a running host, reusable capture or surviving key from dated evidence in this document.
+
+<!-- contents:start -->
+**On this page**
+
+- [Local fixture proof](#local-fixture-proof)
+- [Live Kick proof](#live-kick-proof)
+- [Container and public HTTPS](#container-and-public-https)
+- [Backup and restore](#backup-and-restore)
+- [Historical foundation acceptance evidence](#historical-foundation-acceptance-evidence)
+<!-- contents:end -->
+
 ## Local fixture proof
 
 Copy `.env.example` to `.env.local`, select `KEKBOT_MODE=fixture`, set `KICK_BROADCASTER_USER_ID=123` and `KEKBOT_PUBLIC_URL=http://127.0.0.1:3000`, keep `KEKBOT_RUN_JOBS=1`, explicitly enable `KEKBOT_ENABLE_PROOF=1` for this diagnostic workflow, and leave all live Kick credentials unset. Open that exact local origin.
