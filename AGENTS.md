@@ -22,7 +22,7 @@ Use these task-specific starting points:
 - Runtime/contracts: [architecture](docs/ARCHITECTURE.md), [API](docs/API.md).
 - Exhaustive references: [dashboard fields/examples](docs/CONFIGURATION_FIELDS.md), [control actions](docs/API_ACTIONS.md), [CLI](docs/CLI.md).
 - Verification/release: [testing](docs/TESTING.md), [live acceptance](docs/LIVE_ACCEPTANCE.md), [releasing](docs/RELEASING.md).
-- Beta evaluation: [tester guide](docs/BETA.md), [current beta notes and verification](docs/releases/v0.1.0-beta.2.md). Keep prerelease publication separate from preparation and stable acceptance; never change latest-stable discovery to select a beta.
+- Beta evaluation: [tester guide](docs/BETA.md), [beta 3 candidate notes](docs/releases/v0.1.0-beta.3.md) and [published beta 2 verification](docs/releases/v0.1.0-beta.2.md). Keep prerelease publication separate from preparation and stable acceptance; never change latest-stable discovery to select a beta.
 - Dependency maintenance: [release-controlled reviews](docs/DEPENDENCY_MAINTENANCE.md); no automated update PRs, merges or installations. Exact pin checks are offline policy checks, not vulnerability sign-off.
 
 Read only the material needed for the requested scope. The [foundation guide](docs/FOUNDATION.md) is historical diagnostic evidence; it is not the normal installation path.
@@ -66,6 +66,6 @@ For runtime/UI/package changes run `pnpm build`, `pnpm test:standalone` and `pnp
 
 Before publishing, inspect the full candidate and scan publication files/Git history with redacted output. No runtime environment files, private keys, tokens, databases, backups, raw live history, browser screenshots/traces, operator setup records, personal filesystem paths or installation addresses belong in Git or image contexts. The empty `.env.example` is the only environment-file exception. Examples use reserved domains and synthetic identities.
 
-Keep private evidence/runtime configuration outside source. Never echo a secret into a tool result, public issue, PR or log. Only audited public release bundles may be uploaded; raw test/runtime artifacts stay private. Follow [SECURITY.md](SECURITY.md) for reporting.
+Keep private evidence/runtime configuration outside source. Never echo a secret into a tool result, public issue, PR or log. Release bundles include an exact committed-byte `install.sh` download covered by `SHA256SUMS`; verify it against the source archive and do not execute it implicitly. Historical bundles without this additive asset remain supported. Only audited public release bundles may be uploaded; raw test/runtime artifacts stay private. Follow [SECURITY.md](SECURITY.md) for reporting.
 
 Report what changed, which checks passed and what remains unverified. A working screen, route or build alone does not establish release acceptance.

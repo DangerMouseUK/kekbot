@@ -1,6 +1,6 @@
 # KekBot documentation
 
-These guides describe the [published `0.1.0-beta.2` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2), SQLite schema 3 and backup/configuration formats 1. Beta 2 includes the bundled HTTPS installer correction; see its [release notes](releases/v0.1.0-beta.2.md) and [security/binary-license review](RELEASE_READINESS.md#beta-2-review). Beta 1 remains immutable. Full-product live and stable acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
+These guides describe the [published `0.1.0-beta.2` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2), SQLite schema 3 and backup/configuration formats 1. Beta 2 includes the bundled HTTPS installer correction; see its [release notes](releases/v0.1.0-beta.2.md) and [security/binary-license review](RELEASE_READINESS.md#beta-2-review). Beta 1 remains immutable. Full-product live and stable acceptance remain pending. [Beta 3 is being prepared](releases/v0.1.0-beta.3.md) with matching tools and a checksum-covered launcher download; it is not published yet. Commands and screen labels follow the current implementation; provider portals can change.
 
 **Beta 2 includes the corrected bundled HTTPS installer.** For the older beta 1 tag, use its [fixed-tool workaround](INSTALLER.md#beta-1-bundled-https-installer-fix).
 
@@ -18,12 +18,13 @@ These guides describe the [published `0.1.0-beta.2` evaluation release](https://
 
 ## Operator and user guides
 
+- [Beta 3 candidate notes](releases/v0.1.0-beta.3.md): scope, exact candidate evidence, compatibility and publication limits.
 - [Beta guide](BETA.md): publication status, source/bundle choices, supported evaluation platforms, testing, updates and safe feedback.
 - [Quickstart](QUICKSTART.md): pinned tools, isolated fixtures, generated login, first command and shutdown.
 - [Docker Desktop evaluation](DOCKER_DESKTOP.md): Windows/macOS Linux containers, private runtime files, named-volume fixtures and stop/resume.
 - [Installation](INSTALLATION.md): source-built Linux container, external runtime files, domain/IP HTTPS and owner claim.
 - [Guided installer](INSTALLER.md): explained Linux terminal walkthrough, every host/source/format choice, private layout and failure recovery.
-- [Downloadable launcher](LAUNCHER.md): no-clone entry, host checks/optional Ubuntu setup, reviewed management downloads, application shortcuts and complete lifecycle dispatch. Development addition after beta 2; older tags remain immutable.
+- [Downloadable launcher](LAUNCHER.md): no-clone entry, host checks/optional Ubuntu setup, reviewed management downloads, application shortcuts and complete lifecycle dispatch. Available from `main`; beta 3 adds a separately verified release download. Older tags remain immutable.
 - [Updating](UPDATING.md) and [uninstalling](UNINSTALLING.md): explicit version changes, pre-update checkpoints, separate-root rollback, retained-data removal and typed purge.
 - [First session](FIRST_SESSION.md): a command, cautious timer, manual alert/source, delegation and recovery checkpoint.
 - [Accounts](ACCOUNTS.md): role/capability matrix, claim, invitations, sessions and access removal.

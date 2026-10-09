@@ -18,6 +18,10 @@ try {
   run(process.execPath, ["scripts/check-dependencies.mjs"]);
   const sourceRef = run("git", ["rev-parse", "HEAD"]), { version } = JSON.parse(readFileSync("package.json", "utf8"));
   if (!/^\d+\.\d+\.\d+(?:-[a-z0-9.-]+)?$/.test(version)) throw new Error("invalid_release_version");
+  if (!/^100(?:644|755) blob [a-f0-9]{40}\tinstall\.sh$/.test(run("git", ["ls-tree", sourceRef, "--", "install.sh"]))) throw new Error("release_launcher_missing_or_not_regular");
+  // Read Git bytes, not a checkout possibly converted to CRLF. The standalone
+  // download must be identical to the launcher in the frozen source archive.
+  const launcher = execFileSync("git", ["show", `${sourceRef}:install.sh`], { windowsHide: true });
   const evidence = readEvidence(values.evidence);
   const image = values.image ? auditImage(values.image, values.gitleaks, { sourceRef, version }) : null;
   if (values.stable && releaseBlockers(evidence, { sourceRef, version, imageDigest: image?.imageId }).length) throw new Error("stable_release_acceptance_pending");
@@ -27,6 +31,7 @@ try {
   mkdirSync(destination, { recursive: true });
   const source = `${name}-source.tar.gz`;
   run("git", ["archive", "--format=tar.gz", `--prefix=${name}/`, "--output", join(destination, source), sourceRef]);
+  writeFileSync(join(destination, "install.sh"), launcher);
   if (image) {
     const save = spawn("docker", ["save", values.image], { stdio: ["ignore", "pipe", "ignore"], windowsHide: true });
     const exited = new Promise((resolveExit, reject) => { save.once("error", reject); save.once("exit", code => code === 0 ? resolveExit() : reject(new Error("release_image_save_failed"))); });
@@ -48,14 +53,14 @@ try {
       rmSync(legal, { recursive: true, force: true });
     }
   }
-  writeFileSync(join(destination, "release.json"), JSON.stringify({ format: "kekbot-release", version: 1, applicationVersion: version, sourceRef, sourceArchive: source, image, status: values.stable ? "acceptance-verified-unpublished" : "candidate-unaccepted", reproducibility: "Exact locked inputs and source identity; image bytes may vary with base image/toolchain. Archive SHA256 verifies these artifacts, not an identical rebuild.", schemaVersion: Number(readFileSync("src/server/storage/database.ts", "utf8").match(/export const SCHEMA_VERSION = (\d+);/)[1]), backupFormat: 1 }, null, 2) + "\n");
+  writeFileSync(join(destination, "release.json"), JSON.stringify({ format: "kekbot-release", version: 1, applicationVersion: version, sourceRef, sourceArchive: source, launcher: "install.sh", image, status: values.stable ? "acceptance-verified-unpublished" : "candidate-unaccepted", reproducibility: "Exact locked inputs and source identity; image bytes may vary with base image/toolchain. Archive SHA256 verifies these artifacts, not an identical rebuild.", schemaVersion: Number(readFileSync("src/server/storage/database.ts", "utf8").match(/export const SCHEMA_VERSION = (\d+);/)[1]), backupFormat: 1 }, null, 2) + "\n");
   const sums = [];
   for (const file of readdirSync(destination).sort()) {
     const hash = createHash("sha256"); for await (const bytes of createReadStream(join(destination, file))) hash.update(bytes);
     sums.push(`${hash.digest("hex")}  ${file}`);
   }
   writeFileSync(join(destination, "SHA256SUMS"), sums.join("\n") + "\n");
-  process.stdout.write(`Prepared ${values["source-only"] ? "source-only" : "source/image/notices"} ${values.stable ? "acceptance-verified" : "unaccepted candidate"} package ${name}. No tag, registry or release was published.\n`);
+  process.stdout.write(`Prepared ${values["source-only"] ? "source/launcher" : "source/image/notices/launcher"} ${values.stable ? "acceptance-verified" : "unaccepted candidate"} package ${name}. No tag, registry or release was published.\n`);
 } catch (error) {
   const code = /^[a-z_]+$/.test(error.message) ? error.message : "release_package_failed";
   process.stderr.write(`${code}; no runtime configuration or credential values printed.\n`); process.exitCode = 1;

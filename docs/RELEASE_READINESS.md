@@ -1,8 +1,8 @@
 # Stable v1 requirements and release readiness
 
-Updated: 2026-10-09. Application `0.1.0-beta.2`; SQLite schema 3; backup/configuration formats 1. [Beta 2 is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) with the bundled HTTPS installer fix and reviewed source/image assets. [Beta 1](releases/v0.1.0-beta.1.md) remains an immutable published evaluation release. Milestone 18 deployment/live acceptance is deferred; stable Milestone 19 remains pending. [Current beta verification](releases/v0.1.0-beta.2.md#verification-record) does not pass any of the 33 live/reference/operator gates.
+Updated: 2026-10-09. Application candidate `0.1.0-beta.3`; SQLite schema 3; backup/configuration formats 1. [Beta 2 is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) with the bundled HTTPS installer fix and reviewed source/image assets. [Beta 1](releases/v0.1.0-beta.1.md) remains an immutable published evaluation release. Milestone 18 deployment/live acceptance is deferred; stable Milestone 19 remains pending. [Current beta verification](releases/v0.1.0-beta.2.md#verification-record) does not pass any of the 33 live/reference/operator gates.
 
-Current development adds a [downloadable lifecycle launcher](LAUNCHER.md), independent of published beta 2 assets. It retains application/tool trust, backup/recovery and keep-data defaults. The [dated verification record](MILESTONES.md#downloadable-lifecycle-launcher--development-follow-up) identifies the tested source/CI and links final PR checks; fresh-host prerequisite assistance, actual public bootstrap discovery after merge and independent operator/live gates are not inferred from mocked package or fixture tests. No release, schema or acceptance-evidence outcome changes with this addition.
+The merged [downloadable lifecycle launcher](LAUNCHER.md) is available on `main`. [Beta 3 preparation](releases/v0.1.0-beta.3.md) packages it as a standalone checksum-covered asset, independent of published beta 2 assets. It retains application/tool trust, backup/recovery and keep-data defaults. The [dated verification record](MILESTONES.md#downloadable-lifecycle-launcher--development-follow-up) identifies the tested source/CI and links final PR checks; fresh-host prerequisite assistance, published beta 3 discovery and independent operator/live gates are not inferred from mocked package or fixture tests. Beta 3 requires a fresh source/image and license review below; schema 3, backup/configuration format 1 and the 33 pending acceptance gates remain unchanged.
 
 This crosswalk covers the normative scope in both identical [PRDs](PRD.md). It links implementation and behavioural checks rather than counting routes. **Automated** means synthetic/SQLite/browser/container evidence exists; it does not mean that all live scenarios have passed. **Pending** means required external acceptance or publication has no result. Historical Milestone 1 evidence applies only to that older foundation snapshot. The [milestones](MILESTONES.md) record exact tested commits and runs.
 
@@ -26,6 +26,7 @@ The handbook additionally includes [first session](FIRST_SESSION.md), [accounts/
 - [Beta image remediation and binary review](#beta-remediation-review)
 - [Beta 1 host installer correction](#beta-1-installer-correction)
 - [Beta 2 candidate review](#beta-2-review)
+- [Beta 3 candidate review](#beta-3-review)
 <!-- contents:end -->
 
 ## Ownership, journeys and installation
@@ -237,3 +238,10 @@ Local build, packaged CLI recovery and 13 Chromium production scenarios passed. 
 The evaluation prerelease was published at **2026-10-09 16:55:18 UTC**, without latest-stable promotion. All five uploaded asset digests match the retained audited files. Anonymous published source/image discovery, download and checksum verification passed against the exact identities above; latest-stable discovery correctly rejects the beta. Beta 1's tag and all five asset digests remain unchanged. These distribution checks do not establish a live installation or independent operator result.
 
 [Published-release campaign 37962566345](https://github.com/DangerMouseUK/kekbot/actions/runs/37962566345) passed every required job. Its Linux published-release rehearsal completed at 17:03 UTC using the host tool from evidence commit `23c166da011d75d9af8c18caeee2086b3456a08a` and explicitly verified the published frozen source/image above. Actual source/image downloads, fresh fixture installation, synthetic failed/successful updates, guarded retained removal, separate-root rollback preserving key/assets, retained-data uninstall/resume and explicit purge passed. The helper build from the evidence revision is separate and was not substituted for released assets. Source builds produce their own image identity; fixtures do not establish an upgrade of a real beta 1 installation or any live acceptance gate.
+
+<a id="beta-3-review"></a>
+## Beta 3 candidate review — preparation
+
+Application `0.1.0-beta.3` includes the merged downloadable lifecycle launcher and a standalone exact-byte launcher asset in the checksum-covered release bundle. Dependencies, SQL, schema 3 and backup/configuration format 1 are unchanged. [Beta 3 notes](releases/v0.1.0-beta.3.md#verification-record) track its own frozen source, image, asset and CI outcomes; it is not published yet.
+
+Fresh application/tooling/image/license reviews are pending in [dependency-review.json](dependency-review.json). Beta 2 sign-off above belongs only to its original artifact. Packaging contracts and the Linux archive round trip compare the standalone launcher with both committed and archived bytes without executing it. Actual candidate review, hosted soak and publication/distribution outcomes must be recorded after they run. All 33 live/reference/operator gates in [release-evidence.json](release-evidence.json) remain pending; no host or provider trial is provisioned by preparation.

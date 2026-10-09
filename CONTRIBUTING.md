@@ -50,6 +50,8 @@ External contributors can fork the repository and clone their fork instead. Copy
 
 Read [architecture](docs/ARCHITECTURE.md) before changing boundaries and [API](docs/API.md) before changing contracts. Coding agents also follow [AGENTS.md](AGENTS.md).
 
+Beta 3 packaging exports a standalone `install.sh` from Git bytes, alongside its matching source archive and checksum index. Preserve that identity check when changing packaging; never execute a release launcher during asset verification or transfer an earlier image review to a new source. Legacy bundles without the additive `launcher` metadata remain supported. See [releasing](docs/RELEASING.md) and [candidate notes](docs/releases/v0.1.0-beta.3.md).
+
 ## Implementation expectations
 
 Keep routes/React separate from shared domain decisions. Dashboard, Kick, Discord and API controls must use the same services. Keep network calls outside SQLite transactions, persist decisions/outbox atomically, and use constraints/versions for concurrency. Never blindly resend an uncertain provider mutation. Recheck current authority when deferred effects execute.

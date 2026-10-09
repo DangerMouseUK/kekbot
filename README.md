@@ -58,7 +58,7 @@ curl --fail --location --proto '=https' --proto-redir '=https' \
 
 The [complete launcher guide](docs/LAUNCHER.md) explains prerequisite checks, optional Ubuntu 24.04 setup, source review and every option. Choose **Specific release → v0.1.0-beta.2** for the published beta. Releases, branches, PRs, exact commits and audited source/image bundles remain available, with typed trust and final review. The launcher also opens update, rollback, start/stop, status and uninstall; removal keeps data by default.
 
-This launcher is a development addition after beta 2, available from `main` after its PR merges. Existing beta tags/assets remain unchanged. Management tools and the selected application have separate identities; review both. Do not pipe a downloaded script into a shell.
+The launcher is available from `main`. [Beta 3 is being prepared](docs/releases/v0.1.0-beta.3.md) with a standalone, checksum-covered launcher download and matching versioned tools; it is not published yet. Beta 2 remains the latest published evaluation release. Existing beta tags/assets remain unchanged. Management tools and the selected application have separate identities; review both. Do not pipe a downloaded script into a shell.
 
 ### Local fixture setup
 

@@ -714,3 +714,7 @@ Local `pnpm check` passed with the ten POSIX-only installer cases explicitly ski
 A review follow-up corrects the rehearsal input for acceptance-verified bundles, which omit the application source-trust prompt. The new portable regression reproduced cancellation before the fix and now reaches final installation for both accepted and candidate metadata through the actual prompts and confirmations. Source/host preparation and post-install reporting are isolated; synthetic accepted metadata does not establish stable acceptance or publication. Final follow-up checks remain linked from PR #11, separately from the dated 52-contract campaign above.
 
 Mocked package commands do not establish a fresh Ubuntu installation. Public bootstrap discovery after merge, fresh-host prerequisites, real providers/certificates/OBS, independent operators and the 33 stable gates remain pending. This development follow-up neither replaces beta 2 artifacts nor completes Milestones 18–19.
+
+## Beta 3 preparation — 2026-10-09
+
+Beta 3 packages the merged launcher as a standalone checksum-covered download, alongside matching application/tool source and the prebuilt image. The [candidate notes](releases/v0.1.0-beta.3.md) record compatibility, asset identities and fresh verification when available. Published beta 1/2 assets stay immutable; dependencies, SQL and data formats are unchanged. Preparation does not publish a release or pass Milestones 18–19. All 33 live/reference/operator gates remain pending, and no live test host is available.

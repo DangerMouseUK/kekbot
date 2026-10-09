@@ -12,6 +12,11 @@ try {
   const root = resolve("output/release"), packages = readdirSync(root, { withFileTypes: true }).filter(entry => entry.isDirectory());
   if (packages.length !== 1) throw new Error("release_roundtrip_requires_one_candidate");
   const directory = join(root, packages[0].name), metadata = JSON.parse(readFileSync(join(directory, "release.json"), "utf8"));
+  if (metadata.launcher !== "install.sh" || !/^[a-f0-9]{40}$/.test(metadata.sourceRef ?? "")) throw new Error("release_roundtrip_launcher_identity_missing");
+  const launcher = readFileSync(join(directory, metadata.launcher));
+  const committedLauncher = execFileSync("git", ["show", `${metadata.sourceRef}:install.sh`], { windowsHide: true });
+  const archivedLauncher = execFileSync("tar", ["-xOzf", join(directory, metadata.sourceArchive), `${packages[0].name}/install.sh`], { windowsHide: true });
+  if (!launcher.equals(committedLauncher) || !launcher.equals(archivedLauncher)) throw new Error("release_roundtrip_launcher_mismatch");
   const imageId = metadata.image?.imageId;
   if (metadata.format !== "kekbot-release" || !/^sha256:[a-f0-9]{64}$/.test(imageId ?? "")) throw new Error("release_roundtrip_invalid_image_identity");
   const archives = readdirSync(directory).filter(name => name.endsWith("-linux-amd64-image.tar.gz"));
@@ -24,6 +29,6 @@ try {
   run([...options, "fixture-seed"]);
   const diagnosis = JSON.parse(run([...options, "doctor"]));
   if (diagnosis.mode !== "fixture" || diagnosis.integrity !== "ok" || Number(diagnosis.schemaVersion?.value) !== metadata.schemaVersion || !diagnosis.accounts.some(account => account.role === "owner" && account.count === 1)) throw new Error("release_roundtrip_diagnostics_failed");
-  process.stdout.write("Exported image archive loaded with its recorded identity; fresh non-root/read-only fixture installation and diagnostics passed without network access.\n");
+  process.stdout.write("Standalone launcher matches committed and archived source bytes. Exported image archive loaded with its recorded identity; fresh non-root/read-only fixture installation and diagnostics passed without network access.\n");
 } catch { process.stderr.write("release_archive_roundtrip_failed; no runtime configuration or credential values printed.\n"); process.exitCode = 1; }
 finally { if (created) run(["volume", "rm", volume]); }
