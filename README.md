@@ -7,7 +7,9 @@
 
 KekBot brings Kick chat automation, Discord moderator controls, OBS sources and YouTube requests into a self-hosted dashboard. One installation serves one creator and their moderator team. You own the provider applications, configuration, local accounts and data.
 
-**Status: preparing `v0.1.0-beta.1`.** This is an evaluation build. The [image dependency review](docs/RELEASE_READINESS.md#beta-dependency-review) remains blocked; final binary license review, full-product live testing and stable acceptance are pending. Start with the [beta guide](docs/BETA.md) for installation choices, known limits and how to help test. The beta has not been published and downloadable image assets were withheld. See the [release notes](docs/releases/v0.1.0-beta.1.md), [milestones](docs/MILESTONES.md) and [release readiness](docs/RELEASE_READINESS.md) for evidence.
+**Status: [v0.1.0-beta.1 is available](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1) for evaluation.** The exact retained image has passed its [dependency and binary-license review](docs/RELEASE_READINESS.md#beta-remediation-review). This is an evaluation build; full-product live testing and all 33 stable acceptance gates remain pending. Start with the [beta guide](docs/BETA.md) for installation choices and known limits. The [release notes](docs/releases/v0.1.0-beta.1.md), [milestones](docs/MILESTONES.md) and [release readiness](docs/RELEASE_READINESS.md) record exact evidence. Select **Specific release** in the installer; the latest-stable default excludes betas.
+
+**Beta 1 installer issue:** bundled domain/IP HTTPS needs the [fixed host tool and walkthrough](docs/INSTALLER.md#beta-1-bundled-https-installer-fix). Fixture evaluation, external proxies and manual Compose deployment are unaffected. The published application assets remain unchanged.
 
 ## What you can do
 
@@ -25,12 +27,14 @@ Discord and YouTube are optional to enable. KekBot runs without a project-operat
 
 Daily operation includes dedicated queues for pending rewards and uncertain provider deliveries, independent of recent history. The [user guide](docs/USER_GUIDE.md#points-and-rewards) explains fulfillment; the [operations guide](docs/OPERATIONS.md#reconcile-an-uncertain-action) explains inspecting and reconciling delivery without resending it.
 
+The candidate [runtime image](docs/RUNTIME_IMAGE.md) contains Node and the required native libraries without a shell or package manager. Use the documented Node maintenance commands. The guide covers Alpine/musl beta compatibility, the separate proxy build, binary scanning and bundled legal notices; the [release review](docs/RELEASE_READINESS.md#beta-remediation-review) binds checks to the published artifacts.
+
 ## Choose your starting point
 
 | You want to… | Start here | What you need |
 | --- | --- | --- |
 | Explore safely | [Local quickstart](docs/QUICKSTART.md) | Git, pinned Node/pnpm; no provider accounts or Docker |
-| Evaluate the first beta | [Beta guide](docs/BETA.md) | A disposable installation, reviewed source or the exact published beta assets when available |
+| Evaluate the first beta | [Beta guide](docs/BETA.md) | A disposable installation, reviewed source or the exact published beta assets |
 | Host a real bot | [Guided terminal installer](docs/INSTALLER.md) or [manual installation](docs/INSTALLATION.md) | Linux x86-64, Python 3, Git, Docker/Compose, local persistent disk and public HTTPS |
 | Configure a fresh dashboard | [First session](docs/FIRST_SESSION.md) | Owner login and optional provider connections |
 | Join an existing team | [Accounts](docs/ACCOUNTS.md) → [user guide](docs/USER_GUIDE.md) | A private invitation from your installation's operator |

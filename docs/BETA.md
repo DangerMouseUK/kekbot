@@ -2,14 +2,16 @@
 
 This guide is for people evaluating `v0.1.0-beta.1`, including operators who have never used KekBot. Read the [release notes](releases/v0.1.0-beta.1.md) before choosing an installation. Return to the [documentation index](README.md).
 
-**Publication status: preparation only.** There is no published beta tag, downloadable release or registry image yet. The commands for a published tag below apply only after the repository owner publishes it. Until then, use the exact candidate commit recorded in the release notes, or a trusted audited candidate bundle. Do not assume `main` is the frozen beta.
+**Published on 2026-10-09:** [v0.1.0-beta.1](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Downloadable source/image/notices/checksum assets identify the frozen build; there is no registry image or supported stable release. Use **Specific release** explicitly. Do not assume `main` is the frozen beta.
+
+**Bundled HTTPS installer issue:** the original beta tag's tool cannot build Caddy for domain/IP installations. Use the [fixed-tool walkthrough](INSTALLER.md#beta-1-bundled-https-installer-fix) for those modes. The fixture walkthrough below, external-proxy mode and manual Compose deployment are unaffected; application assets and checksums stay unchanged.
 
 **On this page**
 
 - [What the beta means](#what-the-beta-means)
 - [Choose an installation](#choose-an-installation)
-- [Before publication](#before-publication)
-- [After publication](#after-publication)
+- [Install the published beta](#install-the-published-beta)
+- [Evaluate another reviewed candidate](#evaluate-another-reviewed-candidate)
 - [Finish setup and test a workflow](#finish-setup-and-test-a-workflow)
 - [Update, recover or remove](#update-recover-or-remove)
 - [Send useful, safe feedback](#send-useful-safe-feedback)
@@ -18,7 +20,7 @@ This guide is for people evaluating `v0.1.0-beta.1`, including operators who hav
 
 The beta includes the implemented Kick commands/timers, local accounts, Discord controls, alerts/OBS sources, YouTube request queue, moderation, community features and host lifecycle tools. It is intended to find installation and real-world workflow problems. [The notes](releases/v0.1.0-beta.1.md#included-in-this-beta) describe scope; the [user guide](USER_GUIDE.md) explains daily use.
 
-Automated fixtures exercise these workflows without contacting live providers. Current full-product Kick → Discord → OBS delivery, public certificate renewal, independent installations and recovery onto another host still need live evidence. The [image dependency review](RELEASE_READINESS.md#beta-dependency-review) also remains blocked, with final binary license review pending; downloadable image assets were withheld. The historical Kick foundation proof applies to its original source only. Start on a disposable evaluation installation and keep a working recovery copy before using real data. Beta feedback does not automatically pass the [stable acceptance gates](RELEASE_READINESS.md).
+Automated fixtures exercise these workflows without contacting live providers. Current full-product Kick → Discord → OBS delivery, public certificate renewal, independent installations and recovery onto another host still need live evidence. The retained candidate has passed its [image and binary-license review](RELEASE_READINESS.md#beta-remediation-review); raw tooling/proxy warnings and their verified remediation or not-affected basis remain documented. The historical Kick foundation proof applies to its original source only. Start on a disposable evaluation installation and keep a working recovery copy before using real data. Beta feedback does not automatically pass the [stable acceptance gates](RELEASE_READINESS.md).
 
 ## Choose an installation
 
@@ -26,47 +28,49 @@ Automated fixtures exercise these workflows without contacting live providers. C
 | --- | --- | --- |
 | Explore without provider accounts | [Fixture quickstart](QUICKSTART.md), then [first session](FIRST_SESSION.md) | Git, pinned Node/pnpm; generated local account and simulated delivery/playback |
 | Evaluate on Windows or macOS | [Docker Desktop guide](DOCKER_DESKTOP.md) | Linux containers and a separate fixture volume; this is not native host installation |
-| Evaluate the distributed Linux image | [Guided installer](INSTALLER.md) with **Specific release**, or **Local audited release bundle** before publication | Linux x86-64, Python 3.10+, Git, Docker Engine/Compose; exact prebuilt image and private installation outside source |
+| Evaluate the distributed Linux image | [Guided installer](INSTALLER.md) with **Specific release**, or **Local audited release bundle** for a trusted retained download | Linux x86-64, Python 3.10+, Git, Docker Engine/Compose; exact prebuilt image and private installation outside source |
 | Build the beta yourself | Guided installer **Exact commit**, or [manual source/Compose installation](INSTALLATION.md) | Full reviewed candidate SHA, Docker and build resources; a rebuild has its own image identity |
 
 The only prebuilt application format is a **Linux amd64 Docker image archive**. The audited source archive is a second option and builds with Docker. Native Windows/macOS executables, `.deb`/`.rpm`, ARM64 and a mutable registry `latest` image are not offered. No supported stable release exists; the wizard's **Latest stable** default deliberately fails instead of silently installing a beta.
 
-### Before publication
+<a id="after-publication"></a>
+### Install the published beta
 
-From Bash on a Linux evaluation host, clone and pin the reviewed **tool** source:
+From Bash on a Linux evaluation host, clone and pin the published **tool** source:
 
 ```sh
 git clone https://github.com/DangerMouseUK/kekbot.git kekbot-beta-tools
 cd kekbot-beta-tools
-git fetch origin FROZEN_FULL_SHA
-git switch --detach FROZEN_FULL_SHA
+git fetch origin tag v0.1.0-beta.1
+git switch --detach v0.1.0-beta.1
 git rev-parse HEAD
 python3 -B installer/kekbot.py --help
 ```
 
-Replace `FROZEN_FULL_SHA` with the full 40-character candidate commit from the [verification record](releases/v0.1.0-beta.1.md#verification-record). Review that commit and its checks before running management code with host authority. Then:
+The expected SHA is `42f23070c085b445760429beac6f0e7c897830c5`. Review that tool and its [verification record](releases/v0.1.0-beta.1.md#verification-record) before granting host authority. Then:
 
 ```sh
 sudo python3 -B installer/kekbot.py --action install
 ```
 
-Choose **Isolated fixture evaluation**, a new root outside the checkout, and **Exact commit** with the same full SHA. That path builds source. For a trusted CI candidate download instead, extract the workflow artifact into its own directory and choose **Local audited release bundle** with the absolute directory containing `release.json` and `SHA256SUMS`. Select **Prebuilt Linux amd64 image** to test the distributed image. Follow the [installer walkthrough](INSTALLER.md#installation-choices-explained) for all remaining prompts. Only public audited bundles belong in workflow artifacts; keep installed data private.
+Choose **Isolated fixture evaluation**, a new root outside the checkout, **Specific release** → `v0.1.0-beta.1` → **Prebuilt Linux amd64 image**. Follow the [installer walkthrough](INSTALLER.md#installation-choices-explained) for remaining prompts. The wizard verifies source/image/notices checksums, version, platform, non-root user and the recorded image ID before applying. A published tag without the required audited assets is not installable through this path. Checksums detect corruption; they are not a publisher signature.
 
-The wizard displays the version, full source SHA and selected format. Because a beta is unaccepted evaluation code, it requires `TRUST <first 12 SHA characters>`, then a final `APPLY`. Cancel if these identities do not match the reviewed candidate. The tool checkout and application selection are independent; pin both deliberately.
+The wizard displays the version, full source SHA and selected format. Because a beta is unaccepted evaluation code, it requires `TRUST 42f23070c085`, then a final `APPLY`. Cancel if its identities differ from the [published asset record](releases/v0.1.0-beta.1.md#candidate-assets). The tool checkout and application selection are independent; pin both deliberately.
 
-### After publication
+For a source build, select **Build the release source** for the same release; the resulting image has its own identity. For manual source setup, pin the same tag and follow [installation](INSTALLATION.md) in full. GitHub's automatic zip/tar is not an audited installer bundle. Do not pipe a downloaded script into a root shell.
 
-First confirm that **`v0.1.0-beta.1` appears as a prerelease** on the project's [releases page](https://github.com/DangerMouseUK/kekbot/releases), with the asset set and identities in its notes. In the tool checkout above, the published tag can then be used instead of a commit:
+<a id="before-publication"></a>
+### Evaluate another reviewed candidate
+
+To test a later fix, pin its full reviewed 40-character SHA in the tool checkout:
 
 ```sh
-git fetch origin tag v0.1.0-beta.1
-git switch --detach v0.1.0-beta.1
+git fetch origin FROZEN_FULL_SHA
+git switch --detach FROZEN_FULL_SHA
 git rev-parse HEAD
 ```
 
-Review/run its installer and explicitly select **Specific release** → `v0.1.0-beta.1` → **Prebuilt Linux amd64 image**. The wizard verifies source/image/notices checksums, version, platform, non-root user and recorded image ID before applying. A published tag without the required audited assets is not installable through this path. Checksums detect corruption; they are not a publisher signature.
-
-For manual source setup, use the same pinned commit/tag and follow [installation](INSTALLATION.md) in full. Do not use GitHub's automatic source zip as an audited bundle. Do not pipe a downloaded script into a root shell.
+Review that source and its checks, then run the installer with **Exact commit** and the same full SHA; this builds source. A CI candidate bundle is a separate path: extract only the audited workflow artifact into its own directory and choose **Local audited release bundle** with the absolute directory containing `release.json` and `SHA256SUMS`. Select the desired source/image format and verify its own identities. Do not reuse the published beta's review for a later build. Only audited public bundles belong in workflow artifacts; installed data and generated credentials remain private.
 
 ## Finish setup and test a workflow
 

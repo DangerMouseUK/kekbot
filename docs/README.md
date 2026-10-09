@@ -1,6 +1,8 @@
 # KekBot documentation
 
-These guides describe the `0.1.0-beta.1` preparation candidate, SQLite schema 3, backup format 1 and configuration format 1. The beta is not published yet; [image review](RELEASE_READINESS.md#beta-dependency-review) is blocked, final binary license review and full-product live acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
+These guides describe the published `0.1.0-beta.1` evaluation beta, SQLite schema 3, backup format 1 and configuration format 1. The retained beta has passed [image and binary-license review](RELEASE_READINESS.md#beta-remediation-review) and is [published as a prerelease](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Full-product live and stable acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
+
+**Installing beta 1 with bundled HTTPS?** Use the [fixed host tool](INSTALLER.md#beta-1-bundled-https-installer-fix); the original tag's installer omits required Caddy build inputs. Fixture, external-proxy and manual Compose paths are unaffected.
 
 ## Start here
 
@@ -38,6 +40,7 @@ These guides describe the `0.1.0-beta.1` preparation candidate, SQLite schema 3,
 
 - [Contributing](../CONTRIBUTING.md) and [coding-agent instructions](../AGENTS.md).
 - [Architecture decisions](ARCHITECTURE.md) and [HTTP/domain API](API.md).
+- [Runtime image](RUNTIME_IMAGE.md): minimal container contents, musl compatibility, shell-free maintenance, proxy binary review and redistribution notices.
 - [Host lifecycle implementation](../installer/README.md): standard-library Python boundary, state protocol and offline/real-Docker tests.
 - [Action reference](API_ACTIONS.md): payloads, capabilities and availability by control surface.
 - [Documentation maintenance](DOCUMENTATION.md): editorial rules, coverage and verification procedure.

@@ -17,6 +17,10 @@ on:
         description: Review locked application/tooling and exported image vulnerabilities (read-only; advisories fail this review)
         type: boolean
         default: false
+      published_release:
+        description: Optional explicit published tag to rehearse through real release discovery and both installer formats
+        type: string
+        default: ""
 permissions:
   contents: read
 concurrency:
@@ -97,7 +101,7 @@ jobs:
         run: pnpm test:workload
   container:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 40
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       KEKBOT_RUN_JOBS: "0"
@@ -123,11 +127,8 @@ jobs:
           KEKBOT_PUBLIC_IP: 203.0.113.10
       - name: Validate handbook Compose overrides without starting services
         run: node scripts/check-doc-compose.mjs
-      - name: Check pinned Caddy configurations without issuing certificates
-        run: |
-          docker build --file deploy/Caddy.Dockerfile --tag kekbot-caddy:2.11.6 .
-          docker run --rm --env KEKBOT_DOMAIN=kekbot.example --volume "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" kekbot-caddy:2.11.6 caddy adapt --config /etc/caddy/Caddyfile > /dev/null
-          docker run --rm --env KEKBOT_PUBLIC_IP=203.0.113.10 --volume "$PWD/deploy/Caddyfile.ip:/etc/caddy/Caddyfile:ro" kekbot-caddy:2.11.6 caddy adapt --config /etc/caddy/Caddyfile > /dev/null
+      - name: Build the retained installer Caddy context and check domain/IP configurations
+        run: python3 -B installer/smoke.py --proxy-context
       - run: docker build --build-arg VCS_REF="$GITHUB_SHA" -t kekbot:ci .
       - run: pnpm test:container
       - name: Install checksum-pinned Gitleaks for image application layers
@@ -145,6 +146,11 @@ jobs:
         run: node scripts/release-roundtrip.mjs
       - name: Rehearse guided install, update recovery and uninstall with isolated fixtures
         run: sudo python3 -B installer/smoke.py
+      - name: Rehearse the explicit published release without live providers
+        if: github.event_name == 'workflow_dispatch' && inputs.published_release != ''
+        env:
+          KEKBOT_RELEASE_TAG: ${{ inputs.published_release }}
+        run: sudo --preserve-env=KEKBOT_RELEASE_TAG python3 -B installer/smoke.py --release "$KEKBOT_RELEASE_TAG"
       - name: Review frozen dependency inputs without updating versions
         if: github.event_name == 'workflow_dispatch' && inputs.dependencies
         shell: bash
@@ -157,10 +163,17 @@ jobs:
           review_status=0
           pnpm dependencies:review --scanner "$RUNNER_TEMP/trivy/trivy" --image-archive "$RUNNER_TEMP/trivy/candidate.tar" --image-findings || review_status=1
           docker save --output "$RUNNER_TEMP/trivy/proxy.tar" kekbot-caddy:2.11.6
-          pnpm dependencies:review --scanner "$RUNNER_TEMP/trivy/trivy" --image-archive "$RUNNER_TEMP/trivy/proxy.tar" --image-findings || review_status=1
+          mkdir -p "$RUNNER_TEMP/proxy-review"
+          curl --fail --location --retry 3 https://go.dev/dl/go1.27.2.linux-amd64.tar.gz --output "$RUNNER_TEMP/proxy-review/go.tar.gz"
+          printf '%s  %s\n' 'ecbadb99091a3f46e31f5f934b068b1864eafa7995211b39eaddf76996045fe5' "$RUNNER_TEMP/proxy-review/go.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/proxy-review/go.tar.gz" -C "$RUNNER_TEMP/proxy-review"
+          export GOTOOLCHAIN=local GOBIN="$RUNNER_TEMP/proxy-review/bin" GOCACHE="$RUNNER_TEMP/proxy-review/cache" GOMODCACHE="$RUNNER_TEMP/proxy-review/modules"
+          "$RUNNER_TEMP/proxy-review/go/bin/go" install golang.org/x/vuln/cmd/govulncheck@v1.8.0
+          node scripts/proxy-review.mjs --scanner "$RUNNER_TEMP/trivy/trivy" --archive "$RUNNER_TEMP/trivy/proxy.tar" --go "$RUNNER_TEMP/proxy-review/go/bin/go" --govulncheck "$GOBIN/govulncheck" || review_status=1
           exit "$review_status"
         # Only counts and bounded allowlisted advisory metadata are printed. No automatic updates,
-        # waivers, evidence writes, runtime uploads or release publication.
+        # waivers, evidence writes, runtime uploads or release publication. The exact
+        # uncompiled OpenPGP module match requires image-bound binary/symbol proof.
       - name: Upload audited candidate archives only
         if: github.event_name == 'workflow_dispatch' && inputs.package
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

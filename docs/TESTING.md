@@ -26,6 +26,8 @@ Screenshots, traces, databases, backups, workload reports and generated credenti
 
 Portable recovery regressions also exercise proxy build/inspection failure before root creation and successful retry, failed final/failure record writes with shutdown during install/update/rollback, and retained removal preserving recovery guards/checkpoints. These tests use real private record files and simulated Docker; Linux retains real management locks. Explicit fixture purge remains possible after an incomplete operation.
 
+Domain/IP proxy regressions inspect the actual installer Docker build context against the Dockerfile's `COPY` inputs, verify all resources in the retained tool, and reject missing inputs before creating installation state. There are now 37 installer contracts: 30 portable and seven Linux-only. The reserved example IP is classified as public only inside the isolated IP test; production address validation remains unchanged.
+
 Use the pinned Node/pnpm versions from the root README. An agent or CI can run these commands; operators do not need to execute them on a production installation.
 
 ```sh
@@ -59,12 +61,12 @@ For a focused Vitest run use `pnpm exec vitest run tests/docs.test.ts` (replace 
 Linux container checks additionally require Docker Engine/Compose:
 
 ```sh
-docker build --file deploy/Caddy.Dockerfile --tag kekbot-caddy:2.11.6 .
+python3 -B installer/smoke.py --proxy-context
 docker build --build-arg VCS_REF=<CANDIDATE_COMMIT> --tag kekbot:ci .
 pnpm test:container
 ```
 
-Run the Compose validation and Caddy adaptation commands from [.github/workflows/ci.yml](../.github/workflows/ci.yml) as well. Container tests create uniquely named disposable volumes/networks and remove only their own resources. They do not modify an operator installation or request public certificates.
+The proxy command builds from copied, retained installer resources using the real staging helper, then adapts domain/IP configurations. Building directly from the whole checkout alone cannot detect missing staged files. Run the Compose validation from [.github/workflows/ci.yml](../.github/workflows/ci.yml) as well. Container tests create uniquely named disposable volumes/networks and remove only their own resources. They do not modify an operator installation or request public certificates.
 
 ## GitHub Actions
 
@@ -132,7 +134,7 @@ The report contains request/outcome counts, intake p95, receipt-to-decision/repl
 
 ## Security and release evidence
 
-The [first beta verification record](releases/v0.1.0-beta.1.md#verification-record) binds automated results to its frozen candidate. Its manual campaign selects `soak=true`, `package=true` and `dependencies=true`; ordinary PR checks still run independently. Explicit beta installer tests preserve stable rejection and inspect both source/image bundle paths. Version checks keep package, Docker and Compose defaults aligned. Image-review regressions verify opt-in finding metadata omits raw/private fields, bounds output and keeps all severity counts/failure outcomes. Publication download/discovery and real provider/OBS sessions stay pending until actually run.
+The [first beta verification record](releases/v0.1.0-beta.1.md#verification-record) binds automated results to its frozen candidate. Its manual campaign selects `soak=true`, `package=true` and `dependencies=true`; ordinary PR checks still run independently. Explicit beta installer tests preserve stable rejection and inspect both source/image bundle paths. Version checks keep package, Docker and Compose defaults aligned. Image-review regressions verify opt-in finding metadata omits raw/private fields, bounds output and keeps all severity counts/failure outcomes. Actual published source/image discovery, checksums and latest-stable rejection now have dated evidence in the beta notes. The separate published-asset Linux lifecycle rehearsal passed and is recorded there against its exact helper and release identities. Real provider/OBS and unaided operator sessions remain pending.
 
 Use checksum-verified Gitleaks 8.30.1 for a redacted scan of a clean publication export (`gitleaks dir --redact --no-banner <EXPORT>`) and history (`gitleaks git --redact --no-banner --log-opts="--all" .`). Do not scan private runtime storage into public logs or add broad exclusions to silence findings. Review ignored/untracked artifacts and image contexts before pushing. Dependency audits and secret scans complement code/permission review; they do not prove the absence of vulnerabilities.
 

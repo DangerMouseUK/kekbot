@@ -308,6 +308,59 @@ class RecoveryFailures(unittest.TestCase):
         self.assertEqual(installed["status"], "ready")
         self.assertEqual(self.engine.load()["proxyImageId"], IMAGE)
 
+    def assert_proxy_install_has_complete_context_and_retained_resources(self, proxy):
+        origin = "https://bot.example" if proxy == "domain" else "https://203.0.113.10"
+        options = core.validate_options("kekbot-test", "live", proxy, origin, 3210, "user")
+        deploy = core.proxy_directory()
+        expected = {"Caddyfile", "Caddyfile.ip", "Caddy.Dockerfile", "caddy/go.mod", "caddy/go.sum", "caddy/main.go"}
+        builds = []
+
+        def command(args, **_kwargs):
+            if args[:2] == ["docker", "build"]:
+                context = Path(args[-1])
+                dockerfile = Path(args[args.index("--file") + 1])
+                self.assertEqual(dockerfile, context / "deploy/Caddy.Dockerfile")
+                self.assertEqual({str(path.relative_to(context)).replace("\\", "/") for path in context.rglob("*") if path.is_file()}, {"deploy/" + name for name in expected})
+                # Check actual consumer paths, not just the producer's file list.
+                for line in dockerfile.read_text().splitlines():
+                    if line.startswith("COPY ") and "--from=" not in line:
+                        for name in line.split()[1:-1]:
+                            self.assertEqual((context / name).read_bytes(), (deploy.parent / name).read_bytes())
+                builds.append(True)
+            return IMAGE if args[:3] == ["docker", "image", "inspect"] else ""
+
+        with patch.object(self.engine, "command", side_effect=command), patch.object(self.engine, "stage_image", return_value=IMAGE), patch.object(self.engine, "cli", return_value={}), patch.object(self.engine, "wait_ready"), patch.object(core.socket, "socket"):
+            installed = self.engine.install(options, target())
+        self.assertEqual(installed["status"], "ready")
+        self.assertEqual(len(builds), 1)
+        for name in expected:
+            self.assertEqual((self.root / "proxy" / name).read_bytes(), (deploy / name).read_bytes())
+            self.assertEqual((self.root / "tool/deploy" / name).read_bytes(), (deploy / name).read_bytes())
+        # The copied tool must work after the original checkout is unavailable.
+        with patch.object(core, "__file__", str(self.root / "tool/core.py")):
+            retained = core.proxy_directory()
+            self.assertEqual(retained, self.root / "tool/deploy")
+            context = self.root / "retained-context"
+            core.stage_proxy_context(retained, context)
+            self.assertEqual((context / "deploy/caddy/go.sum").read_bytes(), (deploy / "caddy/go.sum").read_bytes())
+
+    def test_domain_install_stages_and_retains_all_proxy_build_inputs(self):
+        self.assert_proxy_install_has_complete_context_and_retained_resources("domain")
+
+    def test_ip_install_stages_and_retains_all_proxy_build_inputs(self):
+        # Keep the example reserved; simulate public classification offline.
+        with patch.object(core.ipaddress.IPv4Address, "is_global", new_callable=unittest.mock.PropertyMock, return_value=True):
+            self.assert_proxy_install_has_complete_context_and_retained_resources("ip")
+
+    def test_missing_proxy_source_fails_before_creating_installation_state(self):
+        incomplete = self.root.parent / "incomplete-deploy"
+        core.copy_proxy_files(core.proxy_directory(), incomplete)
+        (incomplete / "caddy/go.sum").unlink()
+        options = core.validate_options("kekbot-test", "live", "domain", "https://bot.example", 3210, "user")
+        with patch.object(core, "proxy_directory", return_value=incomplete), patch.object(self.engine, "stage_image", return_value=IMAGE), patch.object(core.socket, "socket"), self.assertRaises(FileNotFoundError):
+            self.engine.install(options, target())
+        self.assertFalse(self.root.exists())
+
     def assert_shutdown_after_record_failure(self, action):
         if action != "install":
             self.record(**({"imageId": IMAGE, "status": "update-failed", "previous": dict(state=state(), backup=None, phase="stopping")} if action == "rollback" else {}))

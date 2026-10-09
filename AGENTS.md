@@ -8,7 +8,7 @@ Carry authorized work through implementation, verification and review. Do not co
 
 ## Current project and entry points
 
-KekBot is an MIT self-hosted Kick/Discord control room: one creator per installation, local accounts, SQLite/local assets, one Next.js application container and optional owner-supplied integrations. The application is a development candidate; inspect [milestones](docs/MILESTONES.md), [release readiness](docs/RELEASE_READINESS.md) and `package.json` for current versions/evidence. Never infer stable acceptance from implementation or CI.
+KekBot is an MIT self-hosted Kick/Discord control room: one creator per installation, local accounts, SQLite/local assets, one Next.js application container and optional owner-supplied integrations. The application has a published evaluation beta; inspect [milestones](docs/MILESTONES.md), [release readiness](docs/RELEASE_READINESS.md) and `package.json` for current versions/evidence. Never infer stable acceptance from implementation or CI.
 
 Use these task-specific starting points:
 
@@ -38,6 +38,7 @@ Read only the material needed for the requested scope. The [foundation guide](do
 - Keep one runtime per local SQLite installation. Builds/tests must not start live jobs. Preserve bounded processing, durable leases, snapshot recovery and explicit media resume after restart.
 - Avoid new production dependencies unless justified. Pin exact additions and review licenses/notices.
 - Dependency remediations must preserve tooling behavior. Keep local patches scoped and checked in, with exploit/compatibility tests and a removal condition. `pnpm dependencies:audit` retains raw counts and verifies the exact local braces patch; never replace this with a global advisory ignore or call a patched registry finding a clean raw scan.
+- Preserve the shell-free image's real apk inventory and separate runtime notices. The disabled optimizer must not ship Sharp/libvips. Caddy's locked Go graph and unstripped exact-image binary proof are separate from application audits; only the verified absent OpenPGP packages may receive the narrow not-affected classification, with raw counts retained. See [runtime image](docs/RUNTIME_IMAGE.md).
 
 ## Documentation quality and evidence
 
@@ -53,7 +54,7 @@ Follow [documentation maintenance](docs/DOCUMENTATION.md) for repository-wide gu
 
 ## Verification
 
-Host lifecycle code uses Python 3.10+ standard library, separate from the TypeScript app. `pnpm check` includes offline installer contracts; Linux CI additionally tests locks/transactions and the audited-bundle install/update-failure/rollback/uninstall rehearsal. Keep final typed review, latest-stable fail-closed behavior, immutable source/image selection, private state and retained-data defaults. Do not adopt arbitrary manual deployments, execute downloaded management code, prune global Docker resources or claim fixture coverage as an independent installer trial.
+Host lifecycle code uses Python 3.10+ standard library, separate from the TypeScript app. `pnpm check` includes offline installer contracts; Linux CI additionally tests locks/transactions and the audited-bundle install/update-failure/rollback/uninstall rehearsal. Proxy changes must pass the retained/staged context build and domain/IP adaptation (`installer/smoke.py --proxy-context`); a whole-checkout build or local-proxy fixture alone cannot prove bundled HTTPS staging. Keep final typed review, latest-stable fail-closed behavior, immutable source/image selection, private state and retained-data defaults. Do not adopt arbitrary manual deployments, execute downloaded management code, prune global Docker resources or claim fixture coverage as an independent installer trial.
 
 Run `pnpm check` and targeted checks appropriate to the change. Documentation-only work requires link/publication checks and validation of changed procedures; avoid unnecessary application rewrites or repeated performance tests.
 

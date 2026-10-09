@@ -1,6 +1,6 @@
 # KekBot project milestones
 
-Updated: 2026-10-08. Target: complete the declared stable v1 product.
+Updated: 2026-10-09. Target: complete the declared stable v1 product.
 
 This is the milestone plan for upcoming work. It groups the requirements in the [PRD](PRD.md) and the identical [self-hosted PRD](PRD-self-hosted.md) into substantial build stages, followed by a bulk testing and release phase. The existing [roadmap](ROADMAP.md) remains the detailed feature and evidence reference; this document sets the working sequence and testing schedule. [Architecture decisions](ARCHITECTURE.md) continue to apply.
 
@@ -42,6 +42,10 @@ The public operator path is [installation](INSTALLATION.md) → [providers](PROV
 - [Next work](#next-work)
 - [Post-milestone repository quality follow-up](#post-milestone-repository-quality-follow-up)
 - [Repository review fixes — 2026-10-09](#repository-review-fixes--2026-10-09)
+- [First-beta preparation — 2026-10-09](#first-beta-preparation--2026-10-09)
+- [First-beta remediation candidate — 2026-10-09](#first-beta-remediation-candidate--2026-10-09)
+- [First-beta publication and distribution rehearsal — 2026-10-09](#first-beta-publication-and-distribution-rehearsal--2026-10-09)
+- [Beta host installer correction — 2026-10-09](#beta-host-installer-correction--2026-10-09)
 <!-- contents:end -->
 
 ## Working approach
@@ -661,6 +665,30 @@ Branch `release/0.1.0-beta.1`, based on merged main `c97e812e35a2c5e5a16174e3d26
 
 Local `pnpm check` passed with **146 application tests across 23 files**, **27 portable installer contracts** and seven Linux-only contracts; Linux CI passes all **34** installer contracts. `pnpm dependencies:audit` reported zero production advisories; full tooling retains one raw high braces advisory with the exact checked-in remediation verified. This is not a clean raw tooling scan. [PR CI 37866425101](https://github.com/DangerMouseUK/kekbot/actions/runs/37866425101) passes all six required jobs at `facd7da62874655247eed3bc52f683416aed78ae`, including all three browser engines, container/proxy/recovery and both installer formats. [The extended scan](https://github.com/DangerMouseUK/kekbot/actions/runs/37866420949) fails on remaining image findings and withholds the candidate artifact; final binary license review is pending. Exact identities, the retained source-only bundle and hosted fixture soak are tracked in the [beta verification record](releases/v0.1.0-beta.1.md#verification-record).
 
-The [full hosted soak job](https://github.com/DangerMouseUK/kekbot/actions/runs/37864110194/job/113606620121) passed at `45f4a92fb700c3d0ed78abe25a875bee5e57ea9b`: 3,600 seconds at 25 commands/second, 60 seconds at 100/second and five browser clients. All 96,000 requests produced decisions/replies with zero failures; peak sampled RSS was 509.8 MiB, backlog drained in 497.96 ms and restart readiness took 920.86 ms. Application/workload inputs match the final code candidate; later images have separate verification. The overall campaign still fails its earlier image scan. This hosted fixture result is not reference-host or real-provider acceptance.
+The [full hosted soak job](https://github.com/DangerMouseUK/kekbot/actions/runs/37864110194/job/113606620121) passed at `45f4a92fb700c3d0ed78abe25a875bee5e57ea9b`: 3,600 seconds at 25 commands/second, 60 seconds at 100/second and five browser clients. All 96,000 requests produced decisions/replies with zero failures; peak sampled RSS was 509.8 MiB, backlog drained in 497.96 ms and restart readiness took 920.86 ms. This historical run predates the final musl runtime and packaging/configuration changes; those have separate functional verification. It does not measure the new image. The overall campaign still fails its earlier image scan. This hosted fixture result is not reference-host or real-provider acceptance.
 
 Beta preparation does not complete Milestones 18–19's unavailable live/reference/independent scenarios. Deployment remains deferred. No infrastructure, beta tag, GitHub release or registry image is created by this work.
+
+
+## First-beta remediation candidate — 2026-10-09
+
+The owner requested resolution of image advisories and binary redistribution before publication. Frozen source `42f23070c085b445760429beac6f0e7c897830c5` replaces the earlier blocked image with a shell-free, non-root Node/musl runtime, target-only SQLite bindings and full runtime legal notices. The standard Caddy rebuild uses fixed Go/networking inputs and verifies the absent OpenPGP packages against the exact image binary.
+
+[Candidate campaign 37949098148](https://github.com/DangerMouseUK/kekbot/actions/runs/37949098148) passes: 155 application tests / 26 files, all 34 Linux installer contracts, packaged CLI, 13 scenarios in each of three browser engines, real SQLite/storage faults, TLS/SSE, native runtime/public trust-store checks, exported-image round trip and both installer lifecycle formats. Production packages and the application image have zero reported advisories. Raw tooling retains one exactly patched braces entry; the proxy retains one verified not-affected OpenPGP module entry. [Binary/license review and exact identities](RELEASE_READINESS.md#beta-remediation-review) record the basis, unchanged upstream texts and retained five-file asset set. No scanner-wide exclusion or affected-code waiver was introduced.
+
+The earlier Debian/image failures and one-hour hosted standalone soak remain historical evidence above. The final musl image has functional/container evidence, not a new one-hour or reference-host performance measurement. All 33 live/reference/operator gates remain pending. This evaluation beta does not complete stable Milestone 19 or the deferred Milestone 18 campaign. Actual release publication and installation from published assets are recorded in the [beta notes](releases/v0.1.0-beta.1.md#verification-record) only after they occur.
+
+
+## First-beta publication and distribution rehearsal — 2026-10-09
+
+Published [v0.1.0-beta.1](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1) at `2026-10-09T15:24:22Z` as a prerelease with latest-release promotion disabled. Its tag targets frozen source `42f23070c085b445760429beac6f0e7c897830c5`; all five GitHub asset digests match the retained audited source/image/notices/metadata/checksum files. No registry or live deployment was published.
+
+After publication, the actual host-tool resolver anonymously downloaded and verified both formats and rejected the beta during latest-stable discovery. [Distribution CI 37951513492](https://github.com/DangerMouseUK/kekbot/actions/runs/37951513492), helper revision `c7dbebad8dd68403f30109a349812d4d0d830315`, passed every ordinary job plus an actual published-asset lifecycle rehearsal: image install, signed fixture intake, failed-update guards, separate-root rollback, published-source build, successful update, retained removal/resume and purge. The selected image remains `sha256:3ed479c993b7ce69f7fcb49f3de2f1b03ff3266ea74ede13cee1bfc4529d0c20`; helper builds are not substituted into the release.
+
+The [beta notes](releases/v0.1.0-beta.1.md#verification-record) retain checksums and outcomes. Publication completes the first evaluation-beta distribution task. Milestone 18 and stable Milestone 19 remain pending their 33 live/reference/independent gates; this automated fixture run does not establish an unaided installation or real provider/OBS delivery.
+
+## Beta host installer correction — 2026-10-09
+
+Host-tool commit `971656b7a4c8bf0d6e908b6ae786422716669f49` fixes omitted Caddy Go inputs and context paths for bundled domain/IP installation, retaining all resources with the copied tool. Local checks pass 155 application tests and 30 portable installer contracts. [Correction CI 37955804079](https://github.com/DangerMouseUK/kekbot/actions/runs/37955804079) passed every required job at `4ec86e40208965d833b5571825736a750572ffd8`, including all 37 Linux installer contracts, the real retained/staged proxy build and domain/IP adaptation, all browser engines and container/lifecycle checks. The [dated correction record](RELEASE_READINESS.md#beta-1-installer-correction) separates these results from the original local-proxy fixture rehearsal.
+
+The [fixed-tool walkthrough](INSTALLER.md#beta-1-bundled-https-installer-fix) keeps the published beta tag/assets immutable and selects the same application image independently. No migration, new application distribution or live deployment is included. All 33 live/reference/operator gates remain pending.

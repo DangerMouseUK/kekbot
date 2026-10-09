@@ -1,13 +1,24 @@
 # Changelog
 
-## 0.1.0-beta.1 — Preparation candidate, unreleased
+## Unreleased — host installer fix
+
+- Fix bundled domain/IP HTTPS installation by staging the locked Caddy Go sources at the Dockerfile's required paths and retaining them with the copied management tool. Add portable regressions for both modes, retained resources and missing inputs before root creation; Linux CI now builds from that staged context and adapts both configurations without requesting certificates.
+- Document the original beta 1 installer issue and a separately pinned fixed-tool workaround. The published application tag/assets, dependency review and data formats are unchanged; real certificate/provider acceptance remains pending.
+
+## 0.1.0-beta.1 — 2026-10-09
+
+- Assemble a shell-free application runtime from digest-pinned Node 24.21.0 Alpine stages with only musl/GCC runtime libraries, retaining its real OS package database and runtime notices in the image and notices archive. Disable the unused Next image optimizer and reject Sharp/libvips in standalone output.
+- Rebuild standard Caddy 2.11.6 using pinned Go 1.27.2 and x/net 0.60.0. Add exact-image binary vulnerability review; the OpenPGP module match requires proof that the packages are absent, with raw counts preserved. Additional findings and unavailable evidence block publication.
+- Add packaging/proof regression tests and maintenance/redistribution guidance. The frozen candidate passes image and manual binary/notices review; the first evaluation prerelease is published with retained source/image/notices/checksums. Actual published source/image download and Linux install/update-failure/rollback/uninstall rehearsals passed; latest-stable discovery still rejects the beta. Live/stable gates are unchanged.
+
+### Earlier beta preparation
 
 - Named the first beta candidate and aligned application, Docker and Compose versions. Added beta installation/update/feedback guidance, release notes and a separate prerelease checklist. Explicit beta selection remains separate from the fail-closed latest-stable default.
 - Added beta source/image installer contracts and distribution-version checks. Candidate packaging retains audited source, Linux amd64 image, notices, metadata and checksums; CI performs fixture verification without live credentials or automatic release publication.
 - Added opt-in, bounded image advisory metadata to dependency reviews so failed scans can be investigated without publishing raw scanner reports or paths. Findings still block asset upload; no advisory is waived.
 - Moved both application stages to the official Node 24.21.0 Debian 13 slim base, applied available Debian security updates, removed unused bundled npm/Corepack/Yarn tools from the runtime image, and selected the proxy's fixed zlib `1.3.2-r1`. Build tooling remains intact. Linux CI checks maintenance without those runtime tools; remaining image findings still require review before publication.
 - No application dependency, database migration, backup or configuration format change from the final development candidate. The features and fixes below are included. Full-product live sessions, real OBS/provider delivery, reference-host and independent-operator acceptance remain pending; see the [beta verification record](docs/releases/v0.1.0-beta.1.md#verification-record).
-- Recorded exact candidate package passes, failed image scans and pending binary license review. Image upload/publication remains blocked; no release, registry image or advisory waiver is created by this preparation.
+- Recorded the earlier candidate package passes, failed image scans and then-pending binary license review. Those historical blockers are superseded by the separately frozen remediation candidate above; prior images are not reused.
 
 ## 0.1.0-dev.0 — Local product build, unreleased
 
@@ -19,7 +30,7 @@
 
 - Fixed guided lifecycle recovery: prepare Caddy before creating installation state, attempt shutdown even when final/failure record writes fail, and preserve incomplete update/rollback guards and checkpoints during retained uninstall. Added portable failure regressions and clarified operator recovery guidance.
 
-- Added a guided Linux terminal installer, explicit updater with stopped-host backups and separate-root rollback, status/start/stop, and an uninstaller that retains data by default with an additional typed purge. Version selection supports latest stable (fail-closed until publication), exact releases, branches, PR heads, full commits and local audited source/image bundles. Added offline contract/failure tests, a real-image Linux CI lifecycle rehearsal and complete managed-host guides; provider/independent-installer acceptance remains pending.
+- Added a guided Linux terminal installer, explicit updater with stopped-host backups and separate-root rollback, status/start/stop, and an uninstaller that retains data by default with an additional typed purge. Version selection supports latest stable (fail-closed until stable publication), exact releases, branches, PR heads, full commits and local audited source/image bundles. Added offline contract/failure tests, a real-image Linux CI lifecycle rehearsal and complete managed-host guides; provider/independent-installer acceptance remains pending.
 
 - Expanded the public handbook with first-session, account/capability, Docker Desktop, complete CLI, field/example and action references. Added detailed command/timer/moderation/economy/activity workflows, installation checkpoints, separate-key mounts, monitoring and recovery procedures. CI now checks every configuration field is documented, validates all 12 JSON examples against strict schemas and parses handbook Compose overrides against the base service. Historical evidence and pending live release gates are unchanged.
 

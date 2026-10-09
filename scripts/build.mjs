@@ -1,7 +1,8 @@
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, realpathSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, realpathSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { writeNotices } from "./license-notices.mjs";
+import { sqliteTarget as nativeSqliteTarget, trimSqlitePrebuilds } from "./sqlite-packaging.mjs";
 
 const result = spawnSync(process.execPath, ["node_modules/next/dist/bin/next", "build"], {
   stdio: "inherit",
@@ -27,4 +28,17 @@ for (const part of ["package.json", "LICENSE", "lib", "prebuilds", "build/Releas
   if (existsSync(source)) cpSync(source, join(sqliteTarget, part), { recursive: true, dereference: true });
 }
 if (existsSync("public")) cpSync("public", ".next/standalone/public", { recursive: true });
+trimSqlitePrebuilds(".next/standalone", nativeSqliteTarget(process.platform, process.arch, process.report.getReport().header.glibcVersionRuntime));
+// Fail rather than silently shipping native binaries omitted from the review.
+function verifyNoImageOptimizer(directory) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) verifyNoImageOptimizer(path);
+    if (entry.isFile() && entry.name === "package.json") {
+      const pkg = JSON.parse(readFileSync(path, "utf8"));
+      if (pkg.name === "sharp" || pkg.name?.startsWith("@img/")) throw new Error("unused_image_optimizer_in_standalone");
+    }
+  }
+}
+verifyNoImageOptimizer(".next/standalone");
 writeNotices();

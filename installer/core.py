@@ -26,6 +26,7 @@ API = "https://api.github.com/repos/DangerMouseUK/kekbot"
 SHA = re.compile(r"[a-f0-9]{40}\Z")
 IMAGE_ID = re.compile(r"sha256:[a-f0-9]{64}\Z")
 VERSION = re.compile(r"\d+\.\d+\.\d+(?:-[a-z0-9.-]+)?\Z")
+PROXY_FILES = ("Caddyfile", "Caddyfile.ip", "Caddy.Dockerfile", "caddy/go.mod", "caddy/go.sum", "caddy/main.go")
 
 
 class Problem(Exception):
@@ -435,6 +436,25 @@ def compose_spec(root, state):
     return spec
 
 
+def proxy_directory():
+    tool = Path(__file__).resolve().parent
+    deploy = tool.parent / "deploy"
+    return deploy if deploy.is_dir() else tool / "deploy"
+
+
+def copy_proxy_files(source, destination):
+    for name in PROXY_FILES:
+        target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        shutil.copyfile(source / name, target)
+
+
+def stage_proxy_context(deploy, context):
+    # Docker COPY paths are relative to the context, including deploy/caddy.
+    copy_proxy_files(deploy, context / "deploy")
+    return context / "deploy" / "Caddy.Dockerfile"
+
+
 class Installation:
     def __init__(self, root, *, command=run, progress=print):
         self.root = validate_root(str(root))
@@ -528,19 +548,15 @@ class Installation:
                 raise Problem("A selected application/proxy port is unavailable. Choose a free port or an existing reverse proxy.") from error
         image_id = self.stage_image(target)
         tool = Path(__file__).resolve().parent
-        deploy = tool.parent / "deploy"
-        if not deploy.is_dir():
-            deploy = tool / "deploy"
-        proxy_files = ("Caddyfile", "Caddyfile.ip", "Caddy.Dockerfile")
+        deploy = proxy_directory()
         proxy_image_id = None
         if options["proxy"] in ("domain", "ip"):
             self.progress("Building the pinned Caddy proxy before creating installation state. DNS and ports remain your responsibility.")
             with tempfile.TemporaryDirectory(prefix="kekbot-proxy-stage-") as temporary:
                 context = Path(temporary)
-                for name in proxy_files:
-                    shutil.copyfile(deploy / name, context / name)
+                dockerfile = stage_proxy_context(deploy, context)
                 proxy_tag = "kekbot-caddy-managed:" + uuid.uuid4().hex
-                self.command(["docker", "build", "--file", str(context / "Caddy.Dockerfile"), "--tag", proxy_tag, str(context)])
+                self.command(["docker", "build", "--file", str(dockerfile), "--tag", proxy_tag, str(context)])
                 proxy_image_id = self.command(["docker", "image", "inspect", "--format", "{{.Id}}", proxy_tag])
                 if not IMAGE_ID.fullmatch(proxy_image_id):
                     raise Problem("Proxy image identity could not be verified. No installation state was created.")
@@ -560,8 +576,7 @@ class Installation:
             os.chown(self.root / "backups", 1000, 1000)
             for name in ("core.py", "kekbot.py"):
                 shutil.copyfile(tool / name, self.root / "tool" / name)
-            for name in proxy_files:
-                shutil.copyfile(deploy / name, self.root / "proxy" / name)
+            copy_proxy_files(deploy, self.root / "proxy")
             shutil.copytree(self.root / "proxy", self.root / "tool" / "deploy")
             mode, origin = options["mode"], options["origin"]
             write_private(self.root / "runtime.env", f"KEKBOT_MODE={mode}\nKEKBOT_RUN_JOBS=1\nKEKBOT_ENABLE_PROOF=0\nNEXT_TELEMETRY_DISABLED=1\nKEKBOT_PUBLIC_URL={origin}\nKICK_CHAT_TYPE={options['chatType']}\nKICK_CLIENT_ID=\nKICK_CLIENT_SECRET=\nKICK_BROADCASTER_USER_ID={'123' if mode == 'fixture' else ''}\n")

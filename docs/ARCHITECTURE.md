@@ -57,9 +57,9 @@ See [HTTP contracts](API.md), [action payloads](API_ACTIONS.md) and [field schem
 
 Use one pnpm project and a single long-running Node.js 24 runtime. Next.js App Router owns React presentation and HTTP routing. Provider clients, domain services, persistence, and jobs are separate TypeScript modules under `src/server`. No Redis, PostgreSQL, remote object storage, external worker, or multi-customer model is introduced.
 
-Both application stages use the official Node 24.21.0 Debian 13 slim base. The production image applies available Debian package updates and retains Node without bundled npm/Corepack/Yarn tooling. The build stage retains the pinned pnpm toolchain; container maintenance invokes `node src/cli.ts`. Linux CI verifies the runtime tools are absent and rehearses standalone/container maintenance, proxy and both installer formats. Image identity and vulnerability review apply to the exported image, including OS packages; an unchanged application version is not evidence of unchanged image bytes.
+The application uses digest-pinned official Node 24.21.0 Alpine 3.24 build stages and a shell-free runtime assembled into an empty root. Only Node, musl, libgcc and libstdc++ are shipped alongside standalone application output. The actual apk package database remains intact for vulnerability scanning. The image runs as UID/GID 1000, uses Node's bundled trust store and keeps data in `/data`. See [runtime image](RUNTIME_IMAGE.md) for compatibility, maintenance and notices.
 
-Ship standalone output in a non-root Debian-based container. The builder has native compilation tools; the runtime does not. Use an operator-controlled HTTPS reverse proxy or tunnel, with the direct application port bound to loopback. Windows/macOS containers require Docker Desktop; production support starts with Linux x86-64/local disk.
+The builder retains the pinned pnpm/native compilation toolchain. The runtime has no shell, package manager or image optimizer; maintenance invokes `node src/cli.ts`. Caddy 2.11.6 is compiled from locked Go modules with Go 1.27.2 and x/net 0.60.0. Linux CI exercises TLS/SSE, restart, storage/recovery and both installer formats. Production support starts with Linux x86-64/local disk, one application replica and operator-controlled public HTTPS with the direct application port bound to loopback.
 
 ## ADR 002 — SQLite is authoritative
 

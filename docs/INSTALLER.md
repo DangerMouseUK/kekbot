@@ -2,7 +2,7 @@
 
 Use the **interactive terminal wizard** to install one KekBot instance on Linux x86-64. It also provides updates, rollback, status, start/stop and uninstall. Every change has an explained review and typed confirmation. Application/module settings and provider consent continue in the browser after owner setup.
 
-KekBot's first beta is being prepared. **There is no published beta or stable release yet.** Latest stable is the wizard's default, and fails with an explanation until an accepted stable release is published. Choose a reviewed branch/PR/commit or audited bundle explicitly for evaluation. After beta publication, use **Specific release** with its exact tag. The [beta guide](BETA.md) explains both paths. Automated fixture testing does not establish an independent installer or real-provider acceptance.
+KekBot's [first beta is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Choose **Specific release** → `v0.1.0-beta.1` explicitly for evaluation. **There is no supported stable release yet.** Latest stable is the wizard's default and fails with an explanation until an accepted stable release exists. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths. Automated fixture testing does not establish an independent installer or real-provider acceptance.
 
 [All documentation](README.md) · [Manual installation](INSTALLATION.md) · [Updating](UPDATING.md) · [Uninstalling](UNINSTALLING.md)
 
@@ -10,6 +10,7 @@ KekBot's first beta is being prepared. **There is no published beta or stable re
 
 - [Before you start](#before-you-start)
 - [Start the wizard](#start-the-wizard)
+- [Beta 1 bundled HTTPS installer fix](#beta-1-bundled-https-installer-fix)
 - [Installation choices](#installation-choices-explained)
 - [Sources and formats](#sources-and-distribution-formats)
 - [Created files](#what-gets-created)
@@ -57,6 +58,31 @@ sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action status
 ```
 
 `--help` prints syntax without root, Docker or an interactive terminal. The main menu checks the host prerequisites before continuing. Failed explicitly selected actions exit unsuccessfully; cancellation returns without applying further work.
+
+## Beta 1 bundled HTTPS installer fix
+
+The published `v0.1.0-beta.1` tag's host tool omits the locked Go sources from its temporary Caddy build context. A fresh **Domain Caddy** or **IPv4 Caddy** installation therefore fails before creating the managed root. The original tag and downloadable application assets remain immutable. Fixture evaluation, an existing external proxy and the [manual Compose path](INSTALLATION.md) are unaffected.
+
+For bundled HTTPS, use the separately fixed host tool at commit **`971656b7a4c8bf0d6e908b6ae786422716669f49`**. Review [that change](https://github.com/DangerMouseUK/kekbot/commit/971656b7a4c8bf0d6e908b6ae786422716669f49) and its PR checks before granting host authority. From **Bash on the Linux host**, in a public source directory outside your intended installation root:
+
+```sh
+git clone https://github.com/DangerMouseUK/kekbot.git kekbot-fixed-tools
+cd kekbot-fixed-tools
+git fetch origin 971656b7a4c8bf0d6e908b6ae786422716669f49
+git switch --detach 971656b7a4c8bf0d6e908b6ae786422716669f49
+git rev-parse HEAD
+python3 -B installer/kekbot.py --help
+```
+
+Expect the exact full SHA above. After review:
+
+```sh
+sudo python3 -B installer/kekbot.py --action install
+```
+
+Choose the desired HTTPS topology and **Specific release** → `v0.1.0-beta.1` → **Prebuilt Linux amd64 image**. Application selection is independent of the running tool: this installs the unchanged published beta image using corrected proxy staging. The tool copies the Dockerfile, both configurations and locked `caddy/go.mod`, `caddy/go.sum`, `caddy/main.go` into a private context with the required `deploy/caddy/` layout, and retains those resources with the copied management tool.
+
+If the original proxy build already failed, the installation directory should not exist; retry the same chosen directory with this tool. If it does exist, inspect it before retrying and follow [failure recovery](#failure-and-interruption-recovery); do not delete data or bypass validation. No global Docker cleanup is needed. Existing application updates do not replace copied host tools, and this fix does not require an application update or a database migration. Public certificate issuance/renewal and real providers still require live acceptance.
 
 ## Installation choices, explained
 

@@ -8,7 +8,7 @@ KekBot source and its built-in CSS themes are MIT licensed. User-uploaded assets
 
 `pnpm build` also copies license/notice files from the actual target-platform production dependency graph (including bundled notices) to ignored `output/licenses`. Images include these under `/app/THIRD_PARTY_LICENSES` with a name/version/license index. Platform-conditional native packages can differ from this development inventory; their installed notices and licenses remain authoritative.
 
-Builds fail if an installed production package has no notice or reviewed version-matched fallback. [Supplemental upstream notices](../licenses/README.md) cover packages whose locked npm tarballs omit license text. The candidate package includes the image's notice tree and checks its inventory before export. Node/Debian base-image notices remain in the image; this table inventories application packages rather than the OS.
+Builds fail if an installed production package has no notice or reviewed version-matched fallback. [Supplemental upstream notices](../licenses/README.md) cover packages whose locked npm tarballs omit license text. The candidate package includes the image's notice tree and checks its inventory before export. The image and notices archive also include a separate `runtime/index.json`, the full Node license and [reviewed musl/GCC notices](../licenses/runtime/README.md). This table inventories the installed application dependency graph rather than the OS. Sharp/libvips remain optional build dependencies in the lockfile but are excluded from standalone and redistributed notices because the optimizer is disabled; the build rejects accidental inclusion.
 
 ## Refresh and redistribution review
 

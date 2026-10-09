@@ -45,6 +45,9 @@ export function writeNotices() {
     }
     const require = createRequire(join(directory, "package.json"));
     for (const name of Object.keys({ ...pkg.dependencies, ...pkg.optionalDependencies, ...pkg.peerDependencies })) {
+      // next.config.ts disables the unused optimizer. The build verifies these
+      // packages are absent from standalone; they are not redistributed binaries.
+      if (name === "sharp" || name.startsWith("@img/")) continue;
       const location = require.resolve.paths(name)?.map(parent => join(parent, name)).find(path => existsSync(join(path, "package.json")));
       if (location) visit(location);
       else if (name in (pkg.dependencies ?? {}) && !(name in (pkg.optionalDependencies ?? {}))) throw new Error(`Missing production dependency: ${name}`);

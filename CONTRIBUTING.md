@@ -1,6 +1,8 @@
 # Contributing to KekBot
 
-Thanks for helping improve KekBot. Focused fixes, clearer guides, reproducible bug reports and meaningful tests are welcome. The first beta is being prepared; the [beta guide](docs/BETA.md) explains evaluation and safe feedback. [Milestones](docs/MILESTONES.md) distinguish automated verification from pending live acceptance. A beta version does not authorize release publication or pass stable gates.
+Thanks for helping improve KekBot. Focused fixes, clearer guides, reproducible bug reports and meaningful tests are welcome. The first beta is published for evaluation; the [beta guide](docs/BETA.md) explains evaluation and safe feedback. [Milestones](docs/MILESTONES.md) distinguish automated verification from pending live acceptance. A beta version does not authorize release publication or pass stable gates.
+
+For image changes, read [runtime packaging](docs/RUNTIME_IMAGE.md). The application runtime has no shell/package manager and retains its real OS inventory. Caddy uses separately locked Go modules; Go is needed only by the proxy builder/security-review tooling, not ordinary TypeScript development. Preserve symbols and the exact binary review rather than excluding module findings globally.
 
 <!-- contents:start -->
 **On this page**

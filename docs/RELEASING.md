@@ -1,6 +1,6 @@
 # Preparing and releasing KekBot
 
-The current `0.1.0-beta.1` build is being prepared as the first beta; it is not published. The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.1.md) describe evaluation. The [requirements audit](RELEASE_READINESS.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md) define stable acceptance. Preparation can run without provider accounts or a local Docker installation. Stable sign-off requires the live results; any publication requires the repository owner's explicit authorization.
+The retained `0.1.0-beta.1` candidate has passed [dependency and binary-license review](RELEASE_READINESS.md#beta-remediation-review); it is [published as an evaluation prerelease](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.1.md) describe evaluation. The [requirements audit](RELEASE_READINESS.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md) define stable acceptance. Preparation can run without provider accounts or a local Docker installation. Stable sign-off requires the live results; any publication requires the repository owner's explicit authorization.
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
 
@@ -55,6 +55,20 @@ Compare `headSha` with the frozen candidate. A passing dependency scan alone is 
 Once the owner explicitly authorizes beta publication, verify the candidate/evidence identities and assets again, create an immutable `v0.1.0-beta.1` tag at the **frozen candidate source**, and publish a GitHub **prerelease**, with latest-release promotion disabled. Attach only the retained audited assets and the final release notes. Keep the pending live limits visible. Do not publish a mutable `latest` registry tag or mark stable metadata accepted. This repository has no automatic release-publishing workflow; CI remains read-only.
 
 After publication, update the README/index/beta guide/notes publication status together and rehearse **Specific release** installation from the actual published assets. That final download/discovery path cannot be tested against a nonexistent release. Record it separately; automated bundle fixtures do not establish an unaided installer trial. Any registry publication or additional format requires its own authorized, verified distribution work.
+
+Maintainers can run that distribution rehearsal in Linux CI without asking testers to run Docker locally:
+
+```sh
+gh workflow run ci.yml --ref <EVIDENCE_BRANCH> --field published_release=v0.1.0-beta.1
+```
+
+Use a reviewed branch containing the `published_release` workflow input. CI resolves the actual release assets through the host tool, verifies their checksums and image identity, then rehearses image installation, source build, update failure/recovery and uninstall in isolated fixtures. It prints only the selected source/image identities and outcomes. The job does not publish, deploy live integrations, upload runtime evidence or approve an unaided installer gate. Record the published artifact identity separately from the CI helper revision; do not replace the retained release image with the helper checkout's new build.
+
+### Host-tool corrections after publication
+
+Published tags and assets remain immutable. A host-tool fix may manage an unchanged release from a separately reviewed, pinned tool checkout; record both identities rather than calling the published source fixed. Application updates never implicitly replace management code. The [beta 1 bundled-HTTPS workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) follows this path. A future distribution containing the correction requires a new version and the normal authorized publication process.
+
+Require `python3 -B installer/smoke.py --proxy-context` in Linux container CI: it builds from retained/staged proxy resources and adapts domain/IP configurations without requesting certificates. The local-proxy fixture lifecycle and a whole-checkout Caddy build do not establish that bundled HTTPS staging works. Preserve dependency/license sign-off against its original application source/image; a new application image needs its own review.
 
 ## Supported candidate versions
 
@@ -114,7 +128,7 @@ Output is named with the application version and first twelve source-SHA charact
 - `release.json`: full source SHA, application/schema/backup versions, platform, immutable Docker image ID and acceptance state.
 - `SHA256SUMS`: hashes of the other files. Verify with `sha256sum --check SHA256SUMS` inside the bundle directory; PowerShell users can compare `Get-FileHash -Algorithm SHA256` with the listed hashes.
 
-Source/dependency/toolchain pins make inputs inspectable. Image bytes are not promised identical across rebuilds: base-image tags, native compilation, build tooling and timestamps can affect them. SHA256 identifies the produced files. Record the loaded Docker image ID as well as the archive hash. A registry manifest digest is a different identity and must also be recorded when publishing. OS/Node base-image licenses remain in the image; the separate notices archive inventories application dependencies.
+Source/dependency/toolchain pins make inputs inspectable. Image bytes are not promised identical across rebuilds: base-image tags, native compilation, build tooling and timestamps can affect them. SHA256 identifies the produced files. Record the loaded Docker image ID as well as the archive hash. A registry manifest digest is a different identity and must also be recorded when publishing. The notices archive includes application notices plus the image’s Node/musl/GCC runtime notices and real OS package inventory. Review [runtime redistribution](RUNTIME_IMAGE.md#licenses-and-inventory) on the exact image.
 
 ## Freeze and acceptance evidence
 
@@ -140,6 +154,6 @@ Then complete a clean installation from actual published artifacts and rehearse 
 
 ## Dependency review gate
 
-Before stable packaging, follow [dependency maintenance](DEPENDENCY_MAINTENANCE.md). [dependency-review.json](dependency-review.json) requires separate application, tooling, image and license passes bound to the exact frozen source/image. All four are pending. They supplement the existing live acceptance gates; a clean build or production-only audit cannot approve the candidate.
+Before stable packaging, follow [dependency maintenance](DEPENDENCY_MAINTENANCE.md). [dependency-review.json](dependency-review.json) requires separate application, tooling, image and license passes bound to the exact frozen source/image. Read the current record for each outcome; a pass never transfers to a new source/image. They supplement the existing live acceptance gates; a clean build or production-only audit cannot approve the candidate.
 
 `pnpm release:check --stable --source /path/to/frozen-candidate --image-digest IMAGE_ID` fails closed on missing/mismatched reviews. For private external evidence, `--dependency-review PATH` selects the dependency record; its default is `dependency-review.json` beside the `--evidence` file. Stable `release:prepare` uses that sibling record. Record sign-off in a separate evidence revision referring to the frozen candidate. Do not publish raw audit output, private diagnostic logs or runtime files.

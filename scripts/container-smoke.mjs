@@ -47,8 +47,15 @@ try {
   const binding = docker(["port", name, "3000/tcp"]);
   let origin = `http://${binding}`;
   await ready(origin);
-  if (docker(["exec", name, "id", "-u"]) !== "1000") throw new Error("container_not_non_root");
-  docker(["exec", name, "node", "-e", "for(const binary of ['npm','npx','corepack','yarn','yarnpkg']) {const result=require('node:child_process').spawnSync(binary,['--version']); if(result.error?.code!=='ENOENT') process.exit(1)}"]);
+  const dashboard = await fetch(origin);
+  if (!dashboard.ok || !(await dashboard.text()).includes("KekBot")) throw new Error("container_dashboard_render_failed");
+  if (docker(["exec", name, "node", "-p", "process.getuid() + ':' + process.getgid() "]) !== "1000:1000") throw new Error("container_not_non_root");
+  docker(["exec", name, "node", "-e", "for(const binary of ['sh','bash','apk','npm','npx','corepack','yarn','yarnpkg']) {const result=require('node:child_process').spawnSync(binary,['--version']); if(result.error?.code!=='ENOENT') process.exit(1)}"]);
+  // Check the runtime's bundled public trust store as well as fixture proxy TLS.
+  // This read-only upstream request uses no provider account or credential.
+  docker(["exec", name, "node", "-e", "fetch('https://nodejs.org/dist/index.json',{signal:AbortSignal.timeout(15000)}).then(async response=>{await response.body?.cancel();if(!response.ok)process.exit(1)}).catch(()=>process.exit(1))"]);
+  if ((await fetch(`${origin}/_next/image?url=%2Ffavicon.ico&w=64&q=75`)).status !== 404) throw new Error("unused_image_optimizer_enabled");
+  docker(["exec", name, "node", "-e", "const fs=require('node:fs'); const packages=JSON.parse(fs.readFileSync('/app/THIRD_PARTY_LICENSES/runtime/index.json')); if(packages.node!==process.version||packages.packages.map(p=>p.name).sort().join()!=='libgcc,libstdc++,musl') process.exit(1); for(const name of ['NODE-LICENSE','musl-COPYRIGHT','GCC-COPYING3','GCC-RUNTIME-EXCEPTION']) if(fs.statSync('/app/THIRD_PARTY_LICENSES/runtime/'+name).size<1000) process.exit(1)"]);
   // The image root is read-only; only /data and the bounded temporary mount write.
   docker(["exec", name, "node", "-e", "try {require('node:fs').writeFileSync('/app/forbidden','x'); process.exit(1)} catch(e) {if(!['EROFS','EACCES'].includes(e.code)) process.exit(1)}"]);
   const credentials = JSON.parse(docker(["exec", name, "node", "-e", "process.stdout.write(require('node:fs').readFileSync('/data/fixture/secrets/fixture-account.json','utf8'))"]));
@@ -105,7 +112,7 @@ try {
   for (const target of [backupVolume, restoredVolume]) {
     docker(["volume", "create", target]); extraVolumes.push(target);
   }
-  docker(["run", "--rm", "--user", "0", "--volume", `${backupVolume}:/backups`, "kekbot:ci", "chown", "1000:1000", "/backups"]);
+  docker(["run", "--rm", "--user", "0", "--volume", `${backupVolume}:/backups`, "kekbot:ci", "node", "-e", "require('node:fs').chownSync('/backups',1000,1000)"]);
   docker(["run", "--rm", ...options, "kekbot:ci", "node", "-e", "require('node:fs').writeFileSync('/data/fixture/assets/proof.txt','fixture recovery asset')"]);
   docker(["run", "--rm", ...options, "--volume", `${backupVolume}:/backups`, "kekbot:ci", "node", "src/cli.ts", "backup", "/backups/snapshot"]);
   const restoredOptions = ["--env", "KEKBOT_MODE=fixture", "--env", "KICK_BROADCASTER_USER_ID=123", "--volume", `${restoredVolume}:/data`];
