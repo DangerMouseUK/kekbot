@@ -31,6 +31,8 @@ Offline launcher contracts cover argument conflicts/quoting, branch/tag/PR/commi
 
 The ordinary Linux container campaign now installs its audited application bundle through the actual root launcher and Python wizard, verifies the launcher is retained, then uses that retained file for status/stop/start. Existing failed-update/separate-root-rollback/source-build/retained-removal/purge checks continue through the shared engine. PTY output is bounded and discarded; no transcript or generated credential is uploaded. Actual public download after merge, optional package installation on a new Ubuntu host and independent operators remain separate evidence; the historical beta 2 image result is not transferred to new tools or images.
 
+The installation response sequence includes application `TRUST <SHA>` only for unaccepted bundles; final `APPLY` remains required for both. A portable regression runs both candidate and synthetic acceptance-verified metadata through the real Python prompts with host effects isolated, checking installation is reached and no response is left over. This covers future accepted-release rehearsal compatibility without claiming that an accepted stable release exists.
+
 ## Run the campaign
 
 `pnpm check` includes `pnpm test:installer`, which requires Python 3.10+ (`python` on Windows; `python3` on Linux/macOS), with no pip packages. Portable contracts cover menus, cancellation, source refs, release checksums, image identity and unsafe input/archive boundaries. Linux also exercises exclusive locks, backup/migration failures, checkpoint ordering, new-root rollback and uninstall boundaries.

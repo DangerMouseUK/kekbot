@@ -165,6 +165,30 @@ host_report() { :; }
 
 
 class LauncherWizardContracts(unittest.TestCase):
+    def test_fixture_rehearsal_reaches_apply_for_accepted_and_candidate_bundles(self):
+        from smoke import fixture_install_responses
+        with tempfile.TemporaryDirectory(prefix="kekbot-rehearsal-contract-") as temporary:
+            root = Path(temporary) / "installation"
+            for accepted in (False, True):
+                selected = target(kind="bundle", value="/synthetic/bundle", distribution="image", accepted=accepted,
+                                  version="1.0.0" if accepted else "0.1.0-beta.2")
+                answers = iter(fixture_install_responses("kekbot-test", selected).splitlines())
+                # Bash consumes the local-tool trust; Python receives the rest.
+                self.assertEqual(next(answers), "TRUST LOCAL")
+                arguments = ["kekbot.py", "--action", "install", "--root", str(root),
+                             "--source", "bundle", "--ref", "/synthetic/bundle", "--format", "image"]
+                with self.subTest(accepted=accepted), patch.object(sys, "argv", arguments), patch.object(sys.stdin, "isatty", return_value=True), \
+                     patch("builtins.input", side_effect=lambda _: next(answers)), patch("sys.stdout", new=io.StringIO()), \
+                     patch.object(kekbot, "check_host"), patch.object(kekbot, "validate_root", return_value=root), \
+                     patch.object(kekbot, "prepare_target", return_value=selected), patch.object(kekbot, "Installation") as engine, \
+                     patch.object(kekbot, "next_steps") as next_steps:
+                    # Exercise the real prompts and confirmations, with host effects isolated.
+                    kekbot.main()
+                    engine.return_value.install.assert_called_once()
+                    self.assertEqual(engine.return_value.install.call_args.args[1], selected)
+                    next_steps.assert_called_once()
+                    self.assertIsNone(next(answers, None), "No shifted or unconsumed confirmation input")
+
     def test_source_prefill_retains_exact_trust_confirmation_and_final_review_boundary(self):
         for kind, ref, distribution in [("stable", "", "image"), ("release", "v0.1.0-beta.2", "source"),
                                         ("branch", "dev/beta", "source"), ("pr", "12", "source"),

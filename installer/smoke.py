@@ -17,6 +17,14 @@ from unittest.mock import patch
 from core import Installation, Problem, check_host, copy_proxy_files, prepare_target, proxy_directory, run, stage_proxy_context, validate_options
 
 
+def fixture_install_responses(project, target):
+    """Inputs for local-tool trust and fixture installation of an image bundle."""
+    answers = ["TRUST LOCAL", "2", "", project, "3317"]
+    if not target["accepted"]:
+        answers.append("TRUST " + target["sourceRef"][:12])
+    return "\n".join([*answers, "APPLY", ""])
+
+
 def terminal_command(arguments, responses="", environment=None, timeout=90):
     """Real terminal semantics, bounded private output, no transcript publication."""
     import pty
@@ -90,7 +98,7 @@ def main(release=None):
             # Pinned local tool + audited bundle; all inputs are synthetic and private.
             terminal_command(["bash", str(launcher), "install", "--local-tools", str(launcher.parent),
                               "--root", str(root), "--bundle", str(stage / "bundle") if release else str(bundles[0].resolve()), "--format", "image"],
-                             "TRUST LOCAL\n2\n\n" + project + "\n3317\nTRUST " + target["sourceRef"][:12] + "\nAPPLY\n", timeout=180)
+                             fixture_install_responses(project, target), timeout=180)
             initial = engine.load()
             retained_launcher = root / "tool/install.sh"
             if retained_launcher.read_bytes() != launcher.read_bytes():
