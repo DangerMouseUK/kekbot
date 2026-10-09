@@ -4,6 +4,7 @@ Runs with an isolated fixture root and generated credentials. Never emits those
 credentials or uploads runtime files. Called after release-package and checksums.
 """
 import contextlib
+import argparse
 import json
 import os
 from pathlib import Path
@@ -14,18 +15,21 @@ from unittest.mock import patch
 from core import Installation, Problem, check_host, prepare_target, run, validate_options
 
 
-def main():
+def main(release=None):
     if os.geteuid() != 0:
         raise Problem("The isolated CI lifecycle rehearsal requires sudo for UID ownership.")
     check_host()
-    bundles = list(Path("output/release").iterdir())
-    if len(bundles) != 1:
+    bundles = [] if release else list(Path("output/release").iterdir())
+    if not release and len(bundles) != 1:
         raise Problem("Expected one audited candidate bundle.")
+    selection = ("release", release) if release else ("bundle", str(bundles[0].resolve()))
     with tempfile.TemporaryDirectory(prefix="kekbot-managed-smoke-") as temporary:
         private = Path(temporary)
         stage = private / "stage"
         stage.mkdir()
-        target = prepare_target("bundle", str(bundles[0].resolve()), "image", stage)
+        target = prepare_target(*selection, "image", stage)
+        if release:
+            print("Published release selection verified: " + target["sourceRef"] + " / " + target["image"]["imageId"])
         root = private / "installation"
         project = "kekbot-ci-" + str(os.getpid())
         options = validate_options(project, "fixture", "local", "http://127.0.0.1:3317", 3317, "user")
@@ -91,7 +95,9 @@ def main():
                 raise Problem("Rollback did not preserve original key and asset.")
             source_stage = private / "source-stage"
             source_stage.mkdir()
-            source_target = prepare_target("bundle", str(bundles[0].resolve()), "source", source_stage)
+            source_target = prepare_target(*selection, "source", source_stage)
+            if source_target["sourceRef"] != target["sourceRef"]:
+                raise Problem("Published source and image selections disagree.")
             engine.stage_image(source_target)
             updated = engine.update(derived(False))
             if updated["imageId"] == initial["imageId"]:
@@ -139,8 +145,11 @@ def main():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Isolated Linux fixture lifecycle rehearsal; no live providers.")
+    parser.add_argument("--release", help="Explicit published version tag; otherwise use the local audited candidate bundle.")
+    arguments = parser.parse_args()
     try:
-        main()
+        main(arguments.release)
     except (Problem, OSError, ValueError, KeyError):
         print("Managed lifecycle rehearsal failed. Private runtime output was not printed or uploaded.")
         raise SystemExit(1)

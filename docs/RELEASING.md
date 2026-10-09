@@ -56,6 +56,14 @@ Once the owner explicitly authorizes beta publication, verify the candidate/evid
 
 After publication, update the README/index/beta guide/notes publication status together and rehearse **Specific release** installation from the actual published assets. That final download/discovery path cannot be tested against a nonexistent release. Record it separately; automated bundle fixtures do not establish an unaided installer trial. Any registry publication or additional format requires its own authorized, verified distribution work.
 
+Maintainers can run that distribution rehearsal in Linux CI without asking testers to run Docker locally:
+
+```sh
+gh workflow run ci.yml --ref <EVIDENCE_BRANCH> --field published_release=v0.1.0-beta.1
+```
+
+Use a reviewed branch containing the `published_release` workflow input. CI resolves the actual release assets through the host tool, verifies their checksums and image identity, then rehearses image installation, source build, update failure/recovery and uninstall in isolated fixtures. It prints only the selected source/image identities and outcomes. The job does not publish, deploy live integrations, upload runtime evidence or approve an unaided installer gate. Record the published artifact identity separately from the CI helper revision; do not replace the retained release image with the helper checkout's new build.
+
 ## Supported candidate versions
 
 The [interactive installer](INSTALLER.md) supports repository branches, PR heads and exact commits through source builds, plus published/local audited source and Linux amd64 image bundles. Its default discovery uses GitHub's latest stable release and fails closed until stable metadata/assets exist. Host updates/removal follow [updating](UPDATING.md) and [uninstalling](UNINSTALLING.md); no releases are published by the installer.
@@ -114,7 +122,7 @@ Output is named with the application version and first twelve source-SHA charact
 - `release.json`: full source SHA, application/schema/backup versions, platform, immutable Docker image ID and acceptance state.
 - `SHA256SUMS`: hashes of the other files. Verify with `sha256sum --check SHA256SUMS` inside the bundle directory; PowerShell users can compare `Get-FileHash -Algorithm SHA256` with the listed hashes.
 
-Source/dependency/toolchain pins make inputs inspectable. Image bytes are not promised identical across rebuilds: base-image tags, native compilation, build tooling and timestamps can affect them. SHA256 identifies the produced files. Record the loaded Docker image ID as well as the archive hash. A registry manifest digest is a different identity and must also be recorded when publishing. The notices archive includes application notices plus the image’s Node/musl/GCC runtime notices and real OS package inventory. Review [runtime redistribution](RUNTIME_IMAGE.md#licenses-and-inventory) on the exact image.
+Source/dependency/toolchain pins make inputs inspectable. Image bytes are not promised identical across rebuilds: base-image tags, native compilation, build tooling and timestamps can affect them. SHA256 identifies the produced files. Record the loaded Docker image ID as well as the archive hash. A registry manifest digest is a different identity and must also be recorded when publishing. The notices archive includes application notices plus the imageâ€™s Node/musl/GCC runtime notices and real OS package inventory. Review [runtime redistribution](RUNTIME_IMAGE.md#licenses-and-inventory) on the exact image.
 
 ## Freeze and acceptance evidence
 

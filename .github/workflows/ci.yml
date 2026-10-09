@@ -17,6 +17,10 @@ on:
         description: Review locked application/tooling and exported image vulnerabilities (read-only; advisories fail this review)
         type: boolean
         default: false
+      published_release:
+        description: Optional explicit published tag to rehearse through real release discovery and both installer formats
+        type: string
+        default: ""
 permissions:
   contents: read
 concurrency:
@@ -145,6 +149,11 @@ jobs:
         run: node scripts/release-roundtrip.mjs
       - name: Rehearse guided install, update recovery and uninstall with isolated fixtures
         run: sudo python3 -B installer/smoke.py
+      - name: Rehearse the explicit published release without live providers
+        if: github.event_name == 'workflow_dispatch' && inputs.published_release != ''
+        env:
+          KEKBOT_RELEASE_TAG: ${{ inputs.published_release }}
+        run: sudo --preserve-env=KEKBOT_RELEASE_TAG python3 -B installer/smoke.py --release "$KEKBOT_RELEASE_TAG"
       - name: Review frozen dependency inputs without updating versions
         if: github.event_name == 'workflow_dispatch' && inputs.dependencies
         shell: bash
