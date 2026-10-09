@@ -45,6 +45,7 @@ The public operator path is [installation](INSTALLATION.md) → [providers](PROV
 - [First-beta preparation — 2026-10-09](#first-beta-preparation--2026-10-09)
 - [First-beta remediation candidate — 2026-10-09](#first-beta-remediation-candidate--2026-10-09)
 - [First-beta publication and distribution rehearsal — 2026-10-09](#first-beta-publication-and-distribution-rehearsal--2026-10-09)
+- [Beta host installer correction — 2026-10-09](#beta-host-installer-correction--2026-10-09)
 <!-- contents:end -->
 
 ## Working approach
@@ -685,3 +686,9 @@ Published [v0.1.0-beta.1](https://github.com/DangerMouseUK/kekbot/releases/tag/v
 After publication, the actual host-tool resolver anonymously downloaded and verified both formats and rejected the beta during latest-stable discovery. [Distribution CI 37951513492](https://github.com/DangerMouseUK/kekbot/actions/runs/37951513492), helper revision `c7dbebad8dd68403f30109a349812d4d0d830315`, passed every ordinary job plus an actual published-asset lifecycle rehearsal: image install, signed fixture intake, failed-update guards, separate-root rollback, published-source build, successful update, retained removal/resume and purge. The selected image remains `sha256:3ed479c993b7ce69f7fcb49f3de2f1b03ff3266ea74ede13cee1bfc4529d0c20`; helper builds are not substituted into the release.
 
 The [beta notes](releases/v0.1.0-beta.1.md#verification-record) retain checksums and outcomes. Publication completes the first evaluation-beta distribution task. Milestone 18 and stable Milestone 19 remain pending their 33 live/reference/independent gates; this automated fixture run does not establish an unaided installation or real provider/OBS delivery.
+
+## Beta host installer correction — 2026-10-09
+
+Host-tool commit `971656b7a4c8bf0d6e908b6ae786422716669f49` fixes omitted Caddy Go inputs and context paths for bundled domain/IP installation, retaining all resources with the copied tool. Local checks pass 155 application tests and 30 portable installer contracts; Linux CI covers the remaining seven and now builds/adapts from the real retained/staged context. The [dated correction record](RELEASE_READINESS.md#beta-1-installer-correction) tracks actual CI results separately from the original local-proxy fixture lifecycle.
+
+The [fixed-tool walkthrough](INSTALLER.md#beta-1-bundled-https-installer-fix) keeps the published beta tag/assets immutable and selects the same application image independently. No migration, new application distribution or live deployment is included. All 33 live/reference/operator gates remain pending.

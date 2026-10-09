@@ -26,6 +26,8 @@ Screenshots, traces, databases, backups, workload reports and generated credenti
 
 Portable recovery regressions also exercise proxy build/inspection failure before root creation and successful retry, failed final/failure record writes with shutdown during install/update/rollback, and retained removal preserving recovery guards/checkpoints. These tests use real private record files and simulated Docker; Linux retains real management locks. Explicit fixture purge remains possible after an incomplete operation.
 
+Domain/IP proxy regressions inspect the actual installer Docker build context against the Dockerfile's `COPY` inputs, verify all resources in the retained tool, and reject missing inputs before creating installation state. There are now 37 installer contracts: 30 portable and seven Linux-only. The reserved example IP is classified as public only inside the isolated IP test; production address validation remains unchanged.
+
 Use the pinned Node/pnpm versions from the root README. An agent or CI can run these commands; operators do not need to execute them on a production installation.
 
 ```sh
@@ -59,12 +61,12 @@ For a focused Vitest run use `pnpm exec vitest run tests/docs.test.ts` (replace 
 Linux container checks additionally require Docker Engine/Compose:
 
 ```sh
-docker build --file deploy/Caddy.Dockerfile --tag kekbot-caddy:2.11.6 .
+python3 -B installer/smoke.py --proxy-context
 docker build --build-arg VCS_REF=<CANDIDATE_COMMIT> --tag kekbot:ci .
 pnpm test:container
 ```
 
-Run the Compose validation and Caddy adaptation commands from [.github/workflows/ci.yml](../.github/workflows/ci.yml) as well. Container tests create uniquely named disposable volumes/networks and remove only their own resources. They do not modify an operator installation or request public certificates.
+The proxy command builds from copied, retained installer resources using the real staging helper, then adapts domain/IP configurations. Building directly from the whole checkout alone cannot detect missing staged files. Run the Compose validation from [.github/workflows/ci.yml](../.github/workflows/ci.yml) as well. Container tests create uniquely named disposable volumes/networks and remove only their own resources. They do not modify an operator installation or request public certificates.
 
 ## GitHub Actions
 

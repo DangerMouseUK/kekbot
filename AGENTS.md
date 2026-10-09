@@ -54,7 +54,7 @@ Follow [documentation maintenance](docs/DOCUMENTATION.md) for repository-wide gu
 
 ## Verification
 
-Host lifecycle code uses Python 3.10+ standard library, separate from the TypeScript app. `pnpm check` includes offline installer contracts; Linux CI additionally tests locks/transactions and the audited-bundle install/update-failure/rollback/uninstall rehearsal. Keep final typed review, latest-stable fail-closed behavior, immutable source/image selection, private state and retained-data defaults. Do not adopt arbitrary manual deployments, execute downloaded management code, prune global Docker resources or claim fixture coverage as an independent installer trial.
+Host lifecycle code uses Python 3.10+ standard library, separate from the TypeScript app. `pnpm check` includes offline installer contracts; Linux CI additionally tests locks/transactions and the audited-bundle install/update-failure/rollback/uninstall rehearsal. Proxy changes must pass the retained/staged context build and domain/IP adaptation (`installer/smoke.py --proxy-context`); a whole-checkout build or local-proxy fixture alone cannot prove bundled HTTPS staging. Keep final typed review, latest-stable fail-closed behavior, immutable source/image selection, private state and retained-data defaults. Do not adopt arbitrary manual deployments, execute downloaded management code, prune global Docker resources or claim fixture coverage as an independent installer trial.
 
 Run `pnpm check` and targeted checks appropriate to the change. Documentation-only work requires link/publication checks and validation of changed procedures; avoid unnecessary application rewrites or repeated performance tests.
 

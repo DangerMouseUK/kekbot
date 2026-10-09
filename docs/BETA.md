@@ -4,6 +4,8 @@ This guide is for people evaluating `v0.1.0-beta.1`, including operators who hav
 
 **Published on 2026-10-09:** [v0.1.0-beta.1](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Downloadable source/image/notices/checksum assets identify the frozen build; there is no registry image or supported stable release. Use **Specific release** explicitly. Do not assume `main` is the frozen beta.
 
+**Bundled HTTPS installer issue:** the original beta tag's tool cannot build Caddy for domain/IP installations. Use the [fixed-tool walkthrough](INSTALLER.md#beta-1-bundled-https-installer-fix) for those modes. The fixture walkthrough below, external-proxy mode and manual Compose deployment are unaffected; application assets and checksums stay unchanged.
+
 **On this page**
 
 - [What the beta means](#what-the-beta-means)

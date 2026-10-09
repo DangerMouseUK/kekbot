@@ -64,6 +64,12 @@ gh workflow run ci.yml --ref <EVIDENCE_BRANCH> --field published_release=v0.1.0-
 
 Use a reviewed branch containing the `published_release` workflow input. CI resolves the actual release assets through the host tool, verifies their checksums and image identity, then rehearses image installation, source build, update failure/recovery and uninstall in isolated fixtures. It prints only the selected source/image identities and outcomes. The job does not publish, deploy live integrations, upload runtime evidence or approve an unaided installer gate. Record the published artifact identity separately from the CI helper revision; do not replace the retained release image with the helper checkout's new build.
 
+### Host-tool corrections after publication
+
+Published tags and assets remain immutable. A host-tool fix may manage an unchanged release from a separately reviewed, pinned tool checkout; record both identities rather than calling the published source fixed. Application updates never implicitly replace management code. The [beta 1 bundled-HTTPS workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) follows this path. A future distribution containing the correction requires a new version and the normal authorized publication process.
+
+Require `python3 -B installer/smoke.py --proxy-context` in Linux container CI: it builds from retained/staged proxy resources and adapts domain/IP configurations without requesting certificates. The local-proxy fixture lifecycle and a whole-checkout Caddy build do not establish that bundled HTTPS staging works. Preserve dependency/license sign-off against its original application source/image; a new application image needs its own review.
+
 ## Supported candidate versions
 
 The [interactive installer](INSTALLER.md) supports repository branches, PR heads and exact commits through source builds, plus published/local audited source and Linux amd64 image bundles. Its default discovery uses GitHub's latest stable release and fails closed until stable metadata/assets exist. Host updates/removal follow [updating](UPDATING.md) and [uninstalling](UNINSTALLING.md); no releases are published by the installer.

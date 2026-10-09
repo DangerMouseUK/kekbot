@@ -196,3 +196,12 @@ The real runtime inventory records musl build commit `f5640d3a10f664c9119720c605
 Gitleaks 8.30.1 passed on the source archive, full Git history and CI image layers with redacted output. Publication policy, personal-path/retired-address and UTF-8 checks passed. Only audited source/image/notices/metadata/checksum assets are retained for publication; no raw scanner report, runtime configuration, account, private key, database, capture or operator evidence is included.
 
 [dependency-review.json](dependency-review.json) records all four candidate reviews as passed against this exact source/image. All 33 live/reference/operator gates remain pending in [release-evidence.json](release-evidence.json). These results permit the separately authorized evaluation beta, not stable acceptance, live deployment or reference-host performance claims. Published-download installation is recorded separately in the [beta notes](releases/v0.1.0-beta.1.md#verification-record) after it actually runs.
+
+<a id="beta-1-installer-correction"></a>
+## Beta 1 host installer correction — 2026-10-09
+
+Review found that the original tag's tool staged only the Caddy Dockerfile/configurations, omitting its locked Go inputs and their `deploy/caddy/` layout. Fresh bundled domain/IP installations failed before creating the managed root. Host-tool commit `971656b7a4c8bf0d6e908b6ae786422716669f49` fixes staging and retained resources; the [operator workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) pins it separately while selecting the unchanged published application.
+
+Local `pnpm check` passed policy/docs/types/lint, 155 application tests and 30 portable installer contracts; seven Linux-only contracts remain for CI. CI now builds from retained/staged proxy resources and adapts both configurations without public certificate issuance. The earlier published-release fixture rehearsal used a local proxy; it did not establish bundled HTTPS installation. Record the correction's Linux result here after it runs.
+
+Published beta tag/assets and their exact dependency/license review above remain unchanged. This host-tool correction changes no Go/native/application dependency or data format. All 33 live/reference/operator gates remain pending; certificate issuance/renewal, real providers and unaided installation still need their own evidence.

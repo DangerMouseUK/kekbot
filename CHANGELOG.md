@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — host installer fix
+
+- Fix bundled domain/IP HTTPS installation by staging the locked Caddy Go sources at the Dockerfile's required paths and retaining them with the copied management tool. Add portable regressions for both modes, retained resources and missing inputs before root creation; Linux CI now builds from that staged context and adapts both configurations without requesting certificates.
+- Document the original beta 1 installer issue and a separately pinned fixed-tool workaround. The published application tag/assets, dependency review and data formats are unchanged; real certificate/provider acceptance remains pending.
+
 ## 0.1.0-beta.1 — 2026-10-09
 
 - Assemble a shell-free application runtime from digest-pinned Node 24.21.0 Alpine stages with only musl/GCC runtime libraries, retaining its real OS package database and runtime notices in the image and notices archive. Disable the unused Next image optimizer and reject Sharp/libvips in standalone output.
