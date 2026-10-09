@@ -2,7 +2,7 @@
 
 This repository is pre-release and has no supported stable version yet.
 
-The first [evaluation beta](docs/BETA.md) is published. See the [review](docs/RELEASE_READINESS.md#beta-remediation-review) for its exact source/image, binary-license outcome and raw advisory counts. Live/stable acceptance remains pending. A beta label does not waive security, license or live checks; later candidates need their own review.
+Evaluation releases require dated, exact-source/image [security and binary-license reviews](docs/RELEASE_READINESS.md#beta-2-review). The [beta guide](docs/BETA.md) explains current publication status and safe feedback. Live/stable acceptance remains pending; a beta label does not waive security, license or live checks. Each new candidate needs its own review.
 
 Maintainers review dependencies through [release-controlled maintenance](docs/DEPENDENCY_MAINTENANCE.md), including development/build tooling and the final image. A clean production-only npm audit is insufficient for stable sign-off. Advisory details and raw runtime diagnostics stay private until reviewed for disclosure. Optional installer diagnostics contain bounded lifecycle metadata only; inspect even those before sharing. No automated upgrade or deployment is implied by a security report.
 

@@ -190,7 +190,7 @@ class Contracts(unittest.TestCase):
             core.prepare_target("release", "v0.1.0-dev.0", "image", stage)
 
     def test_explicit_beta_release_supports_both_formats_without_stable_promotion(self):
-        version, tag = "0.1.0-beta.1", "v0.1.0-beta.1"
+        version, tag = "0.1.0-beta.2", "v0.1.0-beta.2"
         bundle = self.bundle(image=True, version=version)
         assets = [{"name": item.name, "browser_download_url": core.REPOSITORY + "/releases/download/" + tag + "/" + item.name} for item in bundle.iterdir()]
         release = dict(tag_name=tag, draft=False, prerelease=True, assets=assets)

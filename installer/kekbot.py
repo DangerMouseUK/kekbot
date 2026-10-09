@@ -53,7 +53,7 @@ def confirm(title, text, phrase="APPLY"):
 def source_selection(directory):
     kind = choose("Choose the version", "Latest stable is the normal default. Every selection is resolved once and pinned; branches are never pulled automatically. Downloads use verified HTTPS. A branch or PR can execute arbitrary build/application code with access to this host's Docker daemon: review its exact commit first.", [
         ("Latest stable release (recommended)", "Published stable GitHub release with accepted metadata. If none exists, stop and explicitly choose development; never silently use main.", "stable"),
-        ("Specific release", "Enter an exact published tag, e.g. v0.1.0-beta.1 or v1.0.0. A beta must already be published and remains an evaluation build.", "release"),
+        ("Specific release", "Enter an exact published tag, e.g. v0.1.0-beta.2 or v1.0.0. A beta must already be published and remains an evaluation build.", "release"),
         ("Repository branch", "Build a named branch, for example main. Its current commit is pinned for this operation.", "branch"),
         ("Pull request", "Build the PR head, including fork contributions, from refs/pull/NUMBER/head. This is untrusted code until reviewed.", "pr"),
         ("Exact commit", "Build a reviewed full 40-character commit SHA from the public repository.", "commit"),

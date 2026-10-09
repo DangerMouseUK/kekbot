@@ -66,7 +66,7 @@ Before the first stable release, there is no supported stable version. Afterward
 <a id="review-record"></a>
 ## Current review record
 
-The frozen first-beta candidate now has four dated dependency/license passes in the [remediation review](RELEASE_READINESS.md#beta-remediation-review). Stable/live acceptance remains pending. The two development-tool findings observed on 2026-10-08 are remediated as follows:
+The frozen beta 2 source/image passed its own [candidate review](RELEASE_READINESS.md#beta-2-review), including actual binary/notices inspection. The [beta 1 remediation review](RELEASE_READINESS.md#beta-remediation-review) preserves its four historical passes separately. Stable/live acceptance remains pending. The two development-tool findings observed on 2026-10-08 are remediated as follows:
 
 The earlier 2026-10-09 [beta review](RELEASE_READINESS.md#beta-dependency-review) remains a historical failed-image record. The new shell-free image removes the affected unused OS packages/optimizer; the rebuilt proxy proves the remaining OpenPGP match is absent from its binary. Review identities and raw counts are preserved, without an affected-code waiver.
 

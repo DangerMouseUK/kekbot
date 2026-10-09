@@ -1,6 +1,6 @@
 # Stable v1 requirements and release readiness
 
-Updated: 2026-10-09. Application `0.1.0-beta.1`; SQLite schema 3; backup format 1; native configuration format 1. The [first beta](BETA.md) is published for evaluation with the exact reviewed source/image; stable acceptance is unchanged. Milestone 18 is prepared with deployment deferred. Milestone 19's audit, release guards and candidate packaging are prepared and automatically tested; stable acceptance and publication remain pending. Beta verification is recorded [separately](releases/v0.1.0-beta.1.md#verification-record); none of the 33 live/reference/independent gates is passed by beta preparation.
+Updated: 2026-10-09. Application `0.1.0-beta.2`; SQLite schema 3; backup/configuration formats 1. [Beta 2 is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) with the bundled HTTPS installer fix and reviewed source/image assets. [Beta 1](releases/v0.1.0-beta.1.md) remains an immutable published evaluation release. Milestone 18 deployment/live acceptance is deferred; stable Milestone 19 remains pending. [Current beta verification](releases/v0.1.0-beta.2.md#verification-record) does not pass any of the 33 live/reference/operator gates.
 
 This crosswalk covers the normative scope in both identical [PRDs](PRD.md). It links implementation and behavioural checks rather than counting routes. **Automated** means synthetic/SQLite/browser/container evidence exists; it does not mean that all live scenarios have passed. **Pending** means required external acceptance or publication has no result. Historical Milestone 1 evidence applies only to that older foundation snapshot. The [milestones](MILESTONES.md) record exact tested commits and runs.
 
@@ -23,6 +23,7 @@ The handbook additionally includes [first session](FIRST_SESSION.md), [accounts/
 - [Beta dependency review](#beta-dependency-review)
 - [Beta image remediation and binary review](#beta-remediation-review)
 - [Beta 1 host installer correction](#beta-1-installer-correction)
+- [Beta 2 candidate review](#beta-2-review)
 <!-- contents:end -->
 
 ## Ownership, journeys and installation
@@ -197,7 +198,7 @@ The real runtime inventory records musl build commit `f5640d3a10f664c9119720c605
 
 Gitleaks 8.30.1 passed on the source archive, full Git history and CI image layers with redacted output. Publication policy, personal-path/retired-address and UTF-8 checks passed. Only audited source/image/notices/metadata/checksum assets are retained for publication; no raw scanner report, runtime configuration, account, private key, database, capture or operator evidence is included.
 
-[dependency-review.json](dependency-review.json) records all four candidate reviews as passed against this exact source/image. All 33 live/reference/operator gates remain pending in [release-evidence.json](release-evidence.json). These results permit the separately authorized evaluation beta, not stable acceptance, live deployment or reference-host performance claims. Published-download installation is recorded separately in the [beta notes](releases/v0.1.0-beta.1.md#verification-record) after it actually runs.
+The beta 1 review completed all four candidate reviews against this exact source/image. [dependency-review.json](dependency-review.json) tracks the current candidate separately; this historical sign-off is not transferred to it. All 33 live/reference/operator gates remain pending in [release-evidence.json](release-evidence.json). These results permit the separately authorized evaluation beta, not stable acceptance, live deployment or reference-host performance claims. Published-download installation is recorded separately in the [beta notes](releases/v0.1.0-beta.1.md#verification-record) after it actually runs.
 
 <a id="beta-1-installer-correction"></a>
 ## Beta 1 host installer correction — 2026-10-09
@@ -207,3 +208,30 @@ Review found that the original tag's tool staged only the Caddy Dockerfile/confi
 Local `pnpm check` passed policy/docs/types/lint, 155 application tests and 30 portable installer contracts. [Correction CI 37955804079](https://github.com/DangerMouseUK/kekbot/actions/runs/37955804079), source `4ec86e40208965d833b5571825736a750572ffd8`, passed all required jobs, including all 37 Linux installer contracts, the real retained/staged Caddy build and domain/IP adaptation, production/standalone, three browser engines, container/storage checks and fixture install/update-failure/rollback/uninstall. No public certificates were requested. The earlier published-release fixture rehearsal used a local proxy; it did not establish bundled HTTPS installation.
 
 Published beta tag/assets and their exact dependency/license review above remain unchanged. This host-tool correction changes no Go/native/application dependency or data format. All 33 live/reference/operator gates remain pending; certificate issuance/renewal, real providers and unaided installation still need their own evidence.
+
+<a id="beta-2-review"></a>
+## Beta 2 candidate review — 2026-10-09
+
+Frozen source **`944a6c98333a1792486da96ab7ecf7a25a20c5c7`**, application **`0.1.0-beta.2`**, retained application image **`sha256:41a0e19c73e853601b97fc748dcc3b7b8f0f71966b16dd24619c644fc71d52f0`**. It starts from merged main `be578d30b52a1262e30f024dd65ca6dcee8fe53d` and includes the bundled HTTPS installer correction. Production dependencies, SQL and data formats are unchanged. [Candidate campaign 37960684262](https://github.com/DangerMouseUK/kekbot/actions/runs/37960684262) and [ordinary PR CI 37960686357](https://github.com/DangerMouseUK/kekbot/actions/runs/37960686357) passed on this exact source.
+
+| Review | Actual result for this source/image |
+| --- | --- |
+| Application packages | **Pass:** production registry audit has zero findings. |
+| Tooling packages | **Pass with verified local remediation:** raw audit retains one high braces advisory, GHSA-vfj7-8cjw-p6xm. Exact manifest/lockfile/checked-in/installed patch checks and exploit/compatibility tests pass. |
+| Application image | **Pass:** Trivy 0.75.0 reports zero findings, with the real apk database retained and no omitted entries. |
+| Proxy image | **Pass with verified not-affected classification:** one raw UNKNOWN GO-2026-5932 module match; fresh exact-image binary/symbol review proves the affected OpenPGP packages absent. No additional finding is accepted. |
+| Binary redistribution/notices | **Pass:** all six actual exported ELF binaries, runtime provenance and all 171 notice files were inspected/hashed against the reviewed upstream components; the conservative application notice inventory contains 27 entries. |
+
+The freshly scanned proxy image is **`sha256:3ddd68dc4fcd78cc36d813a374da56ab52da1b863a7bc75ead68e82127e383c9`**. Its Caddy binary SHA256 is **`38b67675fea4a97df92daef1f97e98db402b64f6c7a36cba74163c5879527bd8`**. Go 1.27.2, x/net 0.60.0, x/crypto 0.57.0, govulncheck 1.8.0 and 81,520 verified symbols establish the module-only match and absent affected packages. This proof belongs to the new scanned proxy image, not an inferred carry-over.
+
+The downloaded five-file candidate bundle passed all four `SHA256SUMS` entries and exact Docker config/image/source/version/non-root identity checks. Actual binary inspection found Node 24.21.0, musl `1.2.6-r2`, GCC runtime libraries `15.2.0-r5`, and two identical better-sqlite3 13.0.3 musl amd64 bindings. All six native binaries and every notice byte match the previously reviewed upstream components. Reinspection confirmed full Node/component notices, musl copyright and complete source, GPLv3 plus Runtime Library Exception 3.1, MIT SQLite binding notices and public-domain SQLite. Alpine package licenses/build commits remain unchanged. The same combined-target-code distribution and unmodified upstream builds support the exception's permission described in the [binary review above](#beta-remediation-review). This is a fresh check of the exported beta 2 artifact, not acceptance based only on version labels.
+
+Sharp/libvips and the caniuse-lite dataset are absent from the actual runtime; conservative notice-graph entries do not imply those binaries/data ship. Full MIT/ISC/BSD/0BSD/Apache and upstream embedded notices accompany the distribution. Gitleaks 8.30.1 passed the actual source archive, publication files/history and all five application image layers/metadata. The source archive has zero personal-path, retired-host, test-account or private-key pattern matches. Raw logs, generated accounts and private review files remain outside Git/assets.
+
+Local build, packaged CLI recovery and 13 Chromium production scenarios passed. Linux CI passed 155 application tests, all 37 installer contracts, all three browser engines, the real retained/staged Caddy build and domain/IP adaptation, non-root/read-only native runtime/TLS/SSE/storage/restart checks, image export/reload and both fixture lifecycle formats. Public certificates were not requested. No new one-hour soak or reference-host performance result is claimed.
+
+[dependency-review.json](dependency-review.json) records four dated passes for this frozen source/image. The [beta 2 notes](releases/v0.1.0-beta.2.md#candidate-assets) record exact assets. All 33 live/reference/operator gates remain pending; no live host or registry image is provisioned/published by this review.
+
+The evaluation prerelease was published at **2026-10-09 16:55:18 UTC**, without latest-stable promotion. All five uploaded asset digests match the retained audited files. Anonymous published source/image discovery, download and checksum verification passed against the exact identities above; latest-stable discovery correctly rejects the beta. Beta 1's tag and all five asset digests remain unchanged. These distribution checks do not establish a live installation or independent operator result.
+
+[Published-release campaign 37962566345](https://github.com/DangerMouseUK/kekbot/actions/runs/37962566345) passed every required job. Its Linux published-release rehearsal completed at 17:03 UTC using the host tool from evidence commit `23c166da011d75d9af8c18caeee2086b3456a08a` and explicitly verified the published frozen source/image above. Actual source/image downloads, fresh fixture installation, synthetic failed/successful updates, guarded retained removal, separate-root rollback preserving key/assets, retained-data uninstall/resume and explicit purge passed. The helper build from the evidence revision is separate and was not substituted for released assets. Source builds produce their own image identity; fixtures do not establish an upgrade of a real beta 1 installation or any live acceptance gate.

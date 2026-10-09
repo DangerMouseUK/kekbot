@@ -46,6 +46,7 @@ The public operator path is [installation](INSTALLATION.md) → [providers](PROV
 - [First-beta remediation candidate — 2026-10-09](#first-beta-remediation-candidate--2026-10-09)
 - [First-beta publication and distribution rehearsal — 2026-10-09](#first-beta-publication-and-distribution-rehearsal--2026-10-09)
 - [Beta host installer correction — 2026-10-09](#beta-host-installer-correction--2026-10-09)
+- [Beta 2 distribution — 2026-10-09](#beta-2-distribution--2026-10-09)
 <!-- contents:end -->
 
 ## Working approach
@@ -692,3 +693,11 @@ The [beta notes](releases/v0.1.0-beta.1.md#verification-record) retain checksums
 Host-tool commit `971656b7a4c8bf0d6e908b6ae786422716669f49` fixes omitted Caddy Go inputs and context paths for bundled domain/IP installation, retaining all resources with the copied tool. Local checks pass 155 application tests and 30 portable installer contracts. [Correction CI 37955804079](https://github.com/DangerMouseUK/kekbot/actions/runs/37955804079) passed every required job at `4ec86e40208965d833b5571825736a750572ffd8`, including all 37 Linux installer contracts, the real retained/staged proxy build and domain/IP adaptation, all browser engines and container/lifecycle checks. The [dated correction record](RELEASE_READINESS.md#beta-1-installer-correction) separates these results from the original local-proxy fixture rehearsal.
 
 The [fixed-tool walkthrough](INSTALLER.md#beta-1-bundled-https-installer-fix) keeps the published beta tag/assets immutable and selects the same application image independently. No migration, new application distribution or live deployment is included. All 33 live/reference/operator gates remain pending.
+
+## Beta 2 distribution — 2026-10-09
+
+[Beta 2](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) was published at 16:55:18 UTC with the merged installer correction in one matching tool/application release. Frozen source is `944a6c98333a1792486da96ab7ecf7a25a20c5c7`; application image is `sha256:41a0e19c73e853601b97fc748dcc3b7b8f0f71966b16dd24619c644fc71d52f0`. All five uploaded asset digests match the retained audited files; anonymous source/image discovery, download and checksum verification passed. Latest-stable discovery still rejects the beta. Beta 1's tag and downloads remain unchanged.
+
+Version is `0.1.0-beta.2`; dependencies, SQL and data formats stay unchanged. The [candidate review](RELEASE_READINESS.md#beta-2-review) and [release notes](releases/v0.1.0-beta.2.md) record exact checks and published assets. All 33 stable live/reference/operator gates remain pending; this release does not complete Milestones 18–19.
+
+[Published-release campaign 37962566345](https://github.com/DangerMouseUK/kekbot/actions/runs/37962566345) passed all required jobs, including actual published source/image discovery, fixture installation, synthetic update failure/success, separate-root rollback preserving key/assets, retained-data uninstall/resume and explicit purge. Its tool/helper source is evidence commit `23c166da011d75d9af8c18caeee2086b3456a08a`; its explicit release step selected the frozen source/image above. Helper builds do not replace published assets. These checks remain separate from real beta 1 upgrades, public certificate renewal, live workflows and independent operators.

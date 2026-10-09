@@ -2,11 +2,11 @@
 
 Use this guide for installations created by the [terminal wizard](INSTALLER.md). Manual deployments follow [manual upgrade/rollback](BACKUP_RECOVERY.md#upgrade-and-rollback). Updates are explicit; there is no scheduled upgrade, mutable `latest` image, or automatic branch pull.
 
-For `0.1.0-beta.1`, follow the [beta selection and compatibility guidance](BETA.md#update-recover-or-remove). Choose the exact published beta, reviewed commit or audited bundle explicitly. The default latest-stable choice does not install a beta; publication and current limitations are recorded in the [beta notes](releases/v0.1.0-beta.1.md).
+For `0.1.0-beta.2`, follow the [beta selection and compatibility guidance](BETA.md#update-recover-or-remove). Choose the exact published beta, reviewed commit or audited bundle explicitly. The default latest-stable choice does not install a beta; publication and current limitations are recorded in the [beta notes](releases/v0.1.0-beta.2.md).
 
 [Documentation index](README.md) · [Installer options/formats](INSTALLER.md#sources-and-distribution-formats) · [Uninstall](UNINSTALLING.md)
 
-The original beta 1 tool cannot build bundled HTTPS for a new installation. See the [fixed-tool walkthrough](INSTALLER.md#beta-1-bundled-https-installer-fix) before installing with domain/IP Caddy. An application update does not install that host-tool correction; existing fixture/external-proxy installations do not need an application upgrade for it.
+Beta 2 includes the corrected bundled HTTPS installer, with the same schema/formats as beta 1. For beta 1 → beta 2, use the [reviewed beta 2 tool checkout](BETA.md#update-recover-or-remove) and select beta 2 explicitly. Application updates do not replace copied host tools. The original beta 1 installer issue and its separate workaround remain [documented](INSTALLER.md#beta-1-bundled-https-installer-fix) for that older immutable release.
 
 ## Before updating
 

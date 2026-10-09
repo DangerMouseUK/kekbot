@@ -1,10 +1,10 @@
-# Try the first KekBot beta
+# Try the KekBot beta
 
-This guide is for people evaluating `v0.1.0-beta.1`, including operators who have never used KekBot. Read the [release notes](releases/v0.1.0-beta.1.md) before choosing an installation. Return to the [documentation index](README.md).
+This guide is for people evaluating `v0.1.0-beta.2`, including operators who have never used KekBot. Read the [release notes](releases/v0.1.0-beta.2.md) before choosing an installation. Return to the [documentation index](README.md).
 
-**Published on 2026-10-09:** [v0.1.0-beta.1](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Downloadable source/image/notices/checksum assets identify the frozen build; there is no registry image or supported stable release. Use **Specific release** explicitly. Do not assume `main` is the frozen beta.
+**[Beta 2 is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2), dated 2026-10-09.** Choose **Specific release** explicitly to install it. There is no registry image or supported stable release; `main` is not a frozen release. [Beta 1](releases/v0.1.0-beta.1.md) remains available as an immutable historical release.
 
-**Bundled HTTPS installer issue:** the original beta tag's tool cannot build Caddy for domain/IP installations. Use the [fixed-tool walkthrough](INSTALLER.md#beta-1-bundled-https-installer-fix) for those modes. The fixture walkthrough below, external-proxy mode and manual Compose deployment are unaffected; application assets and checksums stay unchanged.
+**Beta 2 includes the bundled HTTPS installer correction.** New installs use its matching tool and application from one tag. The [beta 1 workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) remains for the older immutable release.
 
 **On this page**
 
@@ -18,9 +18,9 @@ This guide is for people evaluating `v0.1.0-beta.1`, including operators who hav
 
 ## What the beta means
 
-The beta includes the implemented Kick commands/timers, local accounts, Discord controls, alerts/OBS sources, YouTube request queue, moderation, community features and host lifecycle tools. It is intended to find installation and real-world workflow problems. [The notes](releases/v0.1.0-beta.1.md#included-in-this-beta) describe scope; the [user guide](USER_GUIDE.md) explains daily use.
+The beta includes the implemented Kick commands/timers, local accounts, Discord controls, alerts/OBS sources, YouTube request queue, moderation, community features and host lifecycle tools. It is intended to find installation and real-world workflow problems. [The notes](releases/v0.1.0-beta.2.md#included-in-this-beta) describe scope; the [user guide](USER_GUIDE.md) explains daily use.
 
-Automated fixtures exercise these workflows without contacting live providers. Current full-product Kick → Discord → OBS delivery, public certificate renewal, independent installations and recovery onto another host still need live evidence. The retained candidate has passed its [image and binary-license review](RELEASE_READINESS.md#beta-remediation-review); raw tooling/proxy warnings and their verified remediation or not-affected basis remain documented. The historical Kick foundation proof applies to its original source only. Start on a disposable evaluation installation and keep a working recovery copy before using real data. Beta feedback does not automatically pass the [stable acceptance gates](RELEASE_READINESS.md).
+Automated fixtures exercise these workflows without contacting live providers. Current full-product Kick → Discord → OBS delivery, public certificate renewal, independent installations and recovery onto another host still need live evidence. The frozen beta 2 source/image passed its own [image and binary-license review](RELEASE_READINESS.md#beta-2-review). Raw tooling/proxy findings remain visible alongside their exact verified remediation or not-affected basis. The historical Kick foundation proof applies to its original source only. Start on a disposable evaluation installation and keep a working recovery copy before using real data. Beta feedback does not automatically pass the [stable acceptance gates](RELEASE_READINESS.md).
 
 ## Choose an installation
 
@@ -36,26 +36,26 @@ The only prebuilt application format is a **Linux amd64 Docker image archive**. 
 <a id="after-publication"></a>
 ### Install the published beta
 
-From Bash on a Linux evaluation host, clone and pin the published **tool** source:
+From Bash on a Linux evaluation host, clone and pin the published beta's **tool** source:
 
 ```sh
 git clone https://github.com/DangerMouseUK/kekbot.git kekbot-beta-tools
 cd kekbot-beta-tools
-git fetch origin tag v0.1.0-beta.1
-git switch --detach v0.1.0-beta.1
+git fetch origin tag v0.1.0-beta.2
+git switch --detach v0.1.0-beta.2
 git rev-parse HEAD
 python3 -B installer/kekbot.py --help
 ```
 
-The expected SHA is `42f23070c085b445760429beac6f0e7c897830c5`. Review that tool and its [verification record](releases/v0.1.0-beta.1.md#verification-record) before granting host authority. Then:
+Compare `git rev-parse HEAD` with the frozen source in the [verification record](releases/v0.1.0-beta.2.md#verification-record) and downloaded `release.json`. Review the tool and checks before granting host authority. Then:
 
 ```sh
 sudo python3 -B installer/kekbot.py --action install
 ```
 
-Choose **Isolated fixture evaluation**, a new root outside the checkout, **Specific release** → `v0.1.0-beta.1` → **Prebuilt Linux amd64 image**. Follow the [installer walkthrough](INSTALLER.md#installation-choices-explained) for remaining prompts. The wizard verifies source/image/notices checksums, version, platform, non-root user and the recorded image ID before applying. A published tag without the required audited assets is not installable through this path. Checksums detect corruption; they are not a publisher signature.
+Choose **Isolated fixture evaluation**, a new root outside the checkout, **Specific release** → `v0.1.0-beta.2` → **Prebuilt Linux amd64 image**. Follow the [installer walkthrough](INSTALLER.md#installation-choices-explained) for remaining prompts. The wizard verifies source/image/notices checksums, version, platform, non-root user and the recorded image ID before applying. A published tag without the required audited assets is not installable through this path. Checksums detect corruption; they are not a publisher signature.
 
-The wizard displays the version, full source SHA and selected format. Because a beta is unaccepted evaluation code, it requires `TRUST 42f23070c085`, then a final `APPLY`. Cancel if its identities differ from the [published asset record](releases/v0.1.0-beta.1.md#candidate-assets). The tool checkout and application selection are independent; pin both deliberately.
+The wizard displays the version, full source SHA and selected format. Because a beta is unaccepted evaluation code, it requires `TRUST` followed by the first 12 characters of the reviewed source SHA, then a final `APPLY`. Cancel if its identities differ from the [published asset record](releases/v0.1.0-beta.2.md#candidate-assets). The tool checkout and application selection are independent; pin both deliberately.
 
 For a source build, select **Build the release source** for the same release; the resulting image has its own identity. For manual source setup, pin the same tag and follow [installation](INSTALLATION.md) in full. GitHub's automatic zip/tar is not an audited installer bundle. Do not pipe a downloaded script into a root shell.
 
@@ -96,7 +96,7 @@ Read [updating](UPDATING.md) before an update. From Bash on a wizard-managed hos
 sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action update
 ```
 
-Use your actual root if different. Explicitly select the intended beta release, full commit or audited bundle; accepting **Latest stable** does not select the beta. Keep the previous image, original encryption key and an independent database/asset backup. Application updates do not replace the copied host tool. Schemas 1/2 migrate to 3; backup and configuration format remain 1. There is no downgrade SQL or promise that arbitrary older builds understand schema 3.
+Use your actual root if different. For beta 1 → beta 2, first fetch/review the beta 2 tool tag using the installation steps above, then run `sudo python3 -B installer/kekbot.py --root /srv/kekbot --action update` from that pinned checkout and choose **Specific release** → `v0.1.0-beta.2`. Keep that reviewed checkout for subsequent management; the application update does not overwrite the copied beta 1 tool. Explicitly select the intended beta release, full commit or audited bundle; accepting **Latest stable** does not select the beta. Keep the previous image, original encryption key and an independent database/asset backup. Schemas 1/2 migrate to 3; backup and configuration format remain 1. There is no downgrade SQL or promise that arbitrary older builds understand schema 3.
 
 After restart, verify readiness, sign-in, accounts, connections, assets and queue state before resuming media. If an update fails, use status and [separate-root rollback](UPDATING.md#roll-back-after-failure-or-a-bad-update); do not force Start or Update around the recovery guard. Manual deployments use [manual recovery](BACKUP_RECOVERY.md#upgrade-and-rollback).
 
@@ -106,7 +106,7 @@ After restart, verify readiness, sign-in, accounts, connections, assets and queu
 
 Use the repository's [bug report](https://github.com/DangerMouseUK/kekbot/issues/new?template=bug_report.md) or [documentation report](https://github.com/DangerMouseUK/kekbot/issues/new?template=documentation.md). Include:
 
-1. `0.1.0-beta.1`, full source SHA and, for an image install, the recorded image ID. Say source build, prebuilt bundle or release selection.
+1. `0.1.0-beta.2`, full source SHA and, for an image install, the recorded image ID. Say source build, prebuilt bundle or release selection.
 2. OS/architecture, browser or OBS version, fixture/live mode and which guide/step you followed.
 3. Small reproduction steps, expected result, actual result and whether restart changes it.
 4. A minimal synthetic example or manually reviewed diagnostic summary, plus checks that did and did not run.

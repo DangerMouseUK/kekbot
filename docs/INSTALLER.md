@@ -2,7 +2,7 @@
 
 Use the **interactive terminal wizard** to install one KekBot instance on Linux x86-64. It also provides updates, rollback, status, start/stop and uninstall. Every change has an explained review and typed confirmation. Application/module settings and provider consent continue in the browser after owner setup.
 
-KekBot's [first beta is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Choose **Specific release** → `v0.1.0-beta.1` explicitly for evaluation. **There is no supported stable release yet.** Latest stable is the wizard's default and fails with an explanation until an accepted stable release exists. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths. Automated fixture testing does not establish an independent installer or real-provider acceptance.
+Beta 2 is [published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) with the corrected bundled HTTPS installer. Choose **Specific release** → `v0.1.0-beta.2` for evaluation using its matching tool tag. [Beta 1](releases/v0.1.0-beta.1.md) remains published; its original domain/IP installer needs the [workaround below](#beta-1-bundled-https-installer-fix). **There is no supported stable release yet.** Latest stable defaults to fail-closed discovery. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths; automated fixtures do not establish independent installation or real providers.
 
 [All documentation](README.md) · [Manual installation](INSTALLATION.md) · [Updating](UPDATING.md) · [Uninstalling](UNINSTALLING.md)
 
@@ -61,6 +61,8 @@ sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action status
 
 ## Beta 1 bundled HTTPS installer fix
 
+Beta 2 contains this correction and needs no separate tool revision. The following instructions are retained for the older immutable release.
+
 The published `v0.1.0-beta.1` tag's host tool omits the locked Go sources from its temporary Caddy build context. A fresh **Domain Caddy** or **IPv4 Caddy** installation therefore fails before creating the managed root. The original tag and downloadable application assets remain immutable. Fixture evaluation, an existing external proxy and the [manual Compose path](INSTALLATION.md) are unaffected.
 
 For bundled HTTPS, use the separately fixed host tool at commit **`971656b7a4c8bf0d6e908b6ae786422716669f49`**. Review [that change](https://github.com/DangerMouseUK/kekbot/commit/971656b7a4c8bf0d6e908b6ae786422716669f49) and its PR checks before granting host authority. From **Bash on the Linux host**, in a public source directory outside your intended installation root:
@@ -113,7 +115,7 @@ For multiple instances, use separate directories, project names, application por
 | Selection | Input | Supported format / resolution |
 | --- | --- | --- |
 | Latest stable (default) | None | GitHub's latest published non-prerelease, plus this project's accepted stable metadata. Default is the prebuilt Linux amd64 image. No automatic fallback to `main`. |
-| Specific release | Exact published tag, e.g. `v0.1.0-beta.1` after publication | Explicit prereleases/candidates allowed with trust acknowledgement. Choose prebuilt image or source build. A planned tag cannot be installed before it exists. |
+| Specific release | Exact published tag, e.g. `v0.1.0-beta.2` after publication | Explicit prereleases/candidates allowed with trust acknowledgement. Choose prebuilt image or source build. A planned tag cannot be installed before it exists. |
 | Branch | Existing name, e.g. `main` | Fetch the official repository ref, pin full commit, archive public source, build with Docker. |
 | Pull request | Positive number, without `#` | Fetch official `refs/pull/NUMBER/head`, including fork contributions. Builds the PR head, not GitHub's synthetic merge result. Pin and review exact SHA. |
 | Commit | Full lowercase 40-character SHA | Fetch that exact commit; require matching identity; build source. |
