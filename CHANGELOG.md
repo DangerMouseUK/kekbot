@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased release-blocker remediation
+
+- Assemble a shell-free application runtime from digest-pinned Node 24.21.0 Alpine stages with only musl/GCC runtime libraries, retaining its real OS package database and runtime notices in the image and notices archive. Disable the unused Next image optimizer and reject Sharp/libvips in standalone output.
+- Rebuild standard Caddy 2.11.6 using pinned Go 1.27.2 and x/net 0.60.0. Add exact-image binary vulnerability review; the OpenPGP module match requires proof that the packages are absent, with raw counts preserved. Additional findings and unavailable evidence block publication.
+- Add packaging/proof regression tests and maintenance/redistribution guidance. Fresh image checks and publication remain pending; live/stable gates are unchanged.
+
 ## 0.1.0-beta.1 — Preparation candidate, unreleased
 
 - Named the first beta candidate and aligned application, Docker and Compose versions. Added beta installation/update/feedback guidance, release notes and a separate prerelease checklist. Explicit beta selection remains separate from the fail-closed latest-stable default.

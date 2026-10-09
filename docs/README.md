@@ -38,6 +38,7 @@ These guides describe the `0.1.0-beta.1` preparation candidate, SQLite schema 3,
 
 - [Contributing](../CONTRIBUTING.md) and [coding-agent instructions](../AGENTS.md).
 - [Architecture decisions](ARCHITECTURE.md) and [HTTP/domain API](API.md).
+- [Runtime image](RUNTIME_IMAGE.md): minimal container contents, musl compatibility, shell-free maintenance, proxy binary review and redistribution notices.
 - [Host lifecycle implementation](../installer/README.md): standard-library Python boundary, state protocol and offline/real-Docker tests.
 - [Action reference](API_ACTIONS.md): payloads, capabilities and availability by control surface.
 - [Documentation maintenance](DOCUMENTATION.md): editorial rules, coverage and verification procedure.

@@ -37,6 +37,8 @@ try {
       run("docker", ["cp", `${container}:/app/THIRD_PARTY_LICENSES`, legal]);
       const inventory = JSON.parse(readFileSync(join(legal, "THIRD_PARTY_LICENSES/index.json"), "utf8"));
       if (!inventory.length || inventory.some(pkg => !pkg.notices.length || new Set(pkg.notices).size !== pkg.notices.length || pkg.notices.some(path => !existsSync(join(legal, "THIRD_PARTY_LICENSES", `${pkg.name.replaceAll("/", "_")}@${pkg.version}`, path)) || !readFileSync(join(legal, "THIRD_PARTY_LICENSES", `${pkg.name.replaceAll("/", "_")}@${pkg.version}`, path)).length))) throw new Error("release_license_inventory_incomplete");
+      const runtimeLegal = join(legal, "THIRD_PARTY_LICENSES/runtime");
+      for (const file of ["index.json", "README.md", "NODE-LICENSE", "musl-COPYRIGHT", "GCC-COPYING3", "GCC-RUNTIME-EXCEPTION", "musl-1.2.6-source.tar.gz"]) if (!existsSync(join(runtimeLegal, file)) || !readFileSync(join(runtimeLegal, file)).length) throw new Error("release_runtime_notices_incomplete");
       run("docker", ["cp", `${container}:/app/LICENSE`, legal]);
       run("docker", ["cp", `${container}:/app/DEPENDENCIES.md`, legal]);
       run("tar", ["--create", "--gzip", "--file", join(destination, `${name}-notices.tar.gz`), "--directory", legal, "LICENSE", "DEPENDENCIES.md", "THIRD_PARTY_LICENSES"]);

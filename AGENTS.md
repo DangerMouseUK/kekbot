@@ -38,6 +38,7 @@ Read only the material needed for the requested scope. The [foundation guide](do
 - Keep one runtime per local SQLite installation. Builds/tests must not start live jobs. Preserve bounded processing, durable leases, snapshot recovery and explicit media resume after restart.
 - Avoid new production dependencies unless justified. Pin exact additions and review licenses/notices.
 - Dependency remediations must preserve tooling behavior. Keep local patches scoped and checked in, with exploit/compatibility tests and a removal condition. `pnpm dependencies:audit` retains raw counts and verifies the exact local braces patch; never replace this with a global advisory ignore or call a patched registry finding a clean raw scan.
+- Preserve the shell-free image's real apk inventory and separate runtime notices. The disabled optimizer must not ship Sharp/libvips. Caddy's locked Go graph and unstripped exact-image binary proof are separate from application audits; only the verified absent OpenPGP packages may receive the narrow not-affected classification, with raw counts retained. See [runtime image](docs/RUNTIME_IMAGE.md).
 
 ## Documentation quality and evidence
 

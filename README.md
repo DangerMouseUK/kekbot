@@ -25,6 +25,8 @@ Discord and YouTube are optional to enable. KekBot runs without a project-operat
 
 Daily operation includes dedicated queues for pending rewards and uncertain provider deliveries, independent of recent history. The [user guide](docs/USER_GUIDE.md#points-and-rewards) explains fulfillment; the [operations guide](docs/OPERATIONS.md#reconcile-an-uncertain-action) explains inspecting and reconciling delivery without resending it.
 
+The candidate [runtime image](docs/RUNTIME_IMAGE.md) contains Node and the required native libraries without a shell or package manager. Use the documented Node maintenance commands. The guide covers Alpine/musl beta compatibility, the separate proxy build, binary scanning and bundled legal notices; fresh checks are required before release.
+
 ## Choose your starting point
 
 | You want to… | Start here | What you need |

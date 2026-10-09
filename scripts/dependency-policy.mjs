@@ -16,7 +16,7 @@ export function dependencyPolicy(root = ".") {
   if (!exact.test(node) || pkg.engines?.node !== `>=${node} <${Number(node.split(".")[0]) + 1}`) problems.push("node_pin_mismatch");
   if (!pnpm || pkg.engines?.pnpm !== pnpm || !read("Dockerfile").includes(`pnpm@${pnpm}`)) problems.push("pnpm_pin_mismatch");
   const bases = [...read("Dockerfile").matchAll(/^FROM node:([^\s@]+)(?:@sha256:[a-f0-9]{64})?/gm)];
-  if (bases.length !== 2 || bases.some(match => match[1] !== `${node}-trixie-slim`)) problems.push("node_image_pin_mismatch");
+  if (bases.length !== 2 || bases.some(match => match[1] !== `${node}-alpine3.24`) || !read("Dockerfile").includes("FROM scratch AS runtime")) problems.push("node_image_pin_mismatch");
   for (const line of read(".github/workflows/ci.yml").split("\n")) {
     if (/uses:/.test(line) && !/uses: [a-zA-Z0-9_.-]+\/[a-zA-Z0-9_./-]+@[a-f0-9]{40}(?:\s|$)/.test(line)) problems.push("unpinned_workflow_action");
   }

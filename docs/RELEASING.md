@@ -114,7 +114,7 @@ Output is named with the application version and first twelve source-SHA charact
 - `release.json`: full source SHA, application/schema/backup versions, platform, immutable Docker image ID and acceptance state.
 - `SHA256SUMS`: hashes of the other files. Verify with `sha256sum --check SHA256SUMS` inside the bundle directory; PowerShell users can compare `Get-FileHash -Algorithm SHA256` with the listed hashes.
 
-Source/dependency/toolchain pins make inputs inspectable. Image bytes are not promised identical across rebuilds: base-image tags, native compilation, build tooling and timestamps can affect them. SHA256 identifies the produced files. Record the loaded Docker image ID as well as the archive hash. A registry manifest digest is a different identity and must also be recorded when publishing. OS/Node base-image licenses remain in the image; the separate notices archive inventories application dependencies.
+Source/dependency/toolchain pins make inputs inspectable. Image bytes are not promised identical across rebuilds: base-image tags, native compilation, build tooling and timestamps can affect them. SHA256 identifies the produced files. Record the loaded Docker image ID as well as the archive hash. A registry manifest digest is a different identity and must also be recorded when publishing. The notices archive includes application notices plus the image’s Node/musl/GCC runtime notices and real OS package inventory. Review [runtime redistribution](RUNTIME_IMAGE.md#licenses-and-inventory) on the exact image.
 
 ## Freeze and acceptance evidence
 
@@ -140,6 +140,6 @@ Then complete a clean installation from actual published artifacts and rehearse 
 
 ## Dependency review gate
 
-Before stable packaging, follow [dependency maintenance](DEPENDENCY_MAINTENANCE.md). [dependency-review.json](dependency-review.json) requires separate application, tooling, image and license passes bound to the exact frozen source/image. All four are pending. They supplement the existing live acceptance gates; a clean build or production-only audit cannot approve the candidate.
+Before stable packaging, follow [dependency maintenance](DEPENDENCY_MAINTENANCE.md). [dependency-review.json](dependency-review.json) requires separate application, tooling, image and license passes bound to the exact frozen source/image. Read the current record for each outcome; a pass never transfers to a new source/image. They supplement the existing live acceptance gates; a clean build or production-only audit cannot approve the candidate.
 
 `pnpm release:check --stable --source /path/to/frozen-candidate --image-digest IMAGE_ID` fails closed on missing/mismatched reviews. For private external evidence, `--dependency-review PATH` selects the dependency record; its default is `dependency-review.json` beside the `--evidence` file. Stable `release:prepare` uses that sibling record. Record sign-off in a separate evidence revision referring to the frozen candidate. Do not publish raw audit output, private diagnostic logs or runtime files.
