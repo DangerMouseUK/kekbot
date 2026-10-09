@@ -2,11 +2,12 @@
 
 Use this guide on an always-on **Linux x86-64 host**. The root [`install.sh`](../install.sh) launcher opens the explained Python lifecycle wizard without requiring a repository clone. It also checks prerequisites, offers optional Ubuntu 24.04 setup, and opens updates, rollback, status, start/stop and removal. For Windows/macOS evaluation use [Docker Desktop](DOCKER_DESKTOP.md). [All documentation](README.md).
 
-The launcher is a **development addition after beta 2**. After this change merges, download it from `main`; older beta tags do not contain it. The launcher can install the unchanged published beta 2 application using current reviewed management tools. It does not create a new release, replace beta assets, establish stable acceptance or deploy provider applications for you.
+The launcher is available from `main`. [Beta 3](releases/v0.1.0-beta.3.md) is being prepared to distribute this same launcher as an additional checksum-covered release asset; it is not published yet. Older beta tags do not contain it. Current tools can install the unchanged published beta 2 application. Bootstrap, management tools and application have separate identities and trust checks; no release or live acceptance follows from downloading them.
 
 **On this page**
 
 - [Quick start](#quick-start)
+- [Verify a versioned launcher download](#verify-a-versioned-launcher-download)
 - [What happens next](#what-happens-next)
 - [Host setup and readiness](#host-setup-and-readiness)
 - [Every launcher option](#every-launcher-option)
@@ -36,6 +37,28 @@ Choose **Install a new instance**. If prerequisites are missing, the launcher ex
 The launcher downloads only the required management scripts and proxy resources into a private temporary directory. It prints their full resolved commit, review link and local inspection directory. Review that exact code/CI, then enter the displayed `TRUST <first 12 SHA characters>` phrase. You can inspect the files in another SSH session or cancel and use [prepare-only mode](#review-and-pin-management-tools).
 
 For a safe first evaluation, choose **Isolated fixture evaluation** in the Python wizard and **Specific release → v0.1.0-beta.2 → Prebuilt Linux amd64 image**. For a live creator, choose a separate live installation, HTTPS topology and owner-controlled integrations. There is no accepted stable release yet: **Latest stable** deliberately reports unavailable rather than selecting a beta.
+
+## Verify a versioned launcher download
+
+Beta 3 candidate bundles include `install.sh`, `release.json` and `SHA256SUMS` alongside the source/image/notices archives. Obtain the **complete audited bundle** from the reviewed CI run or, after publication, the exact release page linked by its notes. GitHub automatic source downloads are not that bundle. Beta 1/2 bundles remain supported and have no standalone launcher asset. Until beta 3 is published, use the `main` download above or a reviewed candidate bundle; a planned release URL will fail.
+
+From Bash in the directory containing all downloaded assets, without sudo:
+
+```sh
+sha256sum --check SHA256SUMS && less install.sh
+python3 -c 'import json; print(json.load(open("release.json"))["sourceRef"])'
+```
+
+Require every checksum to pass, including `install.sh`, and compare the full source SHA/image identity with the exact candidate or published verification record. Then inspect the script and the matching management code. Checksums detect corruption, not a compromised publisher; obtain the checksum file and notes from trusted project sources. Keep the download outside the installation root.
+
+The launcher does not infer management or application selection from its filename. To pin both to that reviewed bundle, replace the placeholder with `release.json`'s full SHA and use the absolute bundle path:
+
+```sh
+sudo bash install.sh install --tool-commit REVIEWED_FULL_SHA \
+  --bundle /srv/public-release-bundle --format image
+```
+
+Choose `--format source` to build the archived source instead. Management downloads still require their displayed `TRUST` phrase; the unaccepted beta application needs its own source trust and final `APPLY`. No downloaded manager runs just because its checksum passes. For a fully reviewed local source checkout, use `--local-tools /srv/kekbot-reviewed-source` instead of `--tool-commit`; local trust remains explicit. Keep the immutable SHA in private operator records. [Candidate evaluation](BETA.md#evaluate-another-reviewed-candidate) and [updates](UPDATING.md) explain older installations.
 
 ## What happens next
 
@@ -184,4 +207,4 @@ Offline contracts cover selectors, quoting, invalid inputs, pinned/bounded stagi
 
 The [dated launcher verification record](MILESTONES.md#downloadable-lifecycle-launcher--development-follow-up) identifies the tested source, CI campaign and local checks. It establishes automated behaviour, with the remaining boundaries below.
 
-Mocked package setup tests do not establish a successful fresh-host Docker installation. Full public download/discovery after merge, a fresh Ubuntu prerequisite trial, public certificates, real providers, OBS and unaided installation need their own dated outcomes. Published beta 2 evidence remains tied to its original source/image; this launcher does not pass any stable acceptance gate.
+Mocked package setup tests do not establish a successful fresh-host Docker installation. The merged public `main` launcher is available; candidate release-asset checks are recorded in the [beta 3 notes](releases/v0.1.0-beta.3.md#verification-record). Discovery from a published beta 3 release, a fresh Ubuntu prerequisite trial, public certificates, real providers, OBS and unaided installation need their own dated outcomes. Published beta 2 evidence remains tied to its original source/image; this launcher does not pass any stable acceptance gate.

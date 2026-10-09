@@ -1,6 +1,6 @@
 # Preparing and releasing KekBot
 
-The [published `0.1.0-beta.2` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) includes the merged bundled-HTTPS installer fix and passed its exact source/image [candidate review](RELEASE_READINESS.md#beta-2-review). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.2.md) describe evaluation and upgrade compatibility. [Beta 1](releases/v0.1.0-beta.1.md) remains immutable. Stable acceptance requires the [live campaign](LIVE_ACCEPTANCE.md); publication requires explicit owner authorization. Preparation can run without provider accounts or local Docker.
+The [published `0.1.0-beta.2` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) includes the merged bundled-HTTPS installer fix and passed its exact source/image [candidate review](RELEASE_READINESS.md#beta-2-review). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.2.md) describe evaluation and upgrade compatibility. [Beta 1](releases/v0.1.0-beta.1.md) remains immutable. Stable acceptance requires the [live campaign](LIVE_ACCEPTANCE.md); publication requires explicit owner authorization. Current preparation targets [beta 3](releases/v0.1.0-beta.3.md), with the merged launcher in a standalone audited download. It is not published yet; beta 2 remains the available evaluation release. Preparation can run without provider accounts or local Docker.
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
 
@@ -22,7 +22,7 @@ Review fixes change the candidate source even when versions/formats stay the sam
 
 | Stage | Required input | Result | Still not authorized by this stage |
 | --- | --- | --- | --- |
-| Prepare | Clean reviewed commit, ordinary CI, pinned build tools | Audited unaccepted source/image/notices/checksums | Deployment, stable acceptance, tag/registry publication |
+| Prepare | Clean reviewed commit, ordinary CI, pinned build tools | Audited unaccepted source/image/notices/launcher/checksums | Deployment, stable acceptance, tag/registry publication |
 | Accept | Frozen source/image plus actual live/reference/independent trials | Dated sign-off evidence tied to exact identities | Publishing a different rebuild or moving an existing tag |
 | Publish | Complete acceptance and explicit owner authorization | Exact retained accepted artifacts and immutable version/digest | Claiming a published-install trial before it runs |
 | Verify distribution | Fresh installation using the published artifacts | Final milestone evidence and supported upgrade/recovery instructions | Reusing fixture or same-host evidence for an unavailable live gate |
@@ -31,15 +31,15 @@ Before an independent installer trial, hand the operator the root README and [in
 
 ## Beta prerelease preparation and publication
 
-`v0.1.0-beta.2` uses the existing **unaccepted candidate** packaging contract. It must not use `--stable`, change the stable policy, mark fixture runs as live passes, or populate live evidence with inferred results. Its `release.json` retains `candidate-unaccepted`. Explicit installer **Specific release** selection supports prereleases; **Latest stable** never selects this beta.
+The unpublished `v0.1.0-beta.3` candidate uses the existing **unaccepted candidate** packaging contract. It must not use `--stable`, change the stable policy, mark fixture runs as live passes, or populate live evidence with inferred results. Its `release.json` retains `candidate-unaccepted`. Explicit installer **Specific release** selection supports prereleases; **Latest stable** never selects this beta.
 
 Preparation checklist:
 
 1. Align `package.json`, Docker's default version and Compose image name; preserve dependency pins and formats. Write tester-facing scope, compatibility, limitations, install/update and feedback guidance.
 2. Commit/freeze the candidate. Run ordinary PR checks and the full optional campaign below on that exact SHA, including source/history/image audits, source/image installer rehearsals and application/tooling/app-image/proxy-image vulnerability reviews.
 3. Inspect the actual target-platform dependency inventory/notices and obligations. Record dated reviews bound to the source/image; do not hide the raw locally patched tooling advisory. Investigate any new finding before recommending publication.
-4. Download only the audited candidate artifact, verify all checksums, and retain the exact source/image/notices/metadata bundle in protected release storage beyond CI's 14-day retention. Record its source, image ID and checksums. Do not rebuild it for publication.
-5. Add the exact CI/source/image outcomes to the [beta verification record](releases/v0.1.0-beta.2.md#verification-record). Keep unrun live/reference/operator checks explicit. An evidence-only follow-up commit does not change the frozen source recorded inside the bundle.
+4. Download only the audited candidate artifact, verify all checksums, and retain the exact source/image/notices/launcher/metadata bundle in protected release storage beyond CI's 14-day retention. Record its source, image ID and checksums. Do not rebuild it for publication.
+5. Add the exact CI/source/image outcomes to the [beta 3 verification record](releases/v0.1.0-beta.3.md#verification-record). Keep unrun live/reference/operator checks explicit. An evidence-only follow-up commit does not change the frozen source recorded inside the bundle.
 
 Run from the reviewed checkout with GitHub CLI:
 
@@ -52,21 +52,21 @@ Compare `headSha` with the frozen candidate. A passing dependency scan alone is 
 
 **Publication is a separate owner decision.** Before recommending a wider beta, complete a fresh real-provider/OBS session with restart and backup/restore, or state clearly that the beta is limited to evaluation without that evidence. The destroyed test host is not available; preparation does not provision infrastructure. No live gate is waived by using a prerelease label.
 
-Once the owner explicitly authorizes beta publication, verify the candidate/evidence identities and assets again, create an immutable `v0.1.0-beta.2` tag at the **frozen candidate source**, and publish a GitHub **prerelease**, with latest-release promotion disabled. Attach only the retained audited assets and the final release notes. Keep the pending live limits visible. Do not publish a mutable `latest` registry tag or mark stable metadata accepted. This repository has no automatic release-publishing workflow; CI remains read-only.
+Once the owner explicitly authorizes beta publication, verify the candidate/evidence identities and assets again, create an immutable `v0.1.0-beta.3` tag at the **frozen candidate source**, and publish a GitHub **prerelease**, with latest-release promotion disabled. Attach only the retained audited assets and the final release notes. Keep the pending live limits visible. Do not publish a mutable `latest` registry tag or mark stable metadata accepted. This repository has no automatic release-publishing workflow; CI remains read-only.
 
 After publication, update the README/index/beta guide/notes publication status together and rehearse **Specific release** installation from the actual published assets. That final download/discovery path cannot be tested against a nonexistent release. Record it separately; automated bundle fixtures do not establish an unaided installer trial. Any registry publication or additional format requires its own authorized, verified distribution work.
 
 Maintainers can run that distribution rehearsal in Linux CI without asking testers to run Docker locally:
 
 ```sh
-gh workflow run ci.yml --ref <EVIDENCE_BRANCH> --field published_release=v0.1.0-beta.2
+gh workflow run ci.yml --ref <EVIDENCE_BRANCH> --field published_release=v0.1.0-beta.3
 ```
 
 Use a reviewed branch containing the `published_release` workflow input. CI resolves the actual release assets through the host tool, verifies their checksums and image identity, then rehearses image installation, source build, update failure/recovery and uninstall in isolated fixtures. It prints only the selected source/image identities and outcomes. The job does not publish, deploy live integrations, upload runtime evidence or approve an unaided installer gate. Record the published artifact identity separately from the CI helper revision; do not replace the retained release image with the helper checkout's new build.
 
 ### Host-tool corrections after publication
 
-The [downloadable launcher](LAUNCHER.md) is a later development addition; published beta 2 assets do not contain it. Review bootstrap, management commit and application identity independently. Current source packages include the root launcher automatically; publishing a new launcher/application bundle still needs the normal frozen-source/image review and owner authorization. Test launcher syntax, trust/dispatch contracts, retained launcher resources and the real-image terminal installation before distribution. Do not replace existing release assets to add it or transfer historical binary/security sign-off to a new image. Optional fresh-Ubuntu package assistance requires a separate host trial.
+The [downloadable launcher](LAUNCHER.md) is a later development addition; published beta 2 assets do not contain it. Review bootstrap, management commit and application identity independently. Beta 3 packaging includes the root launcher both inside its source archive and as a standalone `install.sh` asset. The additive `launcher` metadata field remains format 1; older installer bundles still work. Preparation checks that this is a regular committed file, exports Git bytes without checkout newline conversion, and includes its hash in `SHA256SUMS`. The Linux archive round trip compares it with both committed and archived bytes without executing it. Publishing still needs normal frozen-source/image review and owner authorization. Test launcher syntax, trust/dispatch contracts, retained launcher resources and the real-image terminal installation before distribution. Do not replace existing release assets to add it or transfer historical binary/security sign-off to a new image. Optional fresh-Ubuntu package assistance requires a separate host trial.
 
 Published tags and assets remain immutable. A host-tool fix may manage an unchanged release from a separately reviewed, pinned tool checkout; record both identities rather than calling the published source fixed. Application updates never implicitly replace management code. The [beta 1 bundled-HTTPS workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) follows this path. Beta 2 distributes that correction under a new version through the normal authorized publication process; it does not replace beta 1's downloads.
 
@@ -82,7 +82,7 @@ The [interactive installer](INSTALLER.md) supports repository branches, PR heads
 | Next.js / React | 16.3.8 / 19.3.0 |
 | Production host | Linux x86-64, local persistent disk, one app replica; 2 vCPU / 2 GiB reference runtime target still unmeasured |
 | Windows/macOS | Documented Docker Desktop container path; native distribution not supported |
-| Application / database / backup / native config | `0.1.0-beta.2` / schema 3 / format 1 / format 1 |
+| Application / database / backup / native config | `0.1.0-beta.3` / schema 3 / format 1 / format 1 |
 | Proxy example | Caddy 2.11.6; domain or supported public-IP HTTPS; operator owns public reachability |
 | Upgrade | Schemas 1 and 2 → 3 supported; future schemas rejected; unsupported downgrade prohibited |
 
@@ -127,8 +127,11 @@ Output is named with the application version and first twelve source-SHA charact
 - `*-source.tar.gz`: `git archive` of that committed public source, with no ignored/runtime/uncommitted files.
 - `*-linux-amd64-image.tar.gz`: compressed Docker image archive; load with `docker load` after checksum verification.
 - `*-notices.tar.gz`: KekBot MIT license and the image's actual target-platform third-party notices/inventory.
-- `release.json`: full source SHA, application/schema/backup versions, platform, immutable Docker image ID and acceptance state.
+- `install.sh`: standalone launcher identical to the committed file and source archive; inspect before Bash execution and pin management/application sources separately.
+- `release.json`: optional `launcher` filename, full source SHA, application/schema/backup versions, platform, immutable Docker image ID and acceptance state.
 - `SHA256SUMS`: hashes of the other files. Verify with `sha256sum --check SHA256SUMS` inside the bundle directory; PowerShell users can compare `Get-FileHash -Algorithm SHA256` with the listed hashes.
+
+A full beta 3 image bundle has six files (source, image, notices, launcher, metadata and checksum index), with five checksum entries. Source-only preparation has four files and three checksum entries; it has no prebuilt image/notices archive and cannot be selected as an image install. Historical beta 1/2 five-file image bundles remain immutable and supported. Do not upload a launcher or source archive from a later checkout alongside a frozen image.
 
 Source/dependency/toolchain pins make inputs inspectable. Image bytes are not promised identical across rebuilds: base-image tags, native compilation, build tooling and timestamps can affect them. SHA256 identifies the produced files. Record the loaded Docker image ID as well as the archive hash. A registry manifest digest is a different identity and must also be recorded when publishing. The notices archive includes application notices plus the image’s Node/musl/GCC runtime notices and real OS package inventory. Review [runtime redistribution](RUNTIME_IMAGE.md#licenses-and-inventory) on the exact image.
 

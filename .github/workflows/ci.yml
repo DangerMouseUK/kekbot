@@ -10,7 +10,7 @@ on:
         type: boolean
         default: false
       package:
-        description: Upload only audited, versioned candidate source/image/notices archives
+        description: Upload only audited candidate source/image/notices, launcher, metadata and checksums
         type: boolean
         default: false
       dependencies:

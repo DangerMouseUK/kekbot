@@ -1,6 +1,6 @@
 # HTTP and domain interfaces
 
-Development API version: `v1`; implementation: `0.1.0-beta.2`, schema 3. Routes are dynamic/no-store. This is a pre-release interface; compatibility beyond the declared configuration/backup versions is not yet promised. See the [beta compatibility notes](releases/v0.1.0-beta.2.md#compatibility-and-upgrades).
+Development API version: `v1`; implementation: `0.1.0-beta.3`, schema 3. Routes are dynamic/no-store. This is a pre-release interface; compatibility beyond the declared configuration/backup versions is not yet promised. See the [beta compatibility notes](releases/v0.1.0-beta.3.md#compatibility-and-upgrades).
 
 Host installation/update/uninstall is deliberately outside HTTP/dashboard authority. The [terminal wizard](INSTALLER.md) needs trusted host/root access and its private management record; API tokens cannot invoke it. Application maintenance CLI and all domain/role contracts remain unchanged.
 

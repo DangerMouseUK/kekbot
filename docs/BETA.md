@@ -6,7 +6,7 @@ This guide is for people evaluating `v0.1.0-beta.2`, including operators who hav
 
 **Beta 2 includes the bundled HTTPS installer correction.** New installs use its matching tool and application from one tag. The [beta 1 workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) remains for the older immutable release.
 
-Prefer a no-clone start? The [downloadable launcher](LAUNCHER.md) is a development addition after beta 2, distributed from `main` after its PR merges. It can select the published beta application using independently reviewed current management tools. The pinned beta tool path below remains available; neither beta tag nor its audited assets are changed by the launcher.
+Prefer a no-clone start? The [downloadable launcher](LAUNCHER.md) is available from `main` and can select the published beta application using independently reviewed current management tools. [Beta 3 is an unpublished candidate](releases/v0.1.0-beta.3.md) that adds the same launcher as a checksum-covered release download. The pinned beta 2 path below remains available; historical tags and assets stay unchanged.
 
 **On this page**
 
@@ -72,6 +72,8 @@ git switch --detach FROZEN_FULL_SHA
 git rev-parse HEAD
 ```
 
+For the beta 3 candidate, use only the source and CI bundle named in its [verification record](releases/v0.1.0-beta.3.md#verification-record); do not select a nonexistent published tag. [Verify the standalone launcher](LAUNCHER.md#verify-a-versioned-launcher-download), then use `--tool-commit` with that full SHA and `--bundle` with the complete audited download. New installs retain the launcher for future management. A source build has its own image identity.
+
 Review that source and its checks, then run the installer with **Exact commit** and the same full SHA; this builds source. A CI candidate bundle is a separate path: extract only the audited workflow artifact into its own directory and choose **Local audited release bundle** with the absolute directory containing `release.json` and `SHA256SUMS`. Select the desired source/image format and verify its own identities. Do not reuse the published beta's review for a later build. Only audited public bundles belong in workflow artifacts; installed data and generated credentials remain private.
 
 ## Finish setup and test a workflow
@@ -100,6 +102,8 @@ sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action update
 
 Use your actual root if different. For beta 1 → beta 2, first fetch/review the beta 2 tool tag using the installation steps above, then run `sudo python3 -B installer/kekbot.py --root /srv/kekbot --action update` from that pinned checkout and choose **Specific release** → `v0.1.0-beta.2`. Keep that reviewed checkout for subsequent management; the application update does not overwrite the copied beta 1 tool. Explicitly select the intended beta release, full commit or audited bundle; accepting **Latest stable** does not select the beta. Keep the previous image, original encryption key and an independent database/asset backup. Schemas 1/2 migrate to 3; backup and configuration format remain 1. There is no downgrade SQL or promise that arbitrary older builds understand schema 3.
 
+For beta 1/2 → the beta 3 candidate, review the candidate launcher and management SHA separately, then run `sudo bash install.sh update --root /srv/kekbot --tool-commit REVIEWED_FULL_SHA --bundle /srv/public-release-bundle --format image` from its audited download directory. Replace both placeholders. The application stays schema 3 and backup/configuration format 1; no new migration or dependency update is introduced. The older retained manager is not overwritten, and older installations do not gain `/tool/install.sh` automatically. Keep the separately reviewed launcher/tool source for subsequent management; do not copy over tool files during operations. Published-tag selection for beta 3 becomes available only after actual publication.
+
 After restart, verify readiness, sign-in, accounts, connections, assets and queue state before resuming media. If an update fails, use status and [separate-root rollback](UPDATING.md#roll-back-after-failure-or-a-bad-update); do not force Start or Update around the recovery guard. Manual deployments use [manual recovery](BACKUP_RECOVERY.md#upgrade-and-rollback).
 
 [Uninstall](UNINSTALLING.md) retains data by default. Purge is a separate destructive choice. Keep a recovery copy outside the installation before purging; external provider applications and consent are managed separately.
@@ -108,7 +112,7 @@ After restart, verify readiness, sign-in, accounts, connections, assets and queu
 
 Use the repository's [bug report](https://github.com/DangerMouseUK/kekbot/issues/new?template=bug_report.md) or [documentation report](https://github.com/DangerMouseUK/kekbot/issues/new?template=documentation.md). Include:
 
-1. `0.1.0-beta.2`, full source SHA and, for an image install, the recorded image ID. Say source build, prebuilt bundle or release selection.
+1. The actual version (`0.1.0-beta.2` published or `0.1.0-beta.3` candidate), full source SHA and, for an image install, the recorded image ID. Say source build, prebuilt bundle or release selection.
 2. OS/architecture, browser or OBS version, fixture/live mode and which guide/step you followed.
 3. Small reproduction steps, expected result, actual result and whether restart changes it.
 4. A minimal synthetic example or manually reviewed diagnostic summary, plus checks that did and did not run.

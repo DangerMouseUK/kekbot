@@ -213,6 +213,36 @@ class Contracts(unittest.TestCase):
             core.prepare_target("stable", "", "image", self.root)
         download.assert_not_called()
 
+    def test_beta3_additive_launcher_asset_is_not_executed_or_adopted(self):
+        version, tag = "0.1.0-beta.3", "v0.1.0-beta.3"
+        bundle = self.bundle(image=True, version=version)
+        metadata = json.loads((bundle / "release.json").read_text())
+        metadata["launcher"] = "install.sh"
+        (bundle / "release.json").write_text(json.dumps(metadata))
+        (bundle / "install.sh").write_bytes(b"#!/usr/bin/env bash\nexit 91\n")
+        (bundle / "SHA256SUMS").write_text("".join(f"{core.checksum(item)}  {item.name}\n" for item in sorted(bundle.iterdir()) if item.name != "SHA256SUMS"))
+        release = dict(tag_name=tag, draft=False, prerelease=True, assets=[
+            dict(name=item.name, browser_download_url=core.REPOSITORY + "/releases/download/" + tag + "/" + item.name)
+            for item in bundle.iterdir()
+        ])
+
+        def fetch(url, destination, **_kwargs):
+            self.assertNotEqual(url.rsplit("/", 1)[-1], "install.sh")
+            Path(destination).write_bytes((bundle / url.rsplit("/", 1)[-1]).read_bytes())
+
+        for distribution in ("source", "image"):
+            stage = self.root / ("beta3-" + distribution)
+            stage.mkdir()
+            with self.subTest(distribution=distribution), patch.object(core, "api_json", return_value=release), patch.object(core, "download", side_effect=fetch):
+                selected = core.prepare_target("release", tag, distribution, stage)
+            self.assertEqual(selected["version"], version)
+            self.assertEqual(selected["sourceRef"], SHA)
+            self.assertFalse(selected["accepted"])
+            self.assertFalse((stage / "install.sh").exists())
+        with patch.object(core, "api_json", return_value=release), patch.object(core, "download") as download, self.assertRaises(core.Problem):
+            core.prepare_target("stable", "", "image", self.root)
+        download.assert_not_called()
+
     def test_image_identity_is_exact_and_nonroot(self):
         inspection = dict(Id=IMAGE, Os="linux", Architecture="amd64", Config=dict(User="node", Labels={"org.opencontainers.image.revision": SHA, "org.opencontainers.image.version": "0.1.0-dev.0", "org.opencontainers.image.source": core.REPOSITORY, "org.opencontainers.image.licenses": "MIT"}))
         command = lambda _args: json.dumps([inspection])

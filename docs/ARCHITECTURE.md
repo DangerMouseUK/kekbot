@@ -1,6 +1,6 @@
 # KekBot architecture decisions
 
-Updated: 2026-10-09. Status: foundation live gate passed historically; evaluation beta published; full-product live/stable acceptance pending. Host-launcher development is separate from immutable beta artifacts.
+Updated: 2026-10-09. Status: foundation live gate passed historically; evaluation beta published; full-product live/stable acceptance pending. The beta 3 candidate packages the merged host launcher; published beta 1/2 artifacts remain immutable. Database schema 3 and backup/configuration format 1 are unchanged.
 
 This is the design reference for contributors. Use [installation](INSTALLATION.md) for deployment, [configuration](CONFIGURATION.md) for runtime inputs, and [contributing](../CONTRIBUTING.md) for the source map/workflow. Return to the [documentation index](README.md).
 

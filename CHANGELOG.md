@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-beta.3 — Candidate, unreleased
+
+- Prepare beta 3 with matching application/Docker/Compose versions and a standalone `install.sh` asset in audited source/image bundles. Export exact committed bytes, include the launcher in release metadata/checksums, and compare it with the source archive during verification. Older format-1 bundles remain supported.
+- Update public installation, launcher verification, existing-beta upgrades, contributor and release/evidence guidance. Fresh candidate source/image security and binary-license reviews are required; beta 2 sign-off is historical. No dependency, SQL, backup/configuration format or stable-acceptance change. Publication remains a separate authorized step.
 - Add a downloadable `install.sh` entry without cloning the repository, with explained install/manage menus, offline host checks, optional confirmed Ubuntu 24.04 prerequisites, pinned branch/tag/PR/commit management downloads, prepare-for-review mode and explicit local/installed tool selection.
 - Integrate update/rollback/status/start/stop/uninstall through the same guarded lifecycle engine. Add application release/branch/PR/commit/bundle shortcuts while preserving exact source trust, final review, stopped-host backup and retained-data removal defaults. Retain the reviewed launcher on new installations; successful one-action installation exits after next steps.
 - Add launcher argument/transport/trust/terminal tests and real-image Linux installation through the public entry. Update public setup, maintenance, contributor and evidence guides. No new dependency, app feature, schema/format change or release publication; original beta 2 assets and all pending live/stable acceptance remain unchanged.
