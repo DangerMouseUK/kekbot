@@ -12,7 +12,22 @@ import sqlite3
 import tempfile
 from unittest.mock import patch
 
-from core import Installation, Problem, check_host, prepare_target, run, validate_options
+from core import Installation, Problem, check_host, copy_proxy_files, prepare_target, proxy_directory, run, stage_proxy_context, validate_options
+
+
+def proxy_context_smoke():
+    """Build only retained/staged inputs; adapt both configs without issuing TLS."""
+    with tempfile.TemporaryDirectory(prefix="kekbot-proxy-context-") as temporary:
+        private = Path(temporary)
+        retained = private / "tool" / "deploy"
+        copy_proxy_files(proxy_directory(), retained)
+        context = private / "context"
+        dockerfile = stage_proxy_context(retained, context)
+        image = "kekbot-caddy:2.11.6"
+        run(["docker", "build", "--file", str(dockerfile), "--tag", image, str(context)])
+        for name, environment in (("Caddyfile", "KEKBOT_DOMAIN=kekbot.example"), ("Caddyfile.ip", "KEKBOT_PUBLIC_IP=203.0.113.10")):
+            run(["docker", "run", "--rm", "--env", environment, "--volume", str(context / "deploy" / name) + ":/etc/caddy/Caddyfile:ro", image, "caddy", "adapt", "--config", "/etc/caddy/Caddyfile"])
+        print("Retained installer resources build the staged Caddy context; domain/IP configurations adapt without requesting certificates.")
 
 
 def main(release=None):
@@ -146,10 +161,15 @@ def main(release=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Isolated Linux fixture lifecycle rehearsal; no live providers.")
-    parser.add_argument("--release", help="Explicit published version tag; otherwise use the local audited candidate bundle.")
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument("--release", help="Explicit published version tag; otherwise use the local audited candidate bundle.")
+    selection.add_argument("--proxy-context", action="store_true", help="Build retained installer proxy resources and adapt domain/IP configurations without public TLS.")
     arguments = parser.parse_args()
     try:
-        main(arguments.release)
+        if arguments.proxy_context:
+            proxy_context_smoke()
+        else:
+            main(arguments.release)
     except (Problem, OSError, ValueError, KeyError):
         print("Managed lifecycle rehearsal failed. Private runtime output was not printed or uploaded.")
         raise SystemExit(1)

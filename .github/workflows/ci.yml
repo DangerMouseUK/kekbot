@@ -127,11 +127,8 @@ jobs:
           KEKBOT_PUBLIC_IP: 203.0.113.10
       - name: Validate handbook Compose overrides without starting services
         run: node scripts/check-doc-compose.mjs
-      - name: Check pinned Caddy configurations without issuing certificates
-        run: |
-          docker build --file deploy/Caddy.Dockerfile --tag kekbot-caddy:2.11.6 .
-          docker run --rm --env KEKBOT_DOMAIN=kekbot.example --volume "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" kekbot-caddy:2.11.6 caddy adapt --config /etc/caddy/Caddyfile > /dev/null
-          docker run --rm --env KEKBOT_PUBLIC_IP=203.0.113.10 --volume "$PWD/deploy/Caddyfile.ip:/etc/caddy/Caddyfile:ro" kekbot-caddy:2.11.6 caddy adapt --config /etc/caddy/Caddyfile > /dev/null
+      - name: Build the retained installer Caddy context and check domain/IP configurations
+        run: python3 -B installer/smoke.py --proxy-context
       - run: docker build --build-arg VCS_REF="$GITHUB_SHA" -t kekbot:ci .
       - run: pnpm test:container
       - name: Install checksum-pinned Gitleaks for image application layers
