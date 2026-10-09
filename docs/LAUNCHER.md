@@ -24,14 +24,12 @@ In **Bash on your Linux server**, from a directory outside the intended installa
 curl --fail --location --proto '=https' --proto-redir '=https' \
   --max-time 60 --retry 2 \
   https://raw.githubusercontent.com/DangerMouseUK/kekbot/main/install.sh \
-  --output install.sh
-less install.sh
-bash install.sh --help
-bash install.sh --check
-sudo bash install.sh
+  --output install.sh &&
+  less install.sh &&
+  sudo bash install.sh
 ```
 
-Use `q` to leave `less`. If `curl` is missing on Ubuntu 24.04, install it first with `sudo apt-get update` and `sudo apt-get install curl ca-certificates`. A download failure must be resolved before execution; do not execute an older or partial file accidentally. The URL tracks the bootstrap script on `main`; review that file before granting administrator authority. It is not an independently signed installer. **Download to a file; do not pipe it to Bash.**
+Use `q` to leave `less` after review. Run the final `sudo` command only when you trust the file; Ctrl+C interrupts instead. The `&&` chain stops on a failed download/review command. If `curl` is missing on Ubuntu 24.04, install it first with `sudo apt-get update` and `sudo apt-get install curl ca-certificates`. Resolve a download failure before execution; do not run an older or partial file accidentally. The URL tracks the bootstrap script on `main`; review that file before granting administrator authority. It is not an independently signed installer. **Download to a file; do not pipe it to Bash.**
 
 Choose **Install a new instance**. If prerequisites are missing, the launcher explains optional Ubuntu setup and requires `INSTALL PREREQUISITES`. Other Linux distributions require their own package setup. Existing working Docker installations are reused.
 
@@ -183,5 +181,7 @@ The launcher saves no transcript or subprocess output. Lifecycle diagnostics rem
 ## Verification limits
 
 Offline contracts cover selectors, quoting, invalid inputs, pinned/bounded staging, failed transport, links/missing files, trust/cancellation and wizard source prefill. Linux CI additionally exercises actual terminal dispatch and launches an audited fixture image through the real installer, then uses the retained launcher for status/stop/start alongside the existing update-failure/rollback/uninstall rehearsal. Raw credentials/transcripts stay private. See [testing](TESTING.md) and [readiness](RELEASE_READINESS.md).
+
+The [dated launcher verification record](MILESTONES.md#downloadable-lifecycle-launcher--development-follow-up) identifies the tested source, CI campaign and local checks. It establishes automated behaviour, with the remaining boundaries below.
 
 Mocked package setup tests do not establish a successful fresh-host Docker installation. Full public download/discovery after merge, a fresh Ubuntu prerequisite trial, public certificates, real providers, OBS and unaided installation need their own dated outcomes. Published beta 2 evidence remains tied to its original source/image; this launcher does not pass any stable acceptance gate.

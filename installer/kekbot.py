@@ -110,7 +110,9 @@ def installation_options(default_root=None):
 
 def next_steps(root, state):
     mode = state["options"]["mode"]
-    command = shlex.join(["sudo", "python3", "-B", str(root / "tool" / "kekbot.py"), "--root", str(root)])
+    launcher = root / "tool" / "install.sh"
+    invocation = ["sudo", "bash", str(launcher)] if launcher.is_file() else ["sudo", "python3", "-B", str(root / "tool" / "kekbot.py")]
+    command = shlex.join([*invocation, "--root", str(root)])
     explain("KekBot is ready for browser setup", f"Open {state['options']['origin']}. Container readiness and local integrity passed; publicly trusted TLS and provider delivery must still be verified.\n\nRead privately: {root / state['data'] / mode / 'secrets' / ('fixture-account.json' if mode == 'fixture' else 'setup.token')}. No secret values are printed by this wizard. Live setup expires in one hour; the owner account is created in the browser.\n\nKeep an independent protected copy of the encryption.key file in that same directory. Database/asset backups exclude keys.\n\nManage this installation with: {command}\n\nNext: {REPOSITORY}/blob/main/docs/FIRST_SESSION.md")
     if mode == "live":
         explain("Connect your applications in the dashboard", "1. Claim this installation with the private setup token and choose your local owner login.\n\n2. In Connections, create/configure your owner-controlled Kick app, exact callback URLs and required scopes. Enter secrets only there, authorize the intended creator and reconcile subscriptions. Verify an actual chat reply.\n\n3. Discord and YouTube are optional. Follow the provider guide for application IDs, channel/guild permissions, HTTP interactions and metadata key restrictions.\n\n4. Configure commands, timers, OBS source tokens and media rules in the first-session guide. Every editable field is explained in CONFIGURATION_FIELDS.md. OAuth and provider-console consent remain deliberate owner/browser actions.")
@@ -122,7 +124,7 @@ def main():
     if sys.version_info < (3, 10):
         raise Problem("Use Python 3.10 or newer; no pip packages are required.")
     parser = argparse.ArgumentParser(description="Guided KekBot Linux installer/updater/uninstaller. Interactive review is always required before mutations.")
-    parser.add_argument("--root", help="Existing managed installation directory; otherwise ask")
+    parser.add_argument("--root", help="Managed directory, or suggested new-install directory; otherwise ask")
     parser.add_argument("--action", choices=["install", "update", "rollback", "start", "stop", "status", "uninstall"], help="Open this walkthrough directly")
     parser.add_argument("--diagnostics-dir", help="Opt-in protected directory outside source; bounded metadata only, no command output")
     parser.add_argument("--source", choices=["stable", "release", "branch", "pr", "commit", "bundle"], help="Prefill the application source; trust/final review still required")

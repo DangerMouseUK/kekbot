@@ -51,9 +51,9 @@ Download the launcher to a file on your **Linux x86-64 server**, review it, then
 curl --fail --location --proto '=https' --proto-redir '=https' \
   --max-time 60 --retry 2 \
   https://raw.githubusercontent.com/DangerMouseUK/kekbot/main/install.sh \
-  --output install.sh
-less install.sh
-sudo bash install.sh
+  --output install.sh &&
+  less install.sh &&
+  sudo bash install.sh
 ```
 
 The [complete launcher guide](docs/LAUNCHER.md) explains prerequisite checks, optional Ubuntu 24.04 setup, source review and every option. Choose **Specific release → v0.1.0-beta.2** for the published beta. Releases, branches, PRs, exact commits and audited source/image bundles remain available, with typed trust and final review. The launcher also opens update, rollback, start/stop, status and uninstall; removal keeps data by default.
