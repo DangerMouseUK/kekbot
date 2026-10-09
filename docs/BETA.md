@@ -2,7 +2,7 @@
 
 This guide is for people evaluating `v0.1.0-beta.2`, including operators who have never used KekBot. Read the [release notes](releases/v0.1.0-beta.2.md) before choosing an installation. Return to the [documentation index](README.md).
 
-**Beta 2 is in preparation.** Its tag/downloads become installable only after publication; [beta 1](releases/v0.1.0-beta.1.md) remains available meanwhile. Use **Specific release** explicitly once beta 2 is published. There is no registry image or supported stable release; `main` is not a frozen release.
+**[Beta 2 is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2), dated 2026-10-09.** Choose **Specific release** explicitly to install it. There is no registry image or supported stable release; `main` is not a frozen release. [Beta 1](releases/v0.1.0-beta.1.md) remains available as an immutable historical release.
 
 **Beta 2 includes the bundled HTTPS installer correction.** New installs use its matching tool and application from one tag. The [beta 1 workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) remains for the older immutable release.
 
@@ -36,7 +36,7 @@ The only prebuilt application format is a **Linux amd64 Docker image archive**. 
 <a id="after-publication"></a>
 ### Install the published beta
 
-After beta 2 publication, from Bash on a Linux evaluation host, clone and pin its **tool** source:
+From Bash on a Linux evaluation host, clone and pin the published beta's **tool** source:
 
 ```sh
 git clone https://github.com/DangerMouseUK/kekbot.git kekbot-beta-tools

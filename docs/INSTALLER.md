@@ -2,7 +2,7 @@
 
 Use the **interactive terminal wizard** to install one KekBot instance on Linux x86-64. It also provides updates, rollback, status, start/stop and uninstall. Every change has an explained review and typed confirmation. Application/module settings and provider consent continue in the browser after owner setup.
 
-Beta 2 includes the corrected bundled HTTPS installer and is being verified for publication. Once published, choose **Specific release** → `v0.1.0-beta.2` for evaluation using its matching tool tag. [Beta 1](releases/v0.1.0-beta.1.md) remains published; its original domain/IP installer needs the [workaround below](#beta-1-bundled-https-installer-fix). **There is no supported stable release yet.** Latest stable defaults to fail-closed discovery. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths; automated fixtures do not establish independent installation or real providers.
+Beta 2 is [published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) with the corrected bundled HTTPS installer. Choose **Specific release** → `v0.1.0-beta.2` for evaluation using its matching tool tag. [Beta 1](releases/v0.1.0-beta.1.md) remains published; its original domain/IP installer needs the [workaround below](#beta-1-bundled-https-installer-fix). **There is no supported stable release yet.** Latest stable defaults to fail-closed discovery. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths; automated fixtures do not establish independent installation or real providers.
 
 [All documentation](README.md) · [Manual installation](INSTALLATION.md) · [Updating](UPDATING.md) · [Uninstalling](UNINSTALLING.md)
 

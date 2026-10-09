@@ -1,6 +1,6 @@
 # KekBot documentation
 
-These guides describe the `0.1.0-beta.2` evaluation candidate, SQLite schema 3 and backup/configuration formats 1. Beta 2 includes the bundled HTTPS installer correction and is being verified for publication; see its [release notes](releases/v0.1.0-beta.2.md) and [candidate review](RELEASE_READINESS.md#beta-2-review). [Beta 1 is still published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Full-product live and stable acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
+These guides describe the [published `0.1.0-beta.2` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2), SQLite schema 3 and backup/configuration formats 1. Beta 2 includes the bundled HTTPS installer correction; see its [release notes](releases/v0.1.0-beta.2.md) and [security/binary-license review](RELEASE_READINESS.md#beta-2-review). Beta 1 remains immutable. Full-product live and stable acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
 
 **Beta 2 includes the corrected bundled HTTPS installer.** For the older beta 1 tag, use its [fixed-tool workaround](INSTALLER.md#beta-1-bundled-https-installer-fix).
 

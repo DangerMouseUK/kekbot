@@ -1,9 +1,9 @@
 # Changelog
 
-## 0.1.0-beta.2 — In preparation
+## 0.1.0-beta.2 — 2026-10-09
 
 - Fix bundled domain/IP HTTPS installation by staging the locked Caddy Go sources at the Dockerfile's required paths and retaining them with the copied management tool. Add portable regressions for both modes, retained resources and missing inputs before root creation; Linux CI now builds from that staged context and adapts both configurations without requesting certificates.
-- Ship the corrected host tool with beta 2 and align application/Docker/Compose versions, installation/update guidance and release records. Preserve beta 1 artifacts and its historical workaround. No production dependency, SQL or data-format change; fresh candidate/security/license verification is required and live acceptance remains pending.
+- Publish the corrected host tool with beta 2 and align application/Docker/Compose versions, installation/update guidance and release records. Fresh exact-source/image security and binary-license reviews passed; all five published assets match the audited files. Preserve beta 1 artifacts and its historical workaround. No production dependency, SQL or data-format change; live/stable acceptance remains pending.
 
 ## 0.1.0-beta.1 — 2026-10-09
 

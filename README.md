@@ -7,7 +7,7 @@
 
 KekBot brings Kick chat automation, Discord moderator controls, OBS sources and YouTube requests into a self-hosted dashboard. One installation serves one creator and their moderator team. You own the provider applications, configuration, local accounts and data.
 
-**Status: preparing v0.1.0-beta.2 for evaluation.** Beta 2 includes the bundled domain/IP HTTPS installer correction and matching tool/application versions. Its [release notes](docs/releases/v0.1.0-beta.2.md) and [candidate review](docs/RELEASE_READINESS.md#beta-2-review) track verification before publication. [Beta 1 remains available](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Full-product live testing and all 33 stable acceptance gates remain pending. Start with the [beta guide](docs/BETA.md); select **Specific release** because latest-stable discovery excludes betas.
+**Status: [v0.1.0-beta.2 is available for evaluation](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2).** Beta 2 includes the bundled domain/IP HTTPS installer correction and matching tool/application versions. Read its [release notes](docs/releases/v0.1.0-beta.2.md) and [security/binary-license review](docs/RELEASE_READINESS.md#beta-2-review). Full-product live testing and all 33 stable acceptance gates remain pending. Start with the [beta guide](docs/BETA.md); select **Specific release** because latest-stable discovery excludes betas.
 
 **Using beta 1?** Its original bundled HTTPS installer needs the [fixed-tool workaround](docs/INSTALLER.md#beta-1-bundled-https-installer-fix). Beta 2 includes that correction; beta 1 downloads stay unchanged.
 
@@ -27,7 +27,7 @@ Discord and YouTube are optional to enable. KekBot runs without a project-operat
 
 Daily operation includes dedicated queues for pending rewards and uncertain provider deliveries, independent of recent history. The [user guide](docs/USER_GUIDE.md#points-and-rewards) explains fulfillment; the [operations guide](docs/OPERATIONS.md#reconcile-an-uncertain-action) explains inspecting and reconciling delivery without resending it.
 
-The candidate [runtime image](docs/RUNTIME_IMAGE.md) contains Node and the required native libraries without a shell or package manager. Use the documented Node maintenance commands. The guide covers Alpine/musl beta compatibility, the separate proxy build, binary scanning and bundled legal notices; the [release review](docs/RELEASE_READINESS.md#beta-remediation-review) binds checks to the published artifacts.
+The [runtime image](docs/RUNTIME_IMAGE.md) contains Node and the required native libraries without a shell or package manager. Use the documented Node maintenance commands. The guide covers Alpine/musl beta compatibility, the separate proxy build, binary scanning and bundled legal notices; the [release review](docs/RELEASE_READINESS.md#beta-2-review) binds checks to the published artifacts.
 
 ## Choose your starting point
 
@@ -80,7 +80,7 @@ Prefer containers? The [Docker Desktop evaluation guide](docs/DOCKER_DESKTOP.md)
 
 ## Hosting requirements
 
-The [guided installer](docs/INSTALLER.md) provides explained terminal menus, a final review, pinned branch/PR/commit/release selection, backup-before-update, recovery checkpoints and a data-preserving default uninstall. Its default is **latest stable**, which reports unavailable until stable releases exist; choose a reviewed development source explicitly today. Release formats are audited source builds or prebuilt Linux amd64 image archives. The wizard runs on the host with Python's standard library, outside the application container, and leaves provider consent/settings to the owner dashboard.
+The [guided installer](docs/INSTALLER.md) provides explained terminal menus, a final review, pinned branch/PR/commit/release selection, backup-before-update, recovery checkpoints and a data-preserving default uninstall. Its default is **latest stable**, which reports unavailable until stable releases exist; choose **Specific release** → `v0.1.0-beta.2` to evaluate the beta. Release formats are audited source builds or prebuilt Linux amd64 image archives. The wizard runs on the host with Python's standard library, outside the application container, and leaves provider consent/settings to the owner dashboard.
 
 The deployment target is **Linux x86-64**, one long-running application container, local persistent disk and publicly trusted HTTPS for provider callbacks. The included Compose examples build KekBot and an optional Caddy proxy from source. A domain is the usual path; a separate public-IPv4 HTTPS example is available. Windows/macOS can evaluate the Linux container with Docker Desktop or develop from source.
 

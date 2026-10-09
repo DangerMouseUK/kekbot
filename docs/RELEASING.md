@@ -1,6 +1,6 @@
 # Preparing and releasing KekBot
 
-The `0.1.0-beta.2` candidate includes the merged bundled-HTTPS installer fix. Its [candidate review](RELEASE_READINESS.md#beta-2-review) must pass before publication; the [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.2.md) describe evaluation and upgrade compatibility. [Beta 1](releases/v0.1.0-beta.1.md) remains immutable. Stable acceptance requires the [live campaign](LIVE_ACCEPTANCE.md); publication requires explicit owner authorization. Preparation can run without provider accounts or local Docker.
+The [published `0.1.0-beta.2` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) includes the merged bundled-HTTPS installer fix and passed its exact source/image [candidate review](RELEASE_READINESS.md#beta-2-review). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.2.md) describe evaluation and upgrade compatibility. [Beta 1](releases/v0.1.0-beta.1.md) remains immutable. Stable acceptance requires the [live campaign](LIVE_ACCEPTANCE.md); publication requires explicit owner authorization. Preparation can run without provider accounts or local Docker.
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
 
@@ -66,7 +66,7 @@ Use a reviewed branch containing the `published_release` workflow input. CI reso
 
 ### Host-tool corrections after publication
 
-Published tags and assets remain immutable. A host-tool fix may manage an unchanged release from a separately reviewed, pinned tool checkout; record both identities rather than calling the published source fixed. Application updates never implicitly replace management code. The [beta 1 bundled-HTTPS workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) follows this path. A future distribution containing the correction requires a new version and the normal authorized publication process.
+Published tags and assets remain immutable. A host-tool fix may manage an unchanged release from a separately reviewed, pinned tool checkout; record both identities rather than calling the published source fixed. Application updates never implicitly replace management code. The [beta 1 bundled-HTTPS workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) follows this path. Beta 2 distributes that correction under a new version through the normal authorized publication process; it does not replace beta 1's downloads.
 
 Require `python3 -B installer/smoke.py --proxy-context` in Linux container CI: it builds from retained/staged proxy resources and adapts domain/IP configurations without requesting certificates. The local-proxy fixture lifecycle and a whole-checkout Caddy build do not establish that bundled HTTPS staging works. Preserve dependency/license sign-off against its original application source/image; a new application image needs its own review.
 
