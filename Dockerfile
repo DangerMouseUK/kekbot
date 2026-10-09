@@ -27,7 +27,7 @@ COPY scripts/runtime-notices.mjs /runtime-notices.mjs
 RUN node /runtime-notices.mjs /runtime /usr/local/LICENSE /legal
 # Include original component notices in the small, checksum-pinned musl source.
 # This checksum also matches Alpine's reviewed musl source SHA512 provenance.
-ADD --checksum=sha256:d585fd3b613c66151fc3249e8ed44f77020cb5e6c1e635a616d3f9f82460512a https://musl.libc.org/releases/musl-1.2.6.tar.gz /runtime/app/THIRD_PARTY_LICENSES/runtime/musl-1.2.6-source.tar.gz
+ADD --checksum=sha256:d585fd3b613c66151fc3249e8ed44f77020cb5e6c1e635a616d3f9f82460512a https://distfiles.alpinelinux.org/distfiles/v3.24/musl-1.2.6.tar.gz /runtime/app/THIRD_PARTY_LICENSES/runtime/musl-1.2.6-source.tar.gz
 
 FROM scratch AS runtime
 ARG VCS_REF=unknown
