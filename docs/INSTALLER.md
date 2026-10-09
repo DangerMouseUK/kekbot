@@ -2,7 +2,7 @@
 
 Use the **interactive terminal wizard** to install one KekBot instance on Linux x86-64. It also provides updates, rollback, status, start/stop and uninstall. Every change has an explained review and typed confirmation. Application/module settings and provider consent continue in the browser after owner setup.
 
-KekBot's first beta is being prepared. **There is no published beta or stable release yet.** Latest stable is the wizard's default, and fails with an explanation until an accepted stable release is published. Choose a reviewed branch/PR/commit or audited bundle explicitly for evaluation. After beta publication, use **Specific release** with its exact tag. The [beta guide](BETA.md) explains both paths. Automated fixture testing does not establish an independent installer or real-provider acceptance.
+KekBot's [first beta is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Choose **Specific release** → `v0.1.0-beta.1` explicitly for evaluation. **There is no supported stable release yet.** Latest stable is the wizard's default and fails with an explanation until an accepted stable release exists. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths. Automated fixture testing does not establish an independent installer or real-provider acceptance.
 
 [All documentation](README.md) · [Manual installation](INSTALLATION.md) · [Updating](UPDATING.md) · [Uninstalling](UNINSTALLING.md)
 

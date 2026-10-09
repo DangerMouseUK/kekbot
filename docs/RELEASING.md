@@ -1,6 +1,6 @@
 # Preparing and releasing KekBot
 
-The retained `0.1.0-beta.1` candidate has passed [dependency and binary-license review](RELEASE_READINESS.md#beta-remediation-review); authorized publication is being completed. The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.1.md) describe evaluation. The [requirements audit](RELEASE_READINESS.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md) define stable acceptance. Preparation can run without provider accounts or a local Docker installation. Stable sign-off requires the live results; any publication requires the repository owner's explicit authorization.
+The retained `0.1.0-beta.1` candidate has passed [dependency and binary-license review](RELEASE_READINESS.md#beta-remediation-review); it is [published as an evaluation prerelease](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.1.md) describe evaluation. The [requirements audit](RELEASE_READINESS.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md) define stable acceptance. Preparation can run without provider accounts or a local Docker installation. Stable sign-off requires the live results; any publication requires the repository owner's explicit authorization.
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
 

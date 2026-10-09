@@ -8,7 +8,7 @@ Carry authorized work through implementation, verification and review. Do not co
 
 ## Current project and entry points
 
-KekBot is an MIT self-hosted Kick/Discord control room: one creator per installation, local accounts, SQLite/local assets, one Next.js application container and optional owner-supplied integrations. The application is a development candidate; inspect [milestones](docs/MILESTONES.md), [release readiness](docs/RELEASE_READINESS.md) and `package.json` for current versions/evidence. Never infer stable acceptance from implementation or CI.
+KekBot is an MIT self-hosted Kick/Discord control room: one creator per installation, local accounts, SQLite/local assets, one Next.js application container and optional owner-supplied integrations. The application has a published evaluation beta; inspect [milestones](docs/MILESTONES.md), [release readiness](docs/RELEASE_READINESS.md) and `package.json` for current versions/evidence. Never infer stable acceptance from implementation or CI.
 
 Use these task-specific starting points:
 

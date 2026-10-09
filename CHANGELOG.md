@@ -1,12 +1,12 @@
 # Changelog
 
-## Unreleased release-blocker remediation
+## 0.1.0-beta.1 — 2026-10-09
 
 - Assemble a shell-free application runtime from digest-pinned Node 24.21.0 Alpine stages with only musl/GCC runtime libraries, retaining its real OS package database and runtime notices in the image and notices archive. Disable the unused Next image optimizer and reject Sharp/libvips in standalone output.
 - Rebuild standard Caddy 2.11.6 using pinned Go 1.27.2 and x/net 0.60.0. Add exact-image binary vulnerability review; the OpenPGP module match requires proof that the packages are absent, with raw counts preserved. Additional findings and unavailable evidence block publication.
-- Add packaging/proof regression tests and maintenance/redistribution guidance. The frozen candidate passes image and manual binary/notices review; publication is owner-authorized and in progress. Live/stable gates are unchanged.
+- Add packaging/proof regression tests and maintenance/redistribution guidance. The frozen candidate passes image and manual binary/notices review; the first evaluation prerelease is published with retained source/image/notices/checksums. Actual published source/image download and Linux install/update-failure/rollback/uninstall rehearsals passed; latest-stable discovery still rejects the beta. Live/stable gates are unchanged.
 
-## 0.1.0-beta.1 — Preparation candidate, unreleased
+### Earlier beta preparation
 
 - Named the first beta candidate and aligned application, Docker and Compose versions. Added beta installation/update/feedback guidance, release notes and a separate prerelease checklist. Explicit beta selection remains separate from the fail-closed latest-stable default.
 - Added beta source/image installer contracts and distribution-version checks. Candidate packaging retains audited source, Linux amd64 image, notices, metadata and checksums; CI performs fixture verification without live credentials or automatic release publication.
@@ -25,7 +25,7 @@
 
 - Fixed guided lifecycle recovery: prepare Caddy before creating installation state, attempt shutdown even when final/failure record writes fail, and preserve incomplete update/rollback guards and checkpoints during retained uninstall. Added portable failure regressions and clarified operator recovery guidance.
 
-- Added a guided Linux terminal installer, explicit updater with stopped-host backups and separate-root rollback, status/start/stop, and an uninstaller that retains data by default with an additional typed purge. Version selection supports latest stable (fail-closed until publication), exact releases, branches, PR heads, full commits and local audited source/image bundles. Added offline contract/failure tests, a real-image Linux CI lifecycle rehearsal and complete managed-host guides; provider/independent-installer acceptance remains pending.
+- Added a guided Linux terminal installer, explicit updater with stopped-host backups and separate-root rollback, status/start/stop, and an uninstaller that retains data by default with an additional typed purge. Version selection supports latest stable (fail-closed until stable publication), exact releases, branches, PR heads, full commits and local audited source/image bundles. Added offline contract/failure tests, a real-image Linux CI lifecycle rehearsal and complete managed-host guides; provider/independent-installer acceptance remains pending.
 
 - Expanded the public handbook with first-session, account/capability, Docker Desktop, complete CLI, field/example and action references. Added detailed command/timer/moderation/economy/activity workflows, installation checkpoints, separate-key mounts, monitoring and recovery procedures. CI now checks every configuration field is documented, validates all 12 JSON examples against strict schemas and parses handbook Compose overrides against the base service. Historical evidence and pending live release gates are unchanged.
 
