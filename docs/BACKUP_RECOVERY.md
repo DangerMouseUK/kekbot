@@ -4,6 +4,8 @@ This guide covers the development candidate, SQLite schema 3 and backup format 1
 
 For [managed installations](INSTALLER.md), [updating](UPDATING.md) creates the same stopped-host database/asset format and [rollback](UPDATING.md#roll-back-after-failure-or-a-bad-update) restores into a new root automatically. Do not substitute the manual `dc` helper below for that installation's generated Compose. For manual disaster/owner recovery on a managed host, select its recorded project and `<root>/compose.json`, inspect the active recorded data root, and preserve original keys. Custom recovery to a different topology should use a separate manual installation, not edited lifecycle records.
 
+The [launcher](LAUNCHER.md#updates-recovery-and-removal) opens the same status/rollback actions; it does not change backup contents, key requirements, failed-update guards or the active data-root contract. Keep your reviewed manager/launcher revision as well as the original encryption key and independent database/asset backup. Downloading a newer manager is explicit and does not reconstruct lost data or adopt manual deployments.
+
 <!-- contents:start -->
 **On this page**
 

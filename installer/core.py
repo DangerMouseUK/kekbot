@@ -576,6 +576,9 @@ class Installation:
             os.chown(self.root / "backups", 1000, 1000)
             for name in ("core.py", "kekbot.py"):
                 shutil.copyfile(tool / name, self.root / "tool" / name)
+            launcher = tool / "install.sh" if (tool / "install.sh").is_file() else tool.parent / "install.sh"
+            if launcher.is_file() and not launcher.is_symlink():
+                shutil.copyfile(launcher, self.root / "tool" / "install.sh")
             copy_proxy_files(deploy, self.root / "proxy")
             shutil.copytree(self.root / "proxy", self.root / "tool" / "deploy")
             mode, origin = options["mode"], options["origin"]

@@ -21,7 +21,7 @@ For image changes, read [runtime packaging](docs/RUNTIME_IMAGE.md). The applicat
 
 Follow the [fixture quickstart](docs/QUICKSTART.md). Use Node.js **24.21.0**, pnpm **10.26.0** and the frozen lockfile. No provider account, private dependency or maintainer credential is needed. Never use live grants for development/CI.
 
-Install Python 3.10+ as well for `pnpm check`'s offline host-lifecycle tests (`python` on Windows, `python3` elsewhere). No pip dependencies are needed. Real root/daemon installation flows run only against isolated Linux CI fixtures, not your creator data.
+Install Python 3.10+ and Bash as well for `pnpm check`'s offline host-lifecycle tests (`python` on Windows, `python3` elsewhere). Git for Windows supplies Bash; without it, launcher contracts are explicitly skipped locally and must pass Linux CI. No pip dependencies are needed. Real root/daemon installation flows run only against isolated Linux CI fixtures, not your creator data.
 
 ```sh
 git clone https://github.com/DangerMouseUK/kekbot.git
@@ -45,7 +45,7 @@ External contributors can fork the repository and clone their fork instead. Copy
 | `drizzle/` | Checked-in SQL migrations and metadata |
 | `tests/`, `tests/e2e/` | Vitest/real SQLite and production browser workflows |
 | `scripts/`, `.github/workflows/` | Verification, standalone/container checks and candidate packaging |
-| `installer/` | Explained host wizard, source/bundle validation, lifecycle state/locks and offline/Linux tests |
+| `install.sh`, `installer/` | Downloadable Bash launcher, explained Python wizard, source/bundle validation, lifecycle state/locks and offline/Linux terminal tests |
 | `docs/` | Operator guides, references, requirements and evidence |
 
 Read [architecture](docs/ARCHITECTURE.md) before changing boundaries and [API](docs/API.md) before changing contracts. Coding agents also follow [AGENTS.md](AGENTS.md).
@@ -84,6 +84,8 @@ pnpm test:e2e
 Linux container/proxy/storage checks run in GitHub Actions; local Docker is optional for contribution review. The [testing guide](docs/TESTING.md) explains commands, the three-browser matrix, workload profiles and limits. Do not use a passing build to claim provider/OBS acceptance.
 
 Lifecycle changes also require `pnpm test:installer` and the Linux managed-install/update/rollback/removal rehearsal. See [installer implementation](installer/README.md). Review every irreversible boundary, failed-operation checkpoint and default; do not exercise purge against non-fixture roots.
+
+Launcher changes additionally require `bash -n install.sh`, offline transport/argument/trust contracts and Linux real-terminal dispatch. The real fixture rehearsal enters installation through the launcher and checks retained status/stop/start. Do not install host packages in contributor/CI test hosts to prove optional setup: its commands are mocked; fresh-Ubuntu operator acceptance remains separate. Keep downloads pinned, forbid pipe-to-shell and preserve explicit tool trust separately from application trust. Update the [complete launcher guide](docs/LAUNCHER.md), root README and all affected host/release references together.
 
 Use real SQLite for persistence, meaningful contention/revocation/restart/failure checks for state changes, and generated request clients/signatures for provider changes. Do not write tests that merely mirror trivial implementation. Avoid filling a real disk; use bounded disposable storage. Fixture browser tests never load live YouTube or send provider mutations.
 

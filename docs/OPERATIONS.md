@@ -37,7 +37,7 @@ After the session, check the observed end state and analytics coverage. Review u
 
 ## Host commands
 
-For [wizard-managed hosts](INSTALLER.md), use `sudo python3 -B <root>/tool/kekbot.py --root <root>` for explained status/start/stop/update/rollback/removal. Replace `<root>` with your private installation directory. The following `dc` examples apply to the manual deployment path; do not combine its files/exports with generated managed Compose. See [updating](UPDATING.md) for checkpoint retention and [uninstalling](UNINSTALLING.md) for retained-data removal or purge.
+For [wizard-managed hosts](INSTALLER.md), use the [launcher](LAUNCHER.md#updates-recovery-and-removal), or `sudo python3 -B <root>/tool/kekbot.py --root <root>` for explained status/start/stop/update/rollback/removal. New installations retain `sudo bash <root>/tool/install.sh --root <root>`; downloaded launchers also reuse the protected installed manager without fetching new tools. Replace `<root>` with your private installation directory. The following `dc` examples apply to the manual deployment path; do not combine its files/exports with generated managed Compose. See [updating](UPDATING.md) for checkpoint retention and [uninstalling](UNINSTALLING.md) for retained-data removal or purge.
 
 The [installation guide](INSTALLATION.md#3-build-and-initialize) defines the `dc` helper, project name, proxy and private host variables. Use the same values in every shell; these examples assume that helper is set:
 

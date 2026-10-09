@@ -47,6 +47,7 @@ The public operator path is [installation](INSTALLATION.md) → [providers](PROV
 - [First-beta publication and distribution rehearsal — 2026-10-09](#first-beta-publication-and-distribution-rehearsal--2026-10-09)
 - [Beta host installer correction — 2026-10-09](#beta-host-installer-correction--2026-10-09)
 - [Beta 2 distribution — 2026-10-09](#beta-2-distribution--2026-10-09)
+- [Downloadable lifecycle launcher — development follow-up](#downloadable-lifecycle-launcher--development-follow-up)
 <!-- contents:end -->
 
 ## Working approach
@@ -701,3 +702,9 @@ The [fixed-tool walkthrough](INSTALLER.md#beta-1-bundled-https-installer-fix) ke
 Version is `0.1.0-beta.2`; dependencies, SQL and data formats stay unchanged. The [candidate review](RELEASE_READINESS.md#beta-2-review) and [release notes](releases/v0.1.0-beta.2.md) record exact checks and published assets. All 33 stable live/reference/operator gates remain pending; this release does not complete Milestones 18–19.
 
 [Published-release campaign 37962566345](https://github.com/DangerMouseUK/kekbot/actions/runs/37962566345) passed all required jobs, including actual published source/image discovery, fixture installation, synthetic update failure/success, separate-root rollback preserving key/assets, retained-data uninstall/resume and explicit purge. Its tool/helper source is evidence commit `23c166da011d75d9af8c18caeee2086b3456a08a`; its explicit release step selected the frozen source/image above. Helper builds do not replace published assets. These checks remain separate from real beta 1 upgrades, public certificate renewal, live workflows and independent operators.
+
+## Downloadable lifecycle launcher — development follow-up
+
+The root `install.sh` adds no-clone entry, explained install/manage choices, offline readiness, separately confirmed Ubuntu prerequisite assistance, pinned management downloads/prepare-only review and current-tool application shortcuts. Existing update/rollback/status/start/stop/removal decisions still use the same guarded Python engine. New installs retain the launcher; application updates do not replace management code. [Complete walkthrough/options](LAUNCHER.md).
+
+Offline transport/argument/consent and Python prefill contracts accompany Linux real-terminal tests and real-image launcher installation/retained-tool checks in ordinary CI. Results belong to the final PR commit/run; mocked package commands do not establish a fresh Ubuntu installation. Public bootstrap discovery after merge, fresh-host prerequisites, real providers/certificates/OBS, independent operators and the 33 stable gates remain pending. This development follow-up neither replaces beta 2 artifacts nor completes Milestones 18–19.

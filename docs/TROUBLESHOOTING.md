@@ -2,6 +2,8 @@
 
 For terminal install/update/removal problems start with [wizard failures](INSTALLER.md#failure-and-interruption-recovery), [update recovery](UPDATING.md) and [uninstall boundaries](UNINSTALLING.md). Check the recorded status after interruption; never rerun older code against migrated storage or delete keys to fix startup. These managed roots use generated Compose, while manual instructions use their original file set.
 
+For download/prerequisite/tool-trust failures use [launcher diagnosis](LAUNCHER.md#failures-and-cleanup). `bash install.sh --check` is offline; sudo may be needed to inspect a root-only Docker daemon. Missing stable releases do not trigger a beta fallback. Older installed managers may need interactive source choices or explicitly reviewed current tools for shortcut flags. Optional Ubuntu package setup is not a repair/reset command for existing Docker installations.
+
 Start with the symptom below. Work on your own authorized installation and keep diagnostics private until reviewed. Return to the [documentation index](README.md).
 
 <!-- contents:start -->

@@ -35,13 +35,30 @@ The [runtime image](docs/RUNTIME_IMAGE.md) contains Node and the required native
 | --- | --- | --- |
 | Explore safely | [Local quickstart](docs/QUICKSTART.md) | Git, pinned Node/pnpm; no provider accounts or Docker |
 | Evaluate the beta | [Beta guide](docs/BETA.md) | A disposable installation, reviewed source or the exact published beta assets |
-| Host a real bot | [Guided terminal installer](docs/INSTALLER.md) or [manual installation](docs/INSTALLATION.md) | Linux x86-64, Python 3, Git, Docker/Compose, local persistent disk and public HTTPS |
+| Host a real bot | [Downloadable launcher](docs/LAUNCHER.md) → [guided terminal installer](docs/INSTALLER.md), or [manual installation](docs/INSTALLATION.md) | Linux x86-64, local persistent disk and public HTTPS; optional Ubuntu prerequisite assistance |
 | Configure a fresh dashboard | [First session](docs/FIRST_SESSION.md) | Owner login and optional provider connections |
 | Join an existing team | [Accounts](docs/ACCOUNTS.md) → [user guide](docs/USER_GUIDE.md) | A private invitation from your installation's operator |
 | Put sources on stream | [OBS and playback](docs/OBS.md) | Owner-created source URLs; OBS Browser Source support |
 | Update or remove a managed host | [Updating](docs/UPDATING.md) · [uninstalling](docs/UNINSTALLING.md) | Trusted host access; wizard-created installation |
 | Back up or diagnose | [Operations](docs/OPERATIONS.md) → [recovery](docs/BACKUP_RECOVERY.md) | Trusted host access for maintenance commands |
 | Contribute or integrate | [Contributing](CONTRIBUTING.md) → [API](docs/API.md) | An isolated fixture installation |
+
+### Guided Linux installation
+
+Download the launcher to a file on your **Linux x86-64 server**, review it, then open its explained install/manage menu:
+
+```sh
+curl --fail --location --proto '=https' --proto-redir '=https' \
+  --max-time 60 --retry 2 \
+  https://raw.githubusercontent.com/DangerMouseUK/kekbot/main/install.sh \
+  --output install.sh
+less install.sh
+sudo bash install.sh
+```
+
+The [complete launcher guide](docs/LAUNCHER.md) explains prerequisite checks, optional Ubuntu 24.04 setup, source review and every option. Choose **Specific release → v0.1.0-beta.2** for the published beta. Releases, branches, PRs, exact commits and audited source/image bundles remain available, with typed trust and final review. The launcher also opens update, rollback, start/stop, status and uninstall; removal keeps data by default.
+
+This launcher is a development addition after beta 2, available from `main` after its PR merges. Existing beta tags/assets remain unchanged. Management tools and the selected application have separate identities; review both. Do not pipe a downloaded script into a shell.
 
 ### Local fixture setup
 
@@ -80,7 +97,7 @@ Prefer containers? The [Docker Desktop evaluation guide](docs/DOCKER_DESKTOP.md)
 
 ## Hosting requirements
 
-The [guided installer](docs/INSTALLER.md) provides explained terminal menus, a final review, pinned branch/PR/commit/release selection, backup-before-update, recovery checkpoints and a data-preserving default uninstall. Its default is **latest stable**, which reports unavailable until stable releases exist; choose **Specific release** → `v0.1.0-beta.2` to evaluate the beta. Release formats are audited source builds or prebuilt Linux amd64 image archives. The wizard runs on the host with Python's standard library, outside the application container, and leaves provider consent/settings to the owner dashboard.
+The [launcher](docs/LAUNCHER.md) opens the [guided installer](docs/INSTALLER.md), with explained terminal menus, final review, pinned branch/PR/commit/release selection, backup-before-update, recovery checkpoints and data-preserving default uninstall. Its application default is **latest stable**, which reports unavailable until stable releases exist; choose **Specific release** → `v0.1.0-beta.2` to evaluate the beta. Release formats are audited source builds or prebuilt Linux amd64 image archives. Bash launches host tooling; the wizard uses Python's standard library outside the application container and leaves provider consent/settings to the owner dashboard.
 
 The deployment target is **Linux x86-64**, one long-running application container, local persistent disk and publicly trusted HTTPS for provider callbacks. The included Compose examples build KekBot and an optional Caddy proxy from source. A domain is the usual path; a separate public-IPv4 HTTPS example is available. Windows/macOS can evaluate the Linux container with Docker Desktop or develop from source.
 

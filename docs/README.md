@@ -10,7 +10,7 @@ These guides describe the [published `0.1.0-beta.2` evaluation release](https://
 | --- | --- |
 | Explore without provider accounts | [Quickstart](QUICKSTART.md) → [first session](FIRST_SESSION.md) → [user guide](USER_GUIDE.md) |
 | Evaluate or report a beta problem | [Beta guide](BETA.md) → [beta release notes](releases/v0.1.0-beta.2.md) |
-| Host a live installation | [Guided installer](INSTALLER.md) (or [manual installation](INSTALLATION.md)) → [provider setup](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [OBS](OBS.md) → [operations](OPERATIONS.md) |
+| Host a live installation | [Downloadable launcher](LAUNCHER.md) → [guided installer](INSTALLER.md) (or [manual installation](INSTALLATION.md)) → [provider setup](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [OBS](OBS.md) → [operations](OPERATIONS.md) |
 | Update, roll back or remove | [Updating](UPDATING.md) → [uninstalling](UNINSTALLING.md); manual deployments use [recovery](BACKUP_RECOVERY.md) |
 | Join a moderator team | [Accounts and permissions](ACCOUNTS.md) → the relevant [daily workflow](USER_GUIDE.md) |
 | Move, back up or recover a host | [Backup and recovery](BACKUP_RECOVERY.md) → [troubleshooting](TROUBLESHOOTING.md) |
@@ -23,6 +23,7 @@ These guides describe the [published `0.1.0-beta.2` evaluation release](https://
 - [Docker Desktop evaluation](DOCKER_DESKTOP.md): Windows/macOS Linux containers, private runtime files, named-volume fixtures and stop/resume.
 - [Installation](INSTALLATION.md): source-built Linux container, external runtime files, domain/IP HTTPS and owner claim.
 - [Guided installer](INSTALLER.md): explained Linux terminal walkthrough, every host/source/format choice, private layout and failure recovery.
+- [Downloadable launcher](LAUNCHER.md): no-clone entry, host checks/optional Ubuntu setup, reviewed management downloads, application shortcuts and complete lifecycle dispatch. Development addition after beta 2; older tags remain immutable.
 - [Updating](UPDATING.md) and [uninstalling](UNINSTALLING.md): explicit version changes, pre-update checkpoints, separate-root rollback, retained-data removal and typed purge.
 - [First session](FIRST_SESSION.md): a command, cautious timer, manual alert/source, delegation and recovery checkpoint.
 - [Accounts](ACCOUNTS.md): role/capability matrix, claim, invitations, sessions and access removal.

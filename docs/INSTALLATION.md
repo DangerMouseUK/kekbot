@@ -4,6 +4,8 @@ This is the **manual source/Compose installation** of the published `0.1.0-beta.
 
 Choose one management path. Manual instructions below keep public source in `/srv/kekbot/source` and use a `dc` shell helper. The wizard instead owns a new root with private `installation.json`, generated `compose.json`, immutable images and a copied tool. Do not mix paths or overwrite either installation with the other. A wizard-managed host uses [updating](UPDATING.md) and [uninstalling](UNINSTALLING.md).
 
+For the shortest guided start use [the downloadable launcher](LAUNCHER.md). It can assist with fresh Ubuntu prerequisites after explicit review, then open the same wizard. It never adopts a manual installation or changes SSH/firewall/DNS. These manual instructions remain the alternative for operators managing their own Compose files.
+
 <!-- contents:start -->
 **On this page**
 
