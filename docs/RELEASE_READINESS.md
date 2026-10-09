@@ -21,6 +21,8 @@ The handbook additionally includes [first session](FIRST_SESSION.md), [accounts/
 - [Acceptance record](#acceptance-record)
 - [Repository quality follow-up](#repository-quality-follow-up)
 - [Beta dependency review](#beta-dependency-review)
+- [Beta image remediation and binary review](#beta-remediation-review)
+- [Beta 1 host installer correction](#beta-1-installer-correction)
 <!-- contents:end -->
 
 ## Ownership, journeys and installation
@@ -202,6 +204,6 @@ Gitleaks 8.30.1 passed on the source archive, full Git history and CI image laye
 
 Review found that the original tag's tool staged only the Caddy Dockerfile/configurations, omitting its locked Go inputs and their `deploy/caddy/` layout. Fresh bundled domain/IP installations failed before creating the managed root. Host-tool commit `971656b7a4c8bf0d6e908b6ae786422716669f49` fixes staging and retained resources; the [operator workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) pins it separately while selecting the unchanged published application.
 
-Local `pnpm check` passed policy/docs/types/lint, 155 application tests and 30 portable installer contracts; seven Linux-only contracts remain for CI. CI now builds from retained/staged proxy resources and adapts both configurations without public certificate issuance. The earlier published-release fixture rehearsal used a local proxy; it did not establish bundled HTTPS installation. Record the correction's Linux result here after it runs.
+Local `pnpm check` passed policy/docs/types/lint, 155 application tests and 30 portable installer contracts. [Correction CI 37955804079](https://github.com/DangerMouseUK/kekbot/actions/runs/37955804079), source `4ec86e40208965d833b5571825736a750572ffd8`, passed all required jobs, including all 37 Linux installer contracts, the real retained/staged Caddy build and domain/IP adaptation, production/standalone, three browser engines, container/storage checks and fixture install/update-failure/rollback/uninstall. No public certificates were requested. The earlier published-release fixture rehearsal used a local proxy; it did not establish bundled HTTPS installation.
 
 Published beta tag/assets and their exact dependency/license review above remain unchanged. This host-tool correction changes no Go/native/application dependency or data format. All 33 live/reference/operator gates remain pending; certificate issuance/renewal, real providers and unaided installation still need their own evidence.

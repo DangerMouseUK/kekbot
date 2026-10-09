@@ -6,7 +6,7 @@ For `0.1.0-beta.1`, follow the [beta selection and compatibility guidance](BETA.
 
 [Documentation index](README.md) · [Installer options/formats](INSTALLER.md#sources-and-distribution-formats) · [Uninstall](UNINSTALLING.md)
 
-The original beta 1 tool has a fresh bundled-HTTPS build issue. See the [fixed-tool walkthrough](INSTALLER.md#beta-1-bundled-https-installer-fix) before a new domain/IP installation. An application update does not install that host-tool correction; existing fixture/external-proxy installations do not need an application upgrade for it.
+The original beta 1 tool cannot build bundled HTTPS for a new installation. See the [fixed-tool walkthrough](INSTALLER.md#beta-1-bundled-https-installer-fix) before installing with domain/IP Caddy. An application update does not install that host-tool correction; existing fixture/external-proxy installations do not need an application upgrade for it.
 
 ## Before updating
 
