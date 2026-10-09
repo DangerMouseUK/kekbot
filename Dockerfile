@@ -1,4 +1,4 @@
-FROM node:24.21.0-bookworm-slim AS build
+FROM node:24.21.0-trixie-slim AS build
 ENV NEXT_TELEMETRY_DISABLED=1 KEKBOT_RUN_JOBS=0
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && apt-get clean
@@ -9,7 +9,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build
 
-FROM node:24.21.0-bookworm-slim AS runtime
+FROM node:24.21.0-trixie-slim AS runtime
 ARG VCS_REF=unknown
 ARG VERSION=0.1.0-beta.1
 LABEL org.opencontainers.image.title="KekBot" org.opencontainers.image.source="https://github.com/DangerMouseUK/kekbot" org.opencontainers.image.revision=$VCS_REF org.opencontainers.image.version=$VERSION org.opencontainers.image.licenses="MIT"
