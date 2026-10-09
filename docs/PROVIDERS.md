@@ -97,6 +97,8 @@ For account-mode delivery, set `KICK_CHAT_TYPE=user` in the runtime environment 
 
 Refresh and subscription repair run in the background. **refresh** exercises refresh explicitly. **disconnect** clears local authority and attempts provider revocation; check its result and revoke in Kick as well if necessary. Reauthorize after an invalid/revoked grant. Changing app credentials invalidates the saved grant. Do not repeatedly retry uncertain outbound sends; [operations](OPERATIONS.md#delivery-outcomes) explains reconciliation.
 
+A successful reauthorization supersedes any refresh already in flight for the old grant. An old refresh cannot overwrite the new tokens/scopes or mark the new grant broken. A concurrent superseded operation returns `kick_connection_changed_retry`; reload connection status before deciding whether another action is needed.
+
 ## Discord
 
 Discord is optional. It uses signed HTTP interactions, with no Gateway connection or message-content intent. Real acknowledgement timing, bot permissions and multi-guild delivery remain live acceptance scenarios.

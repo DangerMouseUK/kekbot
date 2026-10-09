@@ -118,3 +118,5 @@ Domain/source/provider payloads and outcome codes are defined by the current sou
 ## History and reconciliation boundaries
 
 Media history is an authenticated [GET view](API.md#media-history-reads), not a control action. `media.reorder` supplies the complete approved queue, available in the active snapshot regardless of terminal history size. `job.resolve` records reconciliation and clears the encrypted uncertain payload atomically; it never resends the effect. Viewer erasure also checks derived pending work before removing associated resolved payloads. See [privacy](OPERATIONS.md#privacy-and-retention) for retained integrity records and uncertainty exceptions.
+
+Use the independent [waiting-work views](API.md#waiting-work-reads) to find older uncertain jobs and pending redemptions; recent snapshot lists are not exhaustive. `job.resolve.input.id` accepts 1–1024 characters to cover generated notification IDs; configuration document IDs remain limited to 100. Replacement configuration imports advance retained document versions, so reload before subsequent edits/deletions. Privacy associations include gift recipients and retained legacy gift receipts.

@@ -263,6 +263,66 @@ export class State {
       }
   }
 
+  workQueue(
+    view: "uncertain-jobs" | "pending-redemptions",
+    input: { cursor?: string; limit?: string } = {},
+  ) {
+    const limit = z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(100)
+      .parse(input.limit ?? 50);
+    let cursor: { view: string; at: number; id: string } | undefined;
+    if (input.cursor) {
+      try {
+        z.string()
+          .max(2048)
+          .regex(/^[A-Za-z0-9_-]+$/)
+          .parse(input.cursor);
+        cursor = z
+          .object({
+            view: z.literal(view),
+            at: z.number().int().nonnegative(),
+            id: z.string().min(1).max(1024),
+          })
+          .strict()
+          .parse(JSON.parse(Buffer.from(input.cursor, "base64url").toString()));
+      } catch {
+        throw new AppError("invalid_work_queue_cursor", 400);
+      }
+    }
+    const selection =
+      view === "uncertain-jobs"
+        ? "id,kind,status,attempts,last_error AS error,created_at AS createdAt"
+        : "id,viewer,reward,cost,status,created_at AS createdAt";
+    const source =
+      view === "uncertain-jobs"
+        ? "jobs WHERE status='uncertain'"
+        : "redemptions WHERE status='pending'";
+    const rows = this.db
+      .prepare(
+        `SELECT ${selection} FROM ${source}
+      ${cursor ? "AND (created_at < ? OR (created_at = ? AND id < ?))" : ""}
+      ORDER BY created_at DESC,id DESC LIMIT ?`,
+      )
+      .all(...(cursor ? [cursor.at, cursor.at, cursor.id] : []), limit + 1) as (Record<
+      string,
+      unknown
+    > & { id: string; createdAt: number })[];
+    const items = rows.slice(0, limit),
+      last = items.at(-1);
+    return {
+      items,
+      nextCursor:
+        rows.length > limit && last
+          ? Buffer.from(JSON.stringify({ view, at: last.createdAt, id: last.id })).toString(
+              "base64url",
+            )
+          : null,
+    };
+  }
+
   snapshot(actor?: Actor) {
     let notesAllowed = !actor;
     if (actor) {
@@ -283,6 +343,7 @@ export class State {
           "SELECT id,kind,status,attempts,last_error AS error,created_at AS createdAt FROM jobs ORDER BY created_at DESC LIMIT 100",
         )
         .all(),
+      uncertainJobs: this.workQueue("uncertain-jobs"),
       audit: this.db.prepare("SELECT * FROM audit ORDER BY id DESC LIMIT 100").all(),
       media: this.db
         .prepare(
@@ -302,6 +363,7 @@ export class State {
       redemptions: this.db
         .prepare("SELECT * FROM redemptions ORDER BY created_at DESC LIMIT 100")
         .all(),
+      pendingRedemptions: this.workQueue("pending-redemptions"),
       incidents: this.db
         .prepare(
           "SELECT i.*,j.status AS outcome,j.last_error AS error FROM incidents i LEFT JOIN jobs j ON j.id=i.job_id ORDER BY i.at DESC LIMIT 100",

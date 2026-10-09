@@ -2,6 +2,7 @@
 
 ## 0.1.0-dev.0 — Local product build, unreleased
 
+- Fixed seven repository-review findings: stale Kick refreshes cannot overwrite or invalidate a new OAuth grant; replacement imports advance retained configuration versions; generated job IDs can be reconciled; uncertain deliveries and pending rewards have independent bounded pages; gift-recipient erasure covers retained legacy associations; and command-error replies respect the utility cooldown. Added real SQLite/provider/browser regressions and updated operator/API/contributor guidance. No dependency, schema or backup-format change; live acceptance remains pending.
 - Remediated development-tool advisories with a parent-scoped esbuild 0.25.12 override and a local braces 3.0.3 AST-depth guard. Added exploit/compatibility regressions and production/full-tooling CI auditing that verifies the exact patch while retaining the upstream advisory count. No production package or lint rule was removed; candidate dependency sign-off remains pending.
 - Separated all active media requests from bounded paginated history; extracted typed dashboard panels and adopted scoped formatting for core services.
 - Added schema 3 with job payload retention, encrypted uncertain work, derived viewer associations, transient-state expiry and schema-2 upgrade regressions. Backup/configuration formats remain 1.

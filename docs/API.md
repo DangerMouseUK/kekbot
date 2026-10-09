@@ -19,6 +19,7 @@ For every supported action, payload, capability and Discord/API availability, us
 - [Failures and durability](#failures-and-durability)
 - [Fixture workload metrics](#fixture-workload-metrics)
 - [Media history reads](#media-history-reads)
+- [Waiting-work reads](#waiting-work-reads)
 <!-- contents:end -->
 
 ## Authentication boundaries
@@ -159,3 +160,11 @@ Fixtures create signing keys and credentials at runtime in isolated ignored stor
 The response is `{ "items": [...], "nextCursor": "..." }`, with null at the end; the versioned endpoint also returns `version: 1`. Items are terminal requests, newest first, ordered by creation time then ID. Use the cursor unchanged to fetch older items, or omit it to refresh the newest page. New arrivals do not shift an existing cursor boundary. This is pagination, not a frozen historical export.
 
 `snapshot.media` now contains only active validating/pending/approved/playing requests, without a history limit. Pre-release clients using it for completed requests must use the history endpoint. Media history reads grant no mutation authority; action permissions/version checks are unchanged.
+
+## Waiting-work reads
+
+Use `GET /api/control?view=uncertain-jobs` or `?view=pending-redemptions` with a current dashboard session. The same views on `/api/v1/control` require an owner-issued API token with `read` scope. Responses are uncached. Optional `limit` is an integer 1–100 (default 50); optional `cursor` is the preceding `nextCursor`, unchanged. Invalid limits, malformed cursors and cursors from the other view return 400.
+
+Both return `{ "items": [...], "nextCursor": "..." }` with null at the end; the versioned endpoint adds `version: 1`. Items are ordered by creation time then ID, newest first. Job items contain `id`, `kind`, `status`, `attempts`, `error`, `createdAt`; redemption items contain `id`, `viewer`, `reward`, `cost`, `status`, `createdAt`. Job payloads/credentials are excluded. Cursors are page boundaries, not frozen exports: newly resolved work disappears and new arrivals appear on a fresh first page.
+
+Dashboard snapshots expose first pages as `uncertainJobs` and `pendingRedemptions`, each with the same response shape. Existing `jobs` and `redemptions` remain recent lists limited to 100 and must not be used as exhaustive actionable queues. Browse subsequent pages to discover all outstanding work. Reads grant no reconciliation or fulfillment authority: `job.resolve` remains owner-only, while reward decisions require `engage`.

@@ -9,7 +9,7 @@ export async function control(app: Runtime, actor: Actor, input: unknown) {
   const body = z.object({ action: z.string().max(80), input: z.record(z.string(), z.unknown()).default({}) }).parse(input);
   const data = body.input;
   const state = app.bot.state;
-  const id = z.string().max(100).parse(data.id ?? "");
+  const id = z.string().max(body.action === "job.resolve" ? 1024 : 100).parse(data.id ?? "");
   switch (body.action) {
     case "config.save": {
       const document = state.save(actor, z.enum(Object.keys(configSchemas) as [keyof typeof configSchemas, ...(keyof typeof configSchemas)[]]).parse(data.kind), id || undefined, data.data, data.version as number | undefined);
@@ -44,6 +44,7 @@ export async function control(app: Runtime, actor: Actor, input: unknown) {
     case "diagnostics.export": return app.bot.operations.support(actor);
     case "job.resolve": {
       state.assertActor(actor, "maintenance");
+      z.string().min(1).parse(id);
       const result = z.enum(["confirmed", "failed"]).parse(data.result);
       state.db.transaction(() => {
         const changed = state.db.prepare("UPDATE jobs SET status=?,last_error='operator_reconciled',payload='{}',payload_state='scrubbed' WHERE id=? AND status='uncertain'").run(result === "confirmed" ? "succeeded" : "failed", id);

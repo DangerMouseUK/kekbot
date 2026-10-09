@@ -52,6 +52,8 @@ Read [architecture](docs/ARCHITECTURE.md) before changing boundaries and [API](d
 
 Keep routes/React separate from shared domain decisions. Dashboard, Kick, Discord and API controls must use the same services. Keep network calls outside SQLite transactions, persist decisions/outbox atomically, and use constraints/versions for concurrency. Never blindly resend an uncertain provider mutation. Recheck current authority when deferred effects execute.
 
+Include stale/in-flight cases when changing provider grants or imported configuration. A new OAuth grant must supersede an old refresh without inheriting its error state; replacement imports must advance retained versions. Keep actionable queues separate from recent history and test more than one page, tied timestamps and permissions. Privacy coverage must include anonymous gifts and their recipients, including retained older records. The [review regressions](tests/review-regressions.test.ts) and [Kick tests](tests/kick.test.ts) provide examples.
+
 Use bounded declarative configuration rather than executable templates. Avoid new production dependencies unless necessary; pin exact versions, review license/use and update [dependency notices](docs/DEPENDENCIES.md). Asset/theme contributions require distributable rights and attribution.
 
 Generate schema changes with `pnpm db:generate`, review SQL/metadata and commit both. Do not edit released migrations, generate migrations at startup or assume backup compatibility without evidence. Document any explicit upgrade boundary.

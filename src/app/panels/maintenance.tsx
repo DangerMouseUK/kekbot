@@ -1,6 +1,7 @@
 "use client";
 import { ActionForm, Table, text } from "../ui";
 import type { PanelProps } from "./types";
+import WorkQueue from "./work-queue";
 
 export default function MaintenancePanel({
   snapshot: s,
@@ -23,25 +24,44 @@ export default function MaintenancePanel({
       <section>
         <h2>Delivery outcomes</h2>
         <Table rows={s.jobs} columns={["id", "kind", "status", "error", "attempts"]} />
-        {owner &&
-          s.jobs
-            .filter((job) => job.status === "uncertain")
-            .map((job) => (
-              <article key={String(job.id)}>
-                <p>
-                  Inspect the provider before reconciling {text(job.id)}. This does not resend it.
-                </p>
-                <button onClick={() => run("job.resolve", { id: job.id, result: "confirmed" })}>
-                  Provider confirms success
-                </button>
-                <button
-                  className="secondary"
-                  onClick={() => run("job.resolve", { id: job.id, result: "failed" })}
-                >
-                  Provider confirms failure
-                </button>
-              </article>
-            ))}
+      </section>
+      <section>
+        <h2>Uncertain deliveries</h2>
+        <WorkQueue firstPage={s.uncertainJobs} view="uncertain-jobs" expired={expired}>
+          {(job, refresh) => (
+            <article key={String(job.id)}>
+              <p>
+                {text(job.id)} · {text(job.kind)} · {text(job.error)}
+              </p>
+              {owner && (
+                <>
+                  <p>
+                    Inspect the provider before reconciling {text(job.id)}. This does not resend it.
+                  </p>
+                  <button
+                    disabled={busy}
+                    onClick={async () => {
+                      await run("job.resolve", { id: job.id, result: "confirmed" });
+                      await refresh();
+                    }}
+                  >
+                    Provider confirms success
+                  </button>
+                  <button
+                    className="secondary"
+                    disabled={busy}
+                    onClick={async () => {
+                      await run("job.resolve", { id: job.id, result: "failed" });
+                      await refresh();
+                    }}
+                  >
+                    Provider confirms failure
+                  </button>
+                </>
+              )}
+            </article>
+          )}
+        </WorkQueue>
       </section>
       {owner && (
         <>

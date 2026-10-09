@@ -69,6 +69,43 @@ describe("Kick contract", () => {
     expect(JSON.parse(decrypt(encrypted, context.config.key, "kick.tokens")).refresh_token).toBe("rotated-refresh");
   });
 
+  it.each([200, 401])("keeps a new OAuth grant when an older refresh completes with HTTP %s", async (status) => {
+    const context = setup(); saveExpired(context);
+    let finishOld!: (response: Response) => void;
+    context.request.mockImplementationOnce(() => new Promise<Response>(resolve => { finishOld = resolve; }));
+    const old = context.service.accessToken().catch(error => error);
+    const state = new URL(context.service.authorize("new-browser", true)).searchParams.get("state")!;
+    const fresh = { ...token, access_token: "new-grant-access", refresh_token: "new-grant-refresh", scope: [...KICK_SCOPES, "moderation:ban"].join(" ") };
+    context.request.mockResolvedValueOnce(Response.json(fresh)).mockResolvedValueOnce(Response.json({ data: [{ user_id: 123, name: "creator" }] }));
+    await context.service.complete("new-code", state, "new-browser");
+    finishOld(Response.json({ ...token, access_token: "stale-access", refresh_token: "stale-refresh" }, { status }));
+    expect(await old).toMatchObject({ code: "kick_connection_changed_retry" });
+    expect(await context.service.accessToken()).toBe(fresh.access_token);
+    expect(context.service.status()).toMatchObject({ error: null, scopes: expect.arrayContaining(["moderation:ban"]) });
+    const encrypted = context.repo.store.orm.select().from(connections).where(eq(connections.provider, "kick")).get()!.secret;
+    expect(JSON.parse(decrypt(encrypted, context.config.key, "kick.tokens")).refresh_token).toBe(fresh.refresh_token);
+  });
+
+  it("does not let a superseded refresh clear the new grant's shared refresh flight", async () => {
+    const context = setup(); saveExpired(context);
+    let finishOld!: (response: Response) => void, finishNew!: (response: Response) => void;
+    context.request.mockImplementationOnce(() => new Promise<Response>(resolve => { finishOld = resolve; }));
+    const old = context.service.accessToken().catch(error => error);
+    context.service.invalidate();
+    const state = new URL(context.service.authorize("new-browser")).searchParams.get("state")!;
+    context.request.mockResolvedValueOnce(Response.json(token)).mockResolvedValueOnce(Response.json({ data: [{ user_id: 123, name: "creator" }] }));
+    await context.service.complete("new-code", state, "new-browser");
+    context.request.mockImplementationOnce(() => new Promise<Response>(resolve => { finishNew = resolve; }));
+    const fresh = context.service.accessToken(true);
+    finishOld(Response.json(token));
+    expect(await old).toMatchObject({ code: "kick_connection_changed_retry" });
+    const concurrent = context.service.accessToken(true);
+    expect(context.request).toHaveBeenCalledTimes(4);
+    finishNew(Response.json({ ...token, access_token: "current-rotation" }));
+    expect(await Promise.all([fresh, concurrent])).toEqual(["current-rotation", "current-rotation"]);
+    expect(context.service.status().error).toBeNull();
+  });
+
   it("requires repair after failed refresh and never leaks a provider response", async () => {
     const context = setup(); saveExpired(context);
     context.request.mockResolvedValueOnce(Response.json({ secret: "provider-debug-secret" }, { status: 401 }));

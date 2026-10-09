@@ -128,4 +128,8 @@ Resolved payloads use chat retention separately from outcome metadata. Uncertain
 
 The operational snapshot includes every active media item. Terminal history uses a separate authenticated keyset query ordered by creation time and ID, backed by an index. Dashboard modules live in focused typed panels; the media history request is abortable and uncached. Routes still call shared domain services and enforce current authorization.
 
+Uncertain jobs and pending redemptions have independent bounded keyset views and 50-item first pages in the snapshot. They never rely on the latest-100 history lists for discoverability. Pagination grants read access only; reconciliation/fulfillment still checks current authority. Gift recipients inherit job associations alongside event actors; erasure recovers missing older associations from retained receipts before checking pending work and scrubbing payloads.
+
+Successful Kick authorization advances a connection generation and detaches the old refresh flight. Stale refresh success/error paths cannot modify the new grant; flight cleanup only clears its own promise. Replacement imports rebuild the validated portable namespace within one transaction and advance retained IDs from their previous versions, preventing stale editors from reusing version 1.
+
 Backup format stays 1. Restored schemas 1 and 2 require stopped-host initialization before current startup. Old code must never open schema-3 storage.

@@ -84,3 +84,5 @@ Stable-v1 coverage is tracked in [RELEASE_READINESS.md](RELEASE_READINESS.md), i
 ## Post-build quality work
 
 The [eight-item quality follow-up](QUALITY_HARDENING.md) improves the implemented candidate and its verification. It does not expand release scope, replace live trials or change either PRD. Stable preparation additionally requires [candidate dependency sign-off](DEPENDENCY_MAINTENANCE.md).
+
+The subsequent repository-review fixes preserve schema 3 and add OAuth-generation guards, monotonic replacement versions, generated-ID reconciliation, independent paginated waiting queues, gift-recipient privacy handling and utility-error throttling. [Targeted regressions](../tests/review-regressions.test.ts) and the [milestone evidence](MILESTONES.md#repository-review-fixes--2026-10-09) track verification. These fixes do not accept Milestones 18–19 or expand requirements.

@@ -30,6 +30,7 @@ Read only the material needed for the requested scope. The [foundation guide](do
 
 - Keep routes/React separate from domain services, providers, storage and jobs. All control surfaces use the same decisions; `catalog.ts` defines bounded configuration and `State` enforces current permissions/versions.
 - Use real SQLite transactions, constraints and optimistic versions for durable state. Commit decisions/outbox atomically. Keep provider calls outside transactions; uncertain delivery requires reconciliation, never blind retry.
+- Replacement imports must advance retained document versions. Keep unresolved delivery and redemption queues accessible through bounded pagination independently of recent history. Associate gift recipients as well as event actors for privacy guards and erasure, including retained legacy receipts.
 - Enforce current permissions at every server entry and again at deferred execution. Widget reads and player acknowledgements use separate exact credentials. Owner-only account/integration/token powers stay owner-only.
 - Default to isolated synthetic fixtures. Development/CI never use live grants, send real provider mutations or load live YouTube. Generate fixture keys/accounts at runtime outside the publication set; never introduce default live passwords.
 - Use checked-in SQL migrations and metadata. Do not rewrite released migrations or generate migrations at startup. Preserve backup compatibility or document an explicit upgrade boundary.

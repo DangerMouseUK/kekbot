@@ -18,10 +18,12 @@ KekBot brings Kick chat automation, Discord moderator controls, OBS sources and 
 | Stream presentation | Follow/subscription alerts, local image/sound assets, goals, three themes and 18 OBS source types |
 | Media | Kick `!sr` requests → dashboard or Discord approval → visible YouTube playback in OBS → durable queue advancement |
 | Moderation | Link/phrase/repetition/caps/burst rules, safe rule tests, notes, escalation and temporary incident presets |
-| Community | Points, estimated watchtime, rewards, polls, raffles and leaderboards |
+| Community | Points, estimated watchtime, reward fulfillment queues, polls, raffles and leaderboards |
 | Ownership | Local accounts/roles, scoped API/source tokens, analytics, retention, configuration portability and backup/recovery tools |
 
 Discord and YouTube are optional to enable. KekBot runs without a project-operated account, relay or billing service. Enabled integrations contact their official services; OBS YouTube playback contacts YouTube. The [configuration reference](docs/CONFIGURATION.md) explains storage and secrets.
+
+Daily operation includes dedicated queues for pending rewards and uncertain provider deliveries, independent of recent history. The [user guide](docs/USER_GUIDE.md#points-and-rewards) explains fulfillment; the [operations guide](docs/OPERATIONS.md#reconcile-an-uncertain-action) explains inspecting and reconciling delivery without resending it.
 
 ## Choose your starting point
 
