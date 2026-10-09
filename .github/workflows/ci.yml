@@ -155,11 +155,11 @@ jobs:
           tar -xzf "$RUNNER_TEMP/trivy/archive.tar.gz" -C "$RUNNER_TEMP/trivy"
           docker save --output "$RUNNER_TEMP/trivy/candidate.tar" kekbot:ci
           review_status=0
-          pnpm dependencies:review --scanner "$RUNNER_TEMP/trivy/trivy" --image-archive "$RUNNER_TEMP/trivy/candidate.tar" || review_status=1
+          pnpm dependencies:review --scanner "$RUNNER_TEMP/trivy/trivy" --image-archive "$RUNNER_TEMP/trivy/candidate.tar" --image-findings || review_status=1
           docker save --output "$RUNNER_TEMP/trivy/proxy.tar" kekbot-caddy:2.11.6
-          pnpm dependencies:review --scanner "$RUNNER_TEMP/trivy/trivy" --image-archive "$RUNNER_TEMP/trivy/proxy.tar" || review_status=1
+          pnpm dependencies:review --scanner "$RUNNER_TEMP/trivy/trivy" --image-archive "$RUNNER_TEMP/trivy/proxy.tar" --image-findings || review_status=1
           exit "$review_status"
-        # Only bounded aggregate counts are printed. No automatic updates,
+        # Only counts and bounded allowlisted advisory metadata are printed. No automatic updates,
         # waivers, evidence writes, runtime uploads or release publication.
       - name: Upload audited candidate archives only
         if: github.event_name == 'workflow_dispatch' && inputs.package

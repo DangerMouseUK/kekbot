@@ -28,7 +28,7 @@ Normal maintenance targets main. An urgent security patch may target an affected
 
 ## Review a candidate
 
-From the candidate checkout, `pnpm dependencies:audit` audits production dependencies and the full development/tooling tree. `pnpm dependencies:review` adds the image check. Both print aggregate counts and identifiers of verified local remediations, without raw provider responses or paths. Unresolved findings and unavailable/malformed responses return nonzero; the complete review also fails on a missing image scan. Neither command installs updates or changes evidence records.
+From the candidate checkout, `pnpm dependencies:audit` audits production dependencies and the full development/tooling tree. `pnpm dependencies:review` adds the image check. Both print aggregate counts and identifiers of verified local remediations, without raw provider responses or paths. Optional `--image-findings` adds at most 200 allowlisted advisory IDs/package versions/severities/statuses, sorted by severity, with an omitted count; it never prints raw scanner titles, targets, paths or URLs. All findings still count and block the check, including omitted rows. Unresolved findings and unavailable/malformed responses return nonzero; the complete review also fails on a missing image scan. Neither command installs updates or changes evidence records.
 
 For the image check, use a trusted local **Trivy 0.75.0** executable, verified against the checksum in its [official release](https://github.com/aquasecurity/trivy/releases/tag/v0.75.0). On the Linux build host, save the already-tested candidate image into private storage and run:
 
@@ -45,7 +45,7 @@ Alternatively, maintainers can request the optional Linux CI review from a branc
 gh workflow run ci.yml --ref REVIEW_BRANCH --field dependencies=true
 ```
 
-Confirm the run's head SHA. The container job scans the same packaged application image and pinned Caddy image after its normal checks, using a checksum-verified Trivy binary. Its console contains counts, not raw vulnerability reports. It does not approve, publish or deploy anything. This profile has its own concurrency group. A finding makes the optional job fail and must be investigated.
+Confirm the run's head SHA. The container job scans the same packaged application image and pinned Caddy image after its normal checks, using a checksum-verified Trivy binary. Its console contains counts and bounded allowlisted advisory metadata using `--image-findings`, not raw vulnerability reports. It does not approve, publish or deploy anything. This profile has its own concurrency group. A finding makes the optional job fail and prevents the candidate artifact upload; investigate rather than bypassing the review to obtain assets.
 
 ## Record sign-off
 
