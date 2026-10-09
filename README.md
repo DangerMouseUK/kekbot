@@ -7,7 +7,7 @@
 
 KekBot brings Kick chat automation, Discord moderator controls, OBS sources and YouTube requests into a self-hosted dashboard. One installation serves one creator and their moderator team. You own the provider applications, configuration, local accounts and data.
 
-**Status: [v0.1.0-beta.2 is available for evaluation](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2).** Beta 2 includes the bundled domain/IP HTTPS installer correction and matching tool/application versions. Read its [release notes](docs/releases/v0.1.0-beta.2.md) and [security/binary-license review](docs/RELEASE_READINESS.md#beta-2-review). Full-product live testing and all 33 stable acceptance gates remain pending. Start with the [beta guide](docs/BETA.md); select **Specific release** because latest-stable discovery excludes betas.
+**Status: [v0.1.0-beta.3 is available for evaluation](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3).** Beta 3 includes the downloadable lifecycle launcher, matching tool/application versions and the bundled HTTPS installer correction. Read its [release notes](docs/releases/v0.1.0-beta.3.md) and [security/binary-license review](docs/RELEASE_READINESS.md#beta-3-review). Full-product live testing and all 33 stable acceptance gates remain pending. Start with the [beta guide](docs/BETA.md); select **Specific release** because latest-stable discovery excludes betas.
 
 **Using beta 1?** Its original bundled HTTPS installer needs the [fixed-tool workaround](docs/INSTALLER.md#beta-1-bundled-https-installer-fix). Beta 2 includes that correction; beta 1 downloads stay unchanged.
 
@@ -27,7 +27,7 @@ Discord and YouTube are optional to enable. KekBot runs without a project-operat
 
 Daily operation includes dedicated queues for pending rewards and uncertain provider deliveries, independent of recent history. The [user guide](docs/USER_GUIDE.md#points-and-rewards) explains fulfillment; the [operations guide](docs/OPERATIONS.md#reconcile-an-uncertain-action) explains inspecting and reconciling delivery without resending it.
 
-The [runtime image](docs/RUNTIME_IMAGE.md) contains Node and the required native libraries without a shell or package manager. Use the documented Node maintenance commands. The guide covers Alpine/musl beta compatibility, the separate proxy build, binary scanning and bundled legal notices; the [release review](docs/RELEASE_READINESS.md#beta-2-review) binds checks to the published artifacts.
+The [runtime image](docs/RUNTIME_IMAGE.md) contains Node and the required native libraries without a shell or package manager. Use the documented Node maintenance commands. The guide covers Alpine/musl beta compatibility, the separate proxy build, binary scanning and bundled legal notices; the [release review](docs/RELEASE_READINESS.md#beta-3-review) binds checks to the published artifacts.
 
 ## Choose your starting point
 
@@ -50,15 +50,20 @@ Download the launcher to a file on your **Linux x86-64 server**, review it, then
 ```sh
 curl --fail --location --proto '=https' --proto-redir '=https' \
   --max-time 60 --retry 2 \
-  https://raw.githubusercontent.com/DangerMouseUK/kekbot/main/install.sh \
+  https://github.com/DangerMouseUK/kekbot/releases/download/v0.1.0-beta.3/install.sh \
   --output install.sh &&
+  curl --fail --location --proto '=https' --proto-redir '=https' \
+    --max-time 60 --retry 2 \
+    https://github.com/DangerMouseUK/kekbot/releases/download/v0.1.0-beta.3/SHA256SUMS \
+    --output SHA256SUMS &&
+  grep -E '^[a-f0-9]{64}  install[.]sh$' SHA256SUMS | sha256sum --check - &&
   less install.sh &&
-  sudo bash install.sh
+  sudo bash install.sh --tool-release v0.1.0-beta.3
 ```
 
-The [complete launcher guide](docs/LAUNCHER.md) explains prerequisite checks, optional Ubuntu 24.04 setup, source review and every option. Choose **Specific release → v0.1.0-beta.2** for the published beta. Releases, branches, PRs, exact commits and audited source/image bundles remain available, with typed trust and final review. The launcher also opens update, rollback, start/stop, status and uninstall; removal keeps data by default.
+The [complete launcher guide](docs/LAUNCHER.md) explains prerequisite checks, optional Ubuntu 24.04 setup, source review and every option. Choose **Specific release → v0.1.0-beta.3** for the published beta. Releases, branches, PRs, exact commits and audited source/image bundles remain available, with typed trust and final review. The launcher also opens update, rollback, start/stop, status and uninstall; removal keeps data by default.
 
-The launcher is available from `main`. [Beta 3 is being prepared](docs/releases/v0.1.0-beta.3.md) with a standalone, checksum-covered launcher download and matching versioned tools; it is not published yet. Beta 2 remains the latest published evaluation release. Existing beta tags/assets remain unchanged. Management tools and the selected application have separate identities; review both. Do not pipe a downloaded script into a shell.
+The [published beta 3 launcher](docs/releases/v0.1.0-beta.3.md) is a standalone, checksum-covered download. [Verify the complete bundle](docs/LAUNCHER.md#verify-a-versioned-launcher-download) before execution. The command above pins management tools to beta 3; select the application release explicitly in the wizard. Development `main`, branches and PRs remain separate reviewed choices. Beta 1/2 tags/assets stay unchanged. Do not pipe a downloaded script into a shell.
 
 ### Local fixture setup
 
@@ -97,7 +102,7 @@ Prefer containers? The [Docker Desktop evaluation guide](docs/DOCKER_DESKTOP.md)
 
 ## Hosting requirements
 
-The [launcher](docs/LAUNCHER.md) opens the [guided installer](docs/INSTALLER.md), with explained terminal menus, final review, pinned branch/PR/commit/release selection, backup-before-update, recovery checkpoints and data-preserving default uninstall. Its application default is **latest stable**, which reports unavailable until stable releases exist; choose **Specific release** → `v0.1.0-beta.2` to evaluate the beta. Release formats are audited source builds or prebuilt Linux amd64 image archives. Bash launches host tooling; the wizard uses Python's standard library outside the application container and leaves provider consent/settings to the owner dashboard.
+The [launcher](docs/LAUNCHER.md) opens the [guided installer](docs/INSTALLER.md), with explained terminal menus, final review, pinned branch/PR/commit/release selection, backup-before-update, recovery checkpoints and data-preserving default uninstall. Its application default is **latest stable**, which reports unavailable until stable releases exist; choose **Specific release** → `v0.1.0-beta.3` to evaluate the beta. Release formats are audited source builds or prebuilt Linux amd64 image archives. Bash launches host tooling; the wizard uses Python's standard library outside the application container and leaves provider consent/settings to the owner dashboard.
 
 The deployment target is **Linux x86-64**, one long-running application container, local persistent disk and publicly trusted HTTPS for provider callbacks. The included Compose examples build KekBot and an optional Caddy proxy from source. A domain is the usual path; a separate public-IPv4 HTTPS example is available. Windows/macOS can evaluate the Linux container with Docker Desktop or develop from source.
 

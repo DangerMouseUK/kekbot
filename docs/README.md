@@ -1,6 +1,6 @@
 # KekBot documentation
 
-These guides describe the [published `0.1.0-beta.2` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2), SQLite schema 3 and backup/configuration formats 1. Beta 2 includes the bundled HTTPS installer correction; see its [release notes](releases/v0.1.0-beta.2.md) and [security/binary-license review](RELEASE_READINESS.md#beta-2-review). Beta 1 remains immutable. Full-product live and stable acceptance remain pending. [Beta 3 is being prepared](releases/v0.1.0-beta.3.md) with matching tools and a checksum-covered launcher download; it is not published yet. Commands and screen labels follow the current implementation; provider portals can change.
+These guides describe the [published `0.1.0-beta.3` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3), SQLite schema 3 and backup/configuration formats 1. Beta 3 includes matching management/application tools and a checksum-covered launcher download; see its [release notes](releases/v0.1.0-beta.3.md) and [security/binary-license review](RELEASE_READINESS.md#beta-3-review). Beta 1/2 remain immutable. Full-product live and stable acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
 
 **Beta 2 includes the corrected bundled HTTPS installer.** For the older beta 1 tag, use its [fixed-tool workaround](INSTALLER.md#beta-1-bundled-https-installer-fix).
 
@@ -9,7 +9,7 @@ These guides describe the [published `0.1.0-beta.2` evaluation release](https://
 | Your goal | Read in this order |
 | --- | --- |
 | Explore without provider accounts | [Quickstart](QUICKSTART.md) → [first session](FIRST_SESSION.md) → [user guide](USER_GUIDE.md) |
-| Evaluate or report a beta problem | [Beta guide](BETA.md) → [beta release notes](releases/v0.1.0-beta.2.md) |
+| Evaluate or report a beta problem | [Beta guide](BETA.md) → [beta release notes](releases/v0.1.0-beta.3.md) |
 | Host a live installation | [Downloadable launcher](LAUNCHER.md) → [guided installer](INSTALLER.md) (or [manual installation](INSTALLATION.md)) → [provider setup](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [OBS](OBS.md) → [operations](OPERATIONS.md) |
 | Update, roll back or remove | [Updating](UPDATING.md) → [uninstalling](UNINSTALLING.md); manual deployments use [recovery](BACKUP_RECOVERY.md) |
 | Join a moderator team | [Accounts and permissions](ACCOUNTS.md) → the relevant [daily workflow](USER_GUIDE.md) |
@@ -18,7 +18,7 @@ These guides describe the [published `0.1.0-beta.2` evaluation release](https://
 
 ## Operator and user guides
 
-- [Beta 3 candidate notes](releases/v0.1.0-beta.3.md): scope, exact candidate evidence, compatibility and publication limits.
+- [Beta 3 release notes](releases/v0.1.0-beta.3.md): downloads, exact source/image/checksums, compatibility and verification limits.
 - [Beta guide](BETA.md): publication status, source/bundle choices, supported evaluation platforms, testing, updates and safe feedback.
 - [Quickstart](QUICKSTART.md): pinned tools, isolated fixtures, generated login, first command and shutdown.
 - [Docker Desktop evaluation](DOCKER_DESKTOP.md): Windows/macOS Linux containers, private runtime files, named-volume fixtures and stop/resume.

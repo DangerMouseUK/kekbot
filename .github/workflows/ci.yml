@@ -21,6 +21,10 @@ on:
         description: Optional explicit published tag to rehearse through real release discovery and both installer formats
         type: string
         default: ""
+      proxy_diagnostics:
+        description: Diagnose only the public staged Caddy build (no runtime files or credentials)
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -116,6 +120,19 @@ jobs:
         with:
           node-version-file: .node-version
           cache: pnpm
+      - name: Use the public Docker Hub cache on this disposable runner
+        shell: bash
+        run: |
+          sudo python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("/etc/docker/daemon.json")
+          config = json.loads(path.read_text()) if path.exists() else {}
+          config["registry-mirrors"] = list(dict.fromkeys(["https://mirror.gcr.io", *config.get("registry-mirrors", [])]))
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(config) + "\n")
+          PY
+          sudo systemctl restart docker
       - run: pnpm install --frozen-lockfile
       - name: Validate deployment examples using empty example credentials
         run: |
@@ -129,6 +146,20 @@ jobs:
           KEKBOT_PUBLIC_IP: 203.0.113.10
       - name: Validate handbook Compose overrides without starting services
         run: node scripts/check-doc-compose.mjs
+      - name: Diagnose the public staged proxy build
+        if: github.event_name == 'workflow_dispatch' && inputs.proxy_diagnostics
+        shell: bash
+        run: |
+          python3 -B - <<'PY'
+          import os, sys
+          from pathlib import Path
+          sys.path.insert(0, "installer")
+          from core import proxy_directory, stage_proxy_context
+          stage_proxy_context(proxy_directory(), Path(os.environ["RUNNER_TEMP"]) / "kekbot-public-proxy-context")
+          PY
+          # Only the six public proxy files are staged. Never include .env or runtime state.
+          docker build --progress=plain --file "$RUNNER_TEMP/kekbot-public-proxy-context/deploy/Caddy.Dockerfile" \
+            --tag kekbot-caddy:2.11.6 "$RUNNER_TEMP/kekbot-public-proxy-context"
       - name: Build the retained installer Caddy context and check domain/IP configurations
         run: python3 -B installer/smoke.py --proxy-context
       - run: docker build --build-arg VCS_REF="$GITHUB_SHA" -t kekbot:ci .
