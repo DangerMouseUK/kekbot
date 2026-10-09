@@ -120,6 +120,19 @@ jobs:
         with:
           node-version-file: .node-version
           cache: pnpm
+      - name: Use the public Docker Hub cache on this disposable runner
+        shell: bash
+        run: |
+          sudo python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("/etc/docker/daemon.json")
+          config = json.loads(path.read_text()) if path.exists() else {}
+          config["registry-mirrors"] = list(dict.fromkeys(["https://mirror.gcr.io", *config.get("registry-mirrors", [])]))
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(config) + "\n")
+          PY
+          sudo systemctl restart docker
       - run: pnpm install --frozen-lockfile
       - name: Validate deployment examples using empty example credentials
         run: |
