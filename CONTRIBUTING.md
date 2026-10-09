@@ -1,6 +1,6 @@
 # Contributing to KekBot
 
-Thanks for helping improve KekBot. Focused fixes, clearer guides, reproducible bug reports and meaningful tests are welcome. The project is an unreleased development candidate; [milestones](docs/MILESTONES.md) distinguish the completed build/automated campaign from pending live acceptance.
+Thanks for helping improve KekBot. Focused fixes, clearer guides, reproducible bug reports and meaningful tests are welcome. The first beta is being prepared; the [beta guide](docs/BETA.md) explains evaluation and safe feedback. [Milestones](docs/MILESTONES.md) distinguish automated verification from pending live acceptance. A beta version does not authorize release publication or pass stable gates.
 
 <!-- contents:start -->
 **On this page**

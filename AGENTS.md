@@ -22,6 +22,7 @@ Use these task-specific starting points:
 - Runtime/contracts: [architecture](docs/ARCHITECTURE.md), [API](docs/API.md).
 - Exhaustive references: [dashboard fields/examples](docs/CONFIGURATION_FIELDS.md), [control actions](docs/API_ACTIONS.md), [CLI](docs/CLI.md).
 - Verification/release: [testing](docs/TESTING.md), [live acceptance](docs/LIVE_ACCEPTANCE.md), [releasing](docs/RELEASING.md).
+- Beta evaluation: [tester guide](docs/BETA.md), [first beta notes and verification](docs/releases/v0.1.0-beta.1.md). Keep prerelease publication separate from preparation and stable acceptance; never change latest-stable discovery to select a beta.
 - Dependency maintenance: [release-controlled reviews](docs/DEPENDENCY_MAINTENANCE.md); no automated update PRs, merges or installations. Exact pin checks are offline policy checks, not vulnerability sign-off.
 
 Read only the material needed for the requested scope. The [foundation guide](docs/FOUNDATION.md) is historical diagnostic evidence; it is not the normal installation path.

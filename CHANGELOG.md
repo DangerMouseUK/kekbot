@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-beta.1 — Preparation candidate, unreleased
+
+- Named the first beta candidate and aligned application, Docker and Compose versions. Added beta installation/update/feedback guidance, release notes and a separate prerelease checklist. Explicit beta selection remains separate from the fail-closed latest-stable default.
+- Added beta source/image installer contracts and distribution-version checks. Candidate packaging retains audited source, Linux amd64 image, notices, metadata and checksums; CI performs fixture verification without live credentials or automatic release publication.
+- No dependency, database migration, backup or configuration format change from the final development candidate. The features and fixes below are included. Full-product live sessions, real OBS/provider delivery, reference-host and independent-operator acceptance remain pending; see the [beta verification record](docs/releases/v0.1.0-beta.1.md#verification-record).
+
 ## 0.1.0-dev.0 — Local product build, unreleased
 
 - Fixed seven repository-review findings: stale Kick refreshes cannot overwrite or invalidate a new OAuth grant; replacement imports advance retained configuration versions; generated job IDs can be reconciled; uncertain deliveries and pending rewards have independent bounded pages; gift-recipient erasure covers retained legacy associations; and command-error replies respect the utility cooldown. Added real SQLite/provider/browser regressions and updated operator/API/contributor guidance. No dependency, schema or backup-format change; live acceptance remains pending.

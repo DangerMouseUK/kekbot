@@ -11,7 +11,7 @@ RUN pnpm build
 
 FROM node:24.21.0-bookworm-slim AS runtime
 ARG VCS_REF=unknown
-ARG VERSION=0.1.0-dev.0
+ARG VERSION=0.1.0-beta.1
 LABEL org.opencontainers.image.title="KekBot" org.opencontainers.image.source="https://github.com/DangerMouseUK/kekbot" org.opencontainers.image.revision=$VCS_REF org.opencontainers.image.version=$VERSION org.opencontainers.image.licenses="MIT"
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 NEXT_MANUAL_SIG_HANDLE=1 KEKBOT_RUN_JOBS=1 KEKBOT_DATA_DIR=/data HOSTNAME=0.0.0.0 PORT=3000
 WORKDIR /app

@@ -55,6 +55,7 @@ it("fails closed until every live/operator gate and exact frozen source/image ar
   expect(releaseBlockers(evidence, { ...identity, sourceRef: "c".repeat(40) })).toContain("candidate_source_mismatch");
   expect(releaseBlockers(evidence, { ...identity, imageDigest: `sha256:${"d".repeat(64)}` })).toContain("candidate_image_mismatch");
   expect(releaseBlockers(evidence, { ...identity, version: "0.1.0-dev.0" })).toContain("stable_v1_version_required");
+  expect(releaseBlockers(evidence, { ...identity, version: "0.1.0-beta.1" })).toContain("stable_v1_version_required");
   evidence.gates.P07.outcome = "fail"; evidence.gates.P07.date = null; evidence.gates.P07.reference = null;
   expect(releaseBlockers(evidence, identity)).toContain("P07");
 });

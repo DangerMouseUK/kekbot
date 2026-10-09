@@ -654,3 +654,11 @@ Local Windows verification used Node 24.21.0 and pnpm 10.26.0:
 - Gitleaks 8.30.1's redacted full-history scan passed across the 28 existing commits. Candidate publication scans and final CI identify the reviewed source. GitHub CI supplies Linux/container/all-browser evidence against the PR commit.
 
 Existing historical results and all live/operator/dependency gates stay unchanged. Deployment remains deferred; no real provider, public certificate or independent-operator acceptance is claimed by these fixes.
+
+## First beta preparation — 2026-10-09
+
+Branch `release/0.1.0-beta.1`, based on merged main `c97e812e35a2c5e5a16174e3d26e1b43467290e0`. Application/Docker/Compose now identify `0.1.0-beta.1`. The [beta guide](BETA.md), [release notes](releases/v0.1.0-beta.1.md) and [prerelease procedure](RELEASING.md#beta-prerelease-preparation-and-publication) cover explicit evaluation, compatibility, feedback and publication boundaries. Stable discovery/acceptance remains unchanged; no dependencies, migrations or data formats changed.
+
+Local `pnpm check` passed with **145 application tests across 23 files**, **27 portable installer contracts** and seven Linux-only contracts reserved for CI. `pnpm dependencies:audit` reported zero production advisories; full tooling retains one raw high braces advisory with the exact checked-in remediation verified. This is not a clean raw tooling scan. Final production/browser/container, frozen dependency/license review, candidate archives and full hosted fixture soak are tracked in the [beta verification record](releases/v0.1.0-beta.1.md#verification-record).
+
+Beta preparation does not complete Milestones 18–19's unavailable live/reference/independent scenarios. Deployment remains deferred. No infrastructure, beta tag, GitHub release or registry image is created by this work.
