@@ -12,7 +12,7 @@ Next's image optimizer is disabled globally. Local alert images already use unop
 
 ## Compatibility and maintenance
 
-The supported distribution remains Linux amd64. Alpine uses musl instead of glibc, so the native SQLite addon is built/selected on the same platform as the runtime. Do not copy a Windows or glibc `node_modules` into this image. Official Node Docker tests its Alpine variant, but Node classifies amd64 musl support as experimental; see [the upstream image documentation](https://github.com/nodejs/docker-node/blob/main/README.md). Keep this limitation visible during beta evaluation.
+The supported distribution remains Linux amd64. Alpine uses musl instead of glibc, so only the musl amd64 SQLite binding is retained in both the traced application and maintenance CLI copies. Other platform/architecture prebuilds are removed. Local standalone builds retain and test their own native binding. Do not copy a Windows or glibc `node_modules` into this image. Official Node Docker tests its Alpine variant, but Node classifies amd64 musl support as experimental; see [the upstream image documentation](https://github.com/nodejs/docker-node/blob/main/README.md). Keep this limitation visible during beta evaluation.
 
 Use the documented Node CLI commands instead of opening a shell. For example, from the Compose checkout with the installation's external environment paths configured, this read-only diagnostic prints the runtime version and identity:
 
