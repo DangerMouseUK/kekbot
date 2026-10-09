@@ -48,7 +48,7 @@ Do not imply an installer, published image, default account, email-reset flow or
 | Changed behavior | Inspect | Update |
 | --- | --- | --- |
 | Runtime paths/environment/Compose | `config.ts`, wrappers, Compose/Docker/Caddy files | Installation, configuration, Desktop, CLI, recovery |
-| Host lifecycle / version source / bundle format | `installer/`, release packager, lifecycle CI | Guided installer, updating, uninstalling, manual/managed boundaries, README and evidence |
+| Host lifecycle / version source / bundle format | `install.sh`, `installer/`, release packager, lifecycle/terminal CI | Launcher, guided installer, updating, uninstalling, manual/managed boundaries, README and evidence |
 | Editor field/default/validation | `catalog.ts`, `config-editor.tsx`, domain service | Field reference, matching JSON example, task guide, API |
 | Roles/session/invitations | `auth.ts`, `http.ts`, `state.ts` | Accounts, API/actions, security, recovery |
 | Provider setup/scope/action | Provider clients and official contract | Providers, API/actions, troubleshooting, live runbook |

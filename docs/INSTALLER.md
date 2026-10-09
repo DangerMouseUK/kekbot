@@ -2,6 +2,8 @@
 
 Use the **interactive terminal wizard** to install one KekBot instance on Linux x86-64. It also provides updates, rollback, status, start/stop and uninstall. Every change has an explained review and typed confirmation. Application/module settings and provider consent continue in the browser after owner setup.
 
+The easiest entry is the [downloadable `install.sh` launcher](LAUNCHER.md): no clone, host readiness checks, optional confirmed Ubuntu prerequisites, reviewed management downloads and every application source option. It is a development addition after beta 2; immutable beta tags keep their original tools. The clone-based path below remains available for pinned/local review.
+
 Beta 2 is [published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) with the corrected bundled HTTPS installer. Choose **Specific release** → `v0.1.0-beta.2` for evaluation using its matching tool tag. [Beta 1](releases/v0.1.0-beta.1.md) remains published; its original domain/IP installer needs the [workaround below](#beta-1-bundled-https-installer-fix). **There is no supported stable release yet.** Latest stable defaults to fail-closed discovery. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths; automated fixtures do not establish independent installation or real providers.
 
 [All documentation](README.md) · [Manual installation](INSTALLATION.md) · [Updating](UPDATING.md) · [Uninstalling](UNINSTALLING.md)
@@ -23,6 +25,7 @@ Beta 2 is [published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.
 | --- | --- |
 | Always-on Linux x86-64 host | Ubuntu 24.04 LTS is the CI platform; `uname -m` should be `x86_64`. Native ARM64 and Windows/macOS host management are unsupported. |
 | Python 3.10 or newer | `python3 --version`; standard library only, no pip packages or host Node/pnpm required. Ubuntu 24.04 includes a suitable Python. |
+| Bash for the launcher | `bash --version`; the direct Python entry does not require Bash. [Launcher setup](LAUNCHER.md#host-setup-and-readiness) can help with remaining prerequisites on Ubuntu 24.04. |
 | Git | `git --version`; used to resolve branches/PRs/commits and download public source. |
 | Local Docker Engine and Compose v2 | `docker version` and `docker compose version`; install using [Docker's official Ubuntu instructions](https://docs.docker.com/engine/install/ubuntu/). Remote daemon contexts are rejected because bind paths would refer to another host. |
 | Trusted administrator | The reviewed tool runs with `sudo` to protect runtime files and give the non-root application UID/GID 1000 its data directory. Docker/root access grants host authority. |
@@ -48,7 +51,7 @@ Review the checked-out tool and its CI before granting root/Docker access. To pi
 sudo python3 -B installer/kekbot.py
 ```
 
-The scrolling, numbered text interface works over SSH without a desktop, terminal mouse or third-party UI library. Press Enter to accept the displayed choice. Type `q`, `quit` or `cancel` at any prompt to abandon that walkthrough and return to the main menu. `Ctrl+C` exits; interrupted changes require status/recovery inspection. There is no unattended `--yes` mode or pipe-to-shell bootstrap.
+The scrolling, numbered text interface works over SSH without a desktop, terminal mouse or third-party UI library. Press Enter to accept the displayed choice. Type `q`, `quit` or `cancel` at any prompt to abandon that walkthrough and return to the main menu. `Ctrl+C` exits; interrupted changes require status/recovery inspection. There is no unattended `--yes` or pipe-to-shell mode. The launcher downloads to private storage and requires explicit source trust before running management code.
 
 The menu offers **Install**, **Update**, **Inspect status**, **Start or resume**, **Stop**, **Roll back**, **Uninstall** and **Exit**. `--action` opens a particular walkthrough; `--root` supplies an existing managed root. Both still require an interactive terminal and confirmation for changes:
 
@@ -58,6 +61,8 @@ sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action status
 ```
 
 `--help` prints syntax without root, Docker or an interactive terminal. The main menu checks the host prerequisites before continuing. Failed explicitly selected actions exit unsuccessfully; cancellation returns without applying further work.
+
+Current Python tooling also accepts `--source stable|release|branch|pr|commit|bundle`, `--ref VALUE` (except stable), and `--format image|source` to prefill install/update choices while retaining source trust and final review. Branch/PR/commit targets always build source. `--root` supplies a reviewed default for new-install storage as well as an existing management root. Older copied managers support the interactive selections; use reviewed current tools for the new shortcuts. A successful `--action install` now exits after reporting browser next steps.
 
 ## Beta 1 bundled HTTPS installer fix
 

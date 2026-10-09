@@ -2,7 +2,7 @@
 
 These commands maintain one installation's local files. They do not provision a host or install Docker. See [installation](INSTALLATION.md) for a runnable Compose setup and [backup/recovery](BACKUP_RECOVERY.md) for complete procedures. [All documentation](README.md).
 
-The separate [terminal host wizard](INSTALLER.md) provides install/update/rollback/uninstall; it is not a `pnpm kekbot` subcommand. For a managed root, open its copied tool for ordinary lifecycle work. To run an application maintenance command against that root, use `sudo docker compose -p <recorded-project> -f <root>/compose.json ...`; inspect the private record for the current data root, especially after rollback. Keep host paths distinct from CLI container paths and stop before backup/restore/recovery/init as required below.
+The separate [downloadable launcher](LAUNCHER.md) and [terminal host wizard](INSTALLER.md) provide install/update/rollback/uninstall; they are not `pnpm kekbot` subcommands. For a managed root, open its copied tool for ordinary lifecycle work. To run an application maintenance command against that root, use `sudo docker compose -p <recorded-project> -f <root>/compose.json ...`; inspect the private record for the current data root, especially after rollback. Keep host paths distinct from CLI container paths and stop before backup/restore/recovery/init as required below.
 
 <!-- contents:start -->
 **On this page**
@@ -17,6 +17,7 @@ The separate [terminal host wizard](INSTALLER.md) provides install/update/rollba
 - [Fixture and foundation commands](#fixture-and-foundation-commands)
 - [Common failures](#common-failures)
 - [Host-tool diagnostic option](#host-tool-diagnostic-option)
+- [Launcher and host-wizard selectors](#launcher-and-host-wizard-selectors)
 <!-- contents:end -->
 
 ## Invocation and configuration
@@ -131,3 +132,9 @@ See [troubleshooting](TROUBLESHOOTING.md) for health, storage and origin failure
 ## Host-tool diagnostic option
 
 The Linux host tool (separate from `pnpm kekbot`) accepts `--diagnostics-dir ABSOLUTE_PRIVATE_DIRECTORY` alongside `--root` and optional `--action`. It enables bounded metadata logs; it does not expose raw command output. Use a directory outside source with owner-only permissions. See [installer diagnostics](INSTALLER.md#optional-private-diagnostics) for the runnable example, limits and cleanup.
+
+## Launcher and host-wizard selectors
+
+`bash install.sh --help` lists the complete host interface. [Every launcher option](LAUNCHER.md#every-launcher-option) explains prerequisite checks/setup, actions, application source/format, independently pinned management source and prepare-only inspection. Those actions run on the Linux host; they are not container/application CLI commands.
+
+The direct Python manager accepts `--action install|update|rollback|status|start|stop|uninstall`, `--root PATH`, `--diagnostics-dir PATH`, plus current-source prefill options `--source stable|release|branch|pr|commit|bundle`, `--ref VALUE` and `--format image|source`. `stable` takes no ref; other sources require one. Source/format prefill applies only to install/update and never bypasses trust/final confirmation. Branch/PR/commit builds must use source. `--root` also prefills the new-install directory for review. Old copied tools retain interactive selection but lack these new shortcuts.

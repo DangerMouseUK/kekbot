@@ -50,8 +50,9 @@ def confirm(title, text, phrase="APPLY"):
         raise Cancelled()
 
 
-def source_selection(directory):
-    kind = choose("Choose the version", "Latest stable is the normal default. Every selection is resolved once and pinned; branches are never pulled automatically. Downloads use verified HTTPS. A branch or PR can execute arbitrary build/application code with access to this host's Docker daemon: review its exact commit first.", [
+def source_selection(directory, selection=None):
+    selection = selection or {}
+    kind = selection.get("source") or choose("Choose the version", "Latest stable is the normal default. Every selection is resolved once and pinned; branches are never pulled automatically. Downloads use verified HTTPS. A branch or PR can execute arbitrary build/application code with access to this host's Docker daemon: review its exact commit first.", [
         ("Latest stable release (recommended)", "Published stable GitHub release with accepted metadata. If none exists, stop and explicitly choose development; never silently use main.", "stable"),
         ("Specific release", "Enter an exact published tag, e.g. v0.1.0-beta.2 or v1.0.0. A beta must already be published and remains an evaluation build.", "release"),
         ("Repository branch", "Build a named branch, for example main. Its current commit is pinned for this operation.", "branch"),
@@ -60,11 +61,13 @@ def source_selection(directory):
         ("Local audited release bundle", "Directory containing release.json, SHA256SUMS and the required source/image/notices archives. Useful for transferred candidate or release artifacts.", "bundle"),
     ])
     value = ""
-    if kind != "stable":
+    if kind != "stable" and selection.get("source"):
+        value = selection["ref"]
+    elif kind != "stable":
         value = ask({"release": "Release tag", "branch": "Branch", "pr": "PR number", "commit": "Full commit SHA", "bundle": "Absolute bundle directory"}[kind])
     distribution = "source"
     if kind in ("stable", "release", "bundle"):
-        distribution = choose("Choose distribution format", "Both formats use the audited release metadata and SHA256SUMS. Checksums detect corruption; they are not a publisher signature. Only obtain bundles from the project or a trusted operator. Automatic GitHub source zip downloads are not installer bundles.", [
+        distribution = selection.get("format") or choose("Choose distribution format", "Both formats use the audited release metadata and SHA256SUMS. Checksums detect corruption; they are not a publisher signature. Only obtain bundles from the project or a trusted operator. Automatic GitHub source zip downloads are not installer bundles.", [
             ("Prebuilt Linux amd64 image (recommended)", "Load the exact image archive and verify image ID, source/version labels and non-root user. Avoids application compilation on your server.", "image"),
             ("Build the release source", "Verify the source tar.gz, then build with Docker and locked dependencies. Needs more RAM/time and build-network access; rebuilt image bytes differ from the accepted image.", "source"),
         ])
@@ -76,13 +79,13 @@ def source_selection(directory):
     return target
 
 
-def installation_options():
+def installation_options(default_root=None):
     mode = choose("How will you use KekBot?", "Choose deliberately: missing provider credentials never turn a live installation into a demo. You can leave optional integrations disabled after setup. A fixture installation is a separate simulated environment and cannot be converted into a live database.", [
         ("Live creator installation", "Always-on Linux host, real provider accounts you own and a publicly trusted HTTPS origin. Credentials are entered later in the browser, not this terminal.", "live"),
         ("Isolated fixture evaluation", "Loopback-only simulated chat/media and randomly generated demo login. No real provider mutations or YouTube playback.", "fixture"),
     ])
     explain("Storage and instance name", "Use a new dedicated directory on local disk. The wizard owns everything underneath it: protected environment, generated keys, data, backups, proxy and management tool. NFS/SMB and shared databases are unsupported. The directory must be outside this checkout and must not already exist. Root protects the directory; the app writes data as UID 1000. Keep an independent recovery-key copy elsewhere.")
-    root = validate_root(ask("Installation directory", "/srv/kekbot"), new=True)
+    root = validate_root(ask("Installation directory", default_root or "/srv/kekbot"), new=True)
     project = ask("Unique Compose project name", "kekbot")
     explain("Application port", "The direct port binds only to 127.0.0.1. Choose an unused port from 1024 to 65535. Bundled HTTPS stays on ports 80/443. A second installation needs a different application port and an existing shared reverse proxy; two bundled proxies cannot own the same public ports.")
     try:
@@ -107,7 +110,9 @@ def installation_options():
 
 def next_steps(root, state):
     mode = state["options"]["mode"]
-    command = shlex.join(["sudo", "python3", "-B", str(root / "tool" / "kekbot.py"), "--root", str(root)])
+    launcher = root / "tool" / "install.sh"
+    invocation = ["sudo", "bash", str(launcher)] if launcher.is_file() else ["sudo", "python3", "-B", str(root / "tool" / "kekbot.py")]
+    command = shlex.join([*invocation, "--root", str(root)])
     explain("KekBot is ready for browser setup", f"Open {state['options']['origin']}. Container readiness and local integrity passed; publicly trusted TLS and provider delivery must still be verified.\n\nRead privately: {root / state['data'] / mode / 'secrets' / ('fixture-account.json' if mode == 'fixture' else 'setup.token')}. No secret values are printed by this wizard. Live setup expires in one hour; the owner account is created in the browser.\n\nKeep an independent protected copy of the encryption.key file in that same directory. Database/asset backups exclude keys.\n\nManage this installation with: {command}\n\nNext: {REPOSITORY}/blob/main/docs/FIRST_SESSION.md")
     if mode == "live":
         explain("Connect your applications in the dashboard", "1. Claim this installation with the private setup token and choose your local owner login.\n\n2. In Connections, create/configure your owner-controlled Kick app, exact callback URLs and required scopes. Enter secrets only there, authorize the intended creator and reconcile subscriptions. Verify an actual chat reply.\n\n3. Discord and YouTube are optional. Follow the provider guide for application IDs, channel/guild permissions, HTTP interactions and metadata key restrictions.\n\n4. Configure commands, timers, OBS source tokens and media rules in the first-session guide. Every editable field is explained in CONFIGURATION_FIELDS.md. OAuth and provider-console consent remain deliberate owner/browser actions.")
@@ -119,10 +124,23 @@ def main():
     if sys.version_info < (3, 10):
         raise Problem("Use Python 3.10 or newer; no pip packages are required.")
     parser = argparse.ArgumentParser(description="Guided KekBot Linux installer/updater/uninstaller. Interactive review is always required before mutations.")
-    parser.add_argument("--root", help="Existing managed installation directory; otherwise ask")
+    parser.add_argument("--root", help="Managed directory, or suggested new-install directory; otherwise ask")
     parser.add_argument("--action", choices=["install", "update", "rollback", "start", "stop", "status", "uninstall"], help="Open this walkthrough directly")
     parser.add_argument("--diagnostics-dir", help="Opt-in protected directory outside source; bounded metadata only, no command output")
+    parser.add_argument("--source", choices=["stable", "release", "branch", "pr", "commit", "bundle"], help="Prefill the application source; trust/final review still required")
+    parser.add_argument("--ref", help="Release tag, branch, PR number, full commit or bundle directory for --source")
+    parser.add_argument("--format", choices=["image", "source"], help="Prefill a release/bundle format; source refs always build source")
     args = parser.parse_args()
+    if args.source:
+        if args.action and args.action not in ("install", "update"):
+            parser.error("--source applies only to install/update")
+        if args.source != "stable" and not args.ref or args.source == "stable" and args.ref:
+            parser.error("--source needs --ref except for stable")
+        if args.format == "image" and args.source not in ("stable", "release", "bundle"):
+            parser.error("branches/PRs/commits build from source")
+    elif args.ref is not None or args.format:
+        parser.error("--ref/--format need --source")
+    selection = dict(source=args.source, ref=args.ref, format=args.format)
     if not sys.stdin.isatty():
         parser.error("This wizard needs an interactive terminal. Read docs/INSTALLER.md; there is no unattended --yes mode.")
     explain("KekBot host management", "This terminal walkthrough installs, updates or removes one Linux x86-64 installation. It explains choices before changing anything. Python 3.10+, Git, local Docker Engine and Compose v2 must already work. Review this public script before sudo; Docker/root access grants host authority. Type q at any prompt to cancel that walkthrough and return to the menu. Ctrl+C cancels; interrupted updates retain a recovery checkpoint. No host firewall/SSH/DNS settings are changed.")
@@ -148,12 +166,14 @@ def main():
                 if action == "exit":
                     return
                 if action == "install":
-                    root, options = installation_options()
+                    root, options = installation_options(args.root)
                     with tempfile.TemporaryDirectory(prefix="kekbot-install-stage-") as temporary:
-                        target = source_selection(Path(temporary))
+                        target = source_selection(Path(temporary), selection)
                         confirm("Review installation", f"New directory: {root}\n\nProject: {options['project']}; mode: {options['mode']}; HTTPS: {options['proxy']}; origin: {options['origin']}; loopback port: {options['port']}; chat identity: {options['chatType']}.\n\nVersion: {target['version']}; commit: {target['sourceRef']}; format: {target['distribution']}.\n\nWill build/load the pinned app, optionally build Caddy, create private configuration/storage, initialize (seed only for fixtures), then start and check health. Existing installations are never adopted or overwritten. No provider credentials are requested. Builds may take several minutes and use network/disk/RAM.")
                         state = Installation(root).install(options, target)
                         next_steps(root, state)
+                    if args.action:
+                        return
                     continue
                 root = validate_root(args.root or ask("Managed installation directory", "/srv/kekbot"))
                 installation = Installation(root)
@@ -167,7 +187,7 @@ def main():
                         print(f"{row.get('Service')}: {row.get('State')} ({row.get('Health', 'no health check')})")
                 elif action == "update":
                     with tempfile.TemporaryDirectory(prefix="kekbot-update-stage-") as temporary:
-                        target = source_selection(Path(temporary))
+                        target = source_selection(Path(temporary), selection)
                         confirm("Review update", f"Update {root} to {target['version']} ({target['sourceRef']}) using {target['distribution']}.\n\nThe current image remains available. Prepare the new image before downtime; stop the app; wait for its lease; create a new database/asset snapshot; apply migrations; recreate; check readiness/integrity. Keys/config/proxy/origin/mode are preserved. Media requires deliberate moderator resume.\n\nOn failure, leave the app stopped and use Roll back. No downgrade is attempted against newer storage. Keep your independent encryption-key copy; backups do not contain it. Read the selected version's release notes and compatibility boundary before applying.")
                         installation.update(target)
                         print("Update complete. Verify provider connections, permissions, assets and queue before resuming your stream.")

@@ -18,6 +18,8 @@ The expected boundaries are one creator per installation, server-side role autho
 
 The [host wizard](docs/INSTALLER.md) runs with root/Docker authority, separately from dashboard roles. Only run reviewed tool/application commits; branch/PR builds can execute arbitrary code. Release checksums establish integrity, not a publisher signature. Managed files/checkpoints remain private outside Git; default uninstall retains them, while explicitly confirmed purge destroys the managed root and its certificate volumes. Report path/verification/authority bypasses privately. The tool never changes SSH/firewalls or asks for provider credentials.
 
+The [downloadable launcher](docs/LAUNCHER.md) requires review of the Bash entry and explicit trust before executing newly downloaded management tools. Management/application identities remain separate. Installed reuse checks protected ownership/paths; local-tool selection deliberately runs operator-supplied code after local trust. Optional Ubuntu setup separately confirms host packages and the official Docker apt repository; package state may persist after failure or app uninstall. Report bypasses of these consent, download, path or execution boundaries privately. No unattended installation, implicit manager replacement or package-removal fallback is supported.
+
 - Affected source commit/version and installation mode; avoid actual host addresses unless privately necessary.
 - Entry point and minimum required authority, such as a viewer message, Discord role, widget credential or local account.
 - Expected boundary, observed impact and a minimal synthetic/redacted reproduction.

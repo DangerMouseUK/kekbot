@@ -6,6 +6,8 @@ This guide is for people evaluating `v0.1.0-beta.2`, including operators who hav
 
 **Beta 2 includes the bundled HTTPS installer correction.** New installs use its matching tool and application from one tag. The [beta 1 workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) remains for the older immutable release.
 
+Prefer a no-clone start? The [downloadable launcher](LAUNCHER.md) is a development addition after beta 2, distributed from `main` after its PR merges. It can select the published beta application using independently reviewed current management tools. The pinned beta tool path below remains available; neither beta tag nor its audited assets are changed by the launcher.
+
 **On this page**
 
 - [What the beta means](#what-the-beta-means)

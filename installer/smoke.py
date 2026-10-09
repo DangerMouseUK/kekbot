@@ -9,10 +9,53 @@ import json
 import os
 from pathlib import Path
 import sqlite3
+import subprocess
+import time
 import tempfile
 from unittest.mock import patch
 
 from core import Installation, Problem, check_host, copy_proxy_files, prepare_target, proxy_directory, run, stage_proxy_context, validate_options
+
+
+def fixture_install_responses(project, target):
+    """Inputs for local-tool trust and fixture installation of an image bundle."""
+    answers = ["TRUST LOCAL", "2", "", project, "3317"]
+    if not target["accepted"]:
+        answers.append("TRUST " + target["sourceRef"][:12])
+    return "\n".join([*answers, "APPLY", ""])
+
+
+def terminal_command(arguments, responses="", environment=None, timeout=90):
+    """Real terminal semantics, bounded private output, no transcript publication."""
+    import pty
+    import select
+    master, slave = pty.openpty()
+    process = None
+    try:
+        process = subprocess.Popen(arguments, stdin=slave, stdout=slave, stderr=slave, env=environment)
+        os.close(slave)
+        slave = None
+        os.write(master, responses.encode())
+        deadline, size = time.monotonic() + timeout, 0
+        while process.poll() is None:
+            if time.monotonic() > deadline:
+                raise Problem("Launcher terminal rehearsal timed out; private output was withheld.")
+            if select.select([master], [], [], 0.1)[0]:
+                try:
+                    size += len(os.read(master, 8192))
+                except OSError:
+                    break
+                if size > 2 * 1024**2:
+                    raise Problem("Launcher output exceeded the private rehearsal bound.")
+        if process.wait(timeout=5) != 0:
+            raise Problem("Launcher terminal rehearsal failed; private output was withheld.")
+    finally:
+        if process and process.poll() is None:
+            process.kill()
+            process.wait()
+        os.close(master)
+        if slave is not None:
+            os.close(slave)
 
 
 def proxy_context_smoke():
@@ -50,7 +93,18 @@ def main(release=None):
         options = validate_options(project, "fixture", "local", "http://127.0.0.1:3317", 3317, "user")
         engine = Installation(root)
         try:
-            initial = engine.install(options, target)
+            launcher = Path(__file__).resolve().parent.parent / "install.sh"
+            # Exercise the public launcher, actual wizard and actual image together.
+            # Pinned local tool + audited bundle; all inputs are synthetic and private.
+            terminal_command(["bash", str(launcher), "install", "--local-tools", str(launcher.parent),
+                              "--root", str(root), "--bundle", str(stage / "bundle") if release else str(bundles[0].resolve()), "--format", "image"],
+                             fixture_install_responses(project, target), timeout=180)
+            initial = engine.load()
+            retained_launcher = root / "tool/install.sh"
+            if retained_launcher.read_bytes() != launcher.read_bytes():
+                raise Problem("Managed installation did not retain its reviewed launcher.")
+            for action in ("status", "stop", "start"):
+                terminal_command(["bash", str(retained_launcher), action, "--root", str(root)], "" if action == "status" else "APPLY\n")
             database = root / "data/fixture/kekbot.sqlite"
             with sqlite3.connect(database) as db:
                 accounts = db.execute("SELECT count(*) FROM accounts").fetchone()[0]

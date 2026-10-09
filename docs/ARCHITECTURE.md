@@ -1,6 +1,6 @@
 # KekBot architecture decisions
 
-Updated: 2026-10-08. Status: foundation live gate passed historically; product build and automated candidate campaign complete; live acceptance/release pending.
+Updated: 2026-10-09. Status: foundation live gate passed historically; evaluation beta published; full-product live/stable acceptance pending. Host-launcher development is separate from immutable beta artifacts.
 
 This is the design reference for contributors. Use [installation](INSTALLATION.md) for deployment, [configuration](CONFIGURATION.md) for runtime inputs, and [contributing](../CONTRIBUTING.md) for the source map/workflow. Return to the [documentation index](README.md).
 
@@ -102,6 +102,8 @@ Analytics count only observed events, distinguish viewer samples from totals and
 Current module/service interfaces and operator workflows are documented in [API.md](API.md) and [OPERATIONS.md](OPERATIONS.md). [TESTING.md](TESTING.md) covers failure/concurrency/browser/container campaigns; [LIVE_ACCEPTANCE.md](LIVE_ACCEPTANCE.md) covers real-provider and operational evidence. [MILESTONES.md](MILESTONES.md) separates implementation, automated, live and release gates.
 
 ## Host lifecycle boundary
+
+The [Bash launcher](LAUNCHER.md) is a host entry, separate from the application image. It checks prerequisites, offers explicitly confirmed Ubuntu package assistance and stages only allowlisted regular Git blobs from one resolved management-tool commit. No downloaded management code executes before exact-source trust; local code needs explicit local trust and ordinary installed management verifies protected root ownership/paths. It then delegates to the existing Python wizard. Tool and application identities are independent. Branch/PR/source/image choices share the same domain-free lifecycle engine; no unattended upgrades or implicit manager replacement are introduced. New installations retain the launcher with copied tools; application updates preserve the existing manager.
 
 The [guided host tool](INSTALLER.md) is dependency-free Python 3.10+ outside the Next.js runtime. Its numbered UI owns explanations/cancellation/typed review; its engine resolves source once, verifies bundles and immutable image metadata, and generates private Compose/environment/record files in an exclusively managed root. Host/root authority is separate from application roles. The tool does not automate provider consent or accept credentials through terminal arguments.
 

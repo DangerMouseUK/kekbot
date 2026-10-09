@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add a downloadable `install.sh` entry without cloning the repository, with explained install/manage menus, offline host checks, optional confirmed Ubuntu 24.04 prerequisites, pinned branch/tag/PR/commit management downloads, prepare-for-review mode and explicit local/installed tool selection.
+- Integrate update/rollback/status/start/stop/uninstall through the same guarded lifecycle engine. Add application release/branch/PR/commit/bundle shortcuts while preserving exact source trust, final review, stopped-host backup and retained-data removal defaults. Retain the reviewed launcher on new installations; successful one-action installation exits after next steps.
+- Add launcher argument/transport/trust/terminal tests and real-image Linux installation through the public entry. Update public setup, maintenance, contributor and evidence guides. No new dependency, app feature, schema/format change or release publication; original beta 2 assets and all pending live/stable acceptance remain unchanged.
+- Fix the fixture rehearsal's confirmation sequence for acceptance-verified bundles: send application source trust only when the wizard requests it, then retain final `APPLY`. Add a regression through the real wizard for accepted and candidate metadata; synthetic accepted metadata does not establish a stable release.
+
 ## 0.1.0-beta.2 — 2026-10-09
 
 - Fix bundled domain/IP HTTPS installation by staging the locked Caddy Go sources at the Dockerfile's required paths and retaining them with the copied management tool. Add portable regressions for both modes, retained resources and missing inputs before root creation; Linux CI now builds from that staged context and adapts both configurations without requesting certificates.

@@ -6,6 +6,7 @@ KekBot is a development candidate, not an accepted stable release. This guide co
 **On this page**
 
 - [Safety and isolation](#safety-and-isolation)
+- [Downloadable host launcher](#downloadable-host-launcher)
 - [Run the campaign](#run-the-campaign)
 - [GitHub Actions](#github-actions)
 - [Coverage and limits](#coverage-and-limits)
@@ -16,9 +17,21 @@ KekBot is a development candidate, not an accepted stable release. This guide co
 
 ## Safety and isolation
 
+Launcher/host setup is separate from application fixtures. Never run the optional Ubuntu package installer in ordinary tests or against a creator host. Its command/consent policy is tested with mocks; a fresh-host package trial requires explicit operator evidence. Downloaded/local manager execution requires separate trust, and application source trust/final review remain intact.
+
 All automated tests use synthetic accounts, generated RSA/Ed25519 signing keys, private temporary directories and real SQLite. Fixture mode refuses live integration configuration and provider mutations. The fixture player does not contact YouTube. Never supply Kick, Discord or YouTube credentials to CI. Builds disable background jobs and framework telemetry; runtime tests enable jobs explicitly.
 
 Screenshots, traces, databases, backups, workload reports and generated credentials are private debugging material. They stay in ignored output or temporary storage. CI does not upload these as public artifacts. Publish only reviewed, redacted outcomes with source identity. Do not paste raw logs or a source URL containing a token into issues.
+
+## Downloadable host launcher
+
+From the repository root, run `bash -n install.sh` and `pnpm test:installer` (also included in `pnpm check`). Python 3.10+ and Bash are required; Windows uses Git for Windows Bash. Missing Bash and POSIX terminals are reported as explicit local skips; Linux CI supplies them.
+
+Offline launcher contracts cover argument conflicts/quoting, branch/tag/PR/commit resolution, bounded regular-file staging, failed transport, mismatched commits, missing/link/submodule inputs, prerequisite guards, and source-prefill confirmation. Linux real-terminal tests exercise exact source trust, cancellation, offline installed-tool dispatch and writable/link rejection. Transport/package commands are replaced with synthetic fixtures; no GitHub/provider mutation, host package install or live grant is needed.
+
+The ordinary Linux container campaign now installs its audited application bundle through the actual root launcher and Python wizard, verifies the launcher is retained, then uses that retained file for status/stop/start. Existing failed-update/separate-root-rollback/source-build/retained-removal/purge checks continue through the shared engine. PTY output is bounded and discarded; no transcript or generated credential is uploaded. Actual public download after merge, optional package installation on a new Ubuntu host and independent operators remain separate evidence; the historical beta 2 image result is not transferred to new tools or images.
+
+The installation response sequence includes application `TRUST <SHA>` only for unaccepted bundles; final `APPLY` remains required for both. A portable regression runs both candidate and synthetic acceptance-verified metadata through the real Python prompts with host effects isolated, checking installation is reached and no response is left over. This covers future accepted-release rehearsal compatibility without claiming that an accepted stable release exists.
 
 ## Run the campaign
 
@@ -26,7 +39,7 @@ Screenshots, traces, databases, backups, workload reports and generated credenti
 
 Portable recovery regressions also exercise proxy build/inspection failure before root creation and successful retry, failed final/failure record writes with shutdown during install/update/rollback, and retained removal preserving recovery guards/checkpoints. These tests use real private record files and simulated Docker; Linux retains real management locks. Explicit fixture purge remains possible after an incomplete operation.
 
-Domain/IP proxy regressions inspect the actual installer Docker build context against the Dockerfile's `COPY` inputs, verify all resources in the retained tool, and reject missing inputs before creating installation state. There are now 37 installer contracts: 30 portable and seven Linux-only. The reserved example IP is classified as public only inside the isolated IP test; production address validation remains unchanged.
+Domain/IP proxy regressions inspect the actual installer Docker build context against the Dockerfile's `COPY` inputs, verify all resources in the retained tool, and reject missing inputs before creating installation state. Launcher contracts additionally cover the downloadable entry point and terminal trust boundaries. The reserved example IP is classified as public only inside the isolated IP test; production address validation remains unchanged.
 
 Use the pinned Node/pnpm versions from the root README. An agent or CI can run these commands; operators do not need to execute them on a production installation.
 

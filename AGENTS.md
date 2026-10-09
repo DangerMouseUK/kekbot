@@ -16,7 +16,7 @@ Use these task-specific starting points:
 - Local setup: [quickstart](docs/QUICKSTART.md), [contributing](CONTRIBUTING.md).
 - Initial configuration/delegation: [first session](docs/FIRST_SESSION.md), [accounts](docs/ACCOUNTS.md); Windows/macOS containers: [Docker Desktop](docs/DOCKER_DESKTOP.md).
 - Hosting/configuration: [installation](docs/INSTALLATION.md), [configuration](docs/CONFIGURATION.md).
-- Guided host lifecycle: [installer](docs/INSTALLER.md), [updates](docs/UPDATING.md), [uninstall](docs/UNINSTALLING.md), [implementation](installer/README.md).
+- Guided host lifecycle: [downloadable launcher](docs/LAUNCHER.md), [installer](docs/INSTALLER.md), [updates](docs/UPDATING.md), [uninstall](docs/UNINSTALLING.md), [implementation](installer/README.md).
 - Provider/presentation behavior: [providers](docs/PROVIDERS.md), [user guide](docs/USER_GUIDE.md), [OBS](docs/OBS.md).
 - Host/privacy/recovery: [operations](docs/OPERATIONS.md), [backup/recovery](docs/BACKUP_RECOVERY.md).
 - Runtime/contracts: [architecture](docs/ARCHITECTURE.md), [API](docs/API.md).
@@ -54,7 +54,7 @@ Follow [documentation maintenance](docs/DOCUMENTATION.md) for repository-wide gu
 
 ## Verification
 
-Host lifecycle code uses Python 3.10+ standard library, separate from the TypeScript app. `pnpm check` includes offline installer contracts; Linux CI additionally tests locks/transactions and the audited-bundle install/update-failure/rollback/uninstall rehearsal. Proxy changes must pass the retained/staged context build and domain/IP adaptation (`installer/smoke.py --proxy-context`); a whole-checkout build or local-proxy fixture alone cannot prove bundled HTTPS staging. Keep final typed review, latest-stable fail-closed behavior, immutable source/image selection, private state and retained-data defaults. Do not adopt arbitrary manual deployments, execute downloaded management code, prune global Docker resources or claim fixture coverage as an independent installer trial.
+Host lifecycle code uses Bash and Python 3.10+ standard library, separate from the TypeScript app. `pnpm check` includes offline installer/launcher contracts; Linux CI additionally tests terminal trust/dispatch, locks/transactions and the audited-bundle install/update-failure/rollback/uninstall rehearsal. Proxy changes must pass the retained/staged context build and domain/IP adaptation (`installer/smoke.py --proxy-context`); a whole-checkout build or local-proxy fixture alone cannot prove bundled HTTPS staging. Keep final typed review, latest-stable fail-closed behavior, immutable source/image selection, private state and retained-data defaults. Downloaded management code requires explicit trust of its resolved SHA before execution; installed tools require protected ownership/paths. Optional Ubuntu package setup needs its separate explained confirmation. Do not adopt arbitrary manual deployments, implicitly replace management code, prune global Docker resources or claim fixture coverage as an independent installer trial.
 
 Run `pnpm check` and targeted checks appropriate to the change. Documentation-only work requires link/publication checks and validation of changed procedures; avoid unnecessary application rewrites or repeated performance tests.
 

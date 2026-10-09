@@ -2,6 +2,8 @@
 
 Use this guide for installations created by the [terminal wizard](INSTALLER.md). Manual deployments follow [manual upgrade/rollback](BACKUP_RECOVERY.md#upgrade-and-rollback). Updates are explicit; there is no scheduled upgrade, mutable `latest` image, or automatic branch pull.
 
+The [downloadable launcher](LAUNCHER.md#updates-recovery-and-removal) also opens updates: run `sudo bash install.sh update --root /srv/kekbot` from its reviewed download directory. It reuses the protected installed manager without new tool downloads. Current managers also support `--branch`, `--release`, `--pr`, `--commit` and `--bundle` shortcuts; older managers keep interactive source selection. Explicit `--tool-commit`/`--tool-branch` selection reviews new management code separately and does not overwrite the copied manager. Never update tools implicitly as part of an application change.
+
 For `0.1.0-beta.2`, follow the [beta selection and compatibility guidance](BETA.md#update-recover-or-remove). Choose the exact published beta, reviewed commit or audited bundle explicitly. The default latest-stable choice does not install a beta; publication and current limitations are recorded in the [beta notes](releases/v0.1.0-beta.2.md).
 
 [Documentation index](README.md) · [Installer options/formats](INSTALLER.md#sources-and-distribution-formats) · [Uninstall](UNINSTALLING.md)

@@ -63,6 +63,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
+      - name: Validate downloadable Bash launcher syntax
+        run: bash -n install.sh
       - run: pnpm exec drizzle-kit check
       - run: pnpm dependencies:audit
       - run: pnpm build

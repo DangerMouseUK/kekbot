@@ -4,6 +4,8 @@ Use this reference alongside [installation](INSTALLATION.md), [provider setup](P
 
 The [wizard](INSTALLER.md) generates protected `runtime.env` and `compose.json` outside source, uses immutable image IDs and fixes mode/project/data/proxy recovery assumptions in `installation.json`. It does not use the manual Compose interpolation exports below. Do not hand-edit its generated record/Compose or add custom mounts beneath it; custom topologies use manual deployment. Application settings remain the same dashboard/API contracts on both paths.
 
+The [downloadable launcher](LAUNCHER.md) opens that same wizard. Its action/source/tool flags configure host execution, not application environment variables or dashboard settings. Optional Ubuntu setup is separately confirmed; provider credentials remain in the owner dashboard/private runtime. Application updates never silently replace launcher/management code.
+
 <!-- contents:start -->
 **On this page**
 

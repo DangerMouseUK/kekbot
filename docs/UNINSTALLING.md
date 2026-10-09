@@ -2,6 +2,8 @@
 
 This guide covers a [managed installation](INSTALLER.md). It requires trusted Linux host access and the copied management tool. Manual installations use their original Compose project/files; do not point this tool at an unrecorded directory.
 
+With a reviewed downloaded launcher, `sudo bash install.sh uninstall --root /srv/kekbot` opens the same removal review using protected installed tools without a network tool download. Newly created installations retain their launcher at `<root>/tool/install.sh`. It adds no unattended purge or package-removal behavior. See [launcher lifecycle commands](LAUNCHER.md#updates-recovery-and-removal).
+
 [Documentation index](README.md) · [Update/rollback](UPDATING.md) · [Backup/recovery](BACKUP_RECOVERY.md)
 
 ## Choose the smallest action you need

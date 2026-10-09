@@ -333,6 +333,7 @@ class RecoveryFailures(unittest.TestCase):
             installed = self.engine.install(options, target())
         self.assertEqual(installed["status"], "ready")
         self.assertEqual(len(builds), 1)
+        self.assertEqual((self.root / "tool/install.sh").read_bytes(), (Path(__file__).resolve().parent.parent / "install.sh").read_bytes())
         for name in expected:
             self.assertEqual((self.root / "proxy" / name).read_bytes(), (deploy / name).read_bytes())
             self.assertEqual((self.root / "tool/deploy" / name).read_bytes(), (deploy / name).read_bytes())
