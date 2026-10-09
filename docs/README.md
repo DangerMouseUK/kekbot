@@ -1,12 +1,13 @@
 # KekBot documentation
 
-These guides describe the unreleased `0.1.0-dev.0` candidate, SQLite schema 3, backup format 1 and configuration format 1. Full-product live acceptance remains pending. Commands and screen labels follow the current implementation; provider portals can change.
+These guides describe the `0.1.0-beta.1` preparation candidate, SQLite schema 3, backup format 1 and configuration format 1. The beta is not published yet; [image review](RELEASE_READINESS.md#beta-dependency-review) is blocked, final binary license review and full-product live acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
 
 ## Start here
 
 | Your goal | Read in this order |
 | --- | --- |
 | Explore without provider accounts | [Quickstart](QUICKSTART.md) → [first session](FIRST_SESSION.md) → [user guide](USER_GUIDE.md) |
+| Evaluate or report a beta problem | [Beta guide](BETA.md) → [beta release notes](releases/v0.1.0-beta.1.md) |
 | Host a live installation | [Guided installer](INSTALLER.md) (or [manual installation](INSTALLATION.md)) → [provider setup](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [OBS](OBS.md) → [operations](OPERATIONS.md) |
 | Update, roll back or remove | [Updating](UPDATING.md) → [uninstalling](UNINSTALLING.md); manual deployments use [recovery](BACKUP_RECOVERY.md) |
 | Join a moderator team | [Accounts and permissions](ACCOUNTS.md) → the relevant [daily workflow](USER_GUIDE.md) |
@@ -15,6 +16,7 @@ These guides describe the unreleased `0.1.0-dev.0` candidate, SQLite schema 3, b
 
 ## Operator and user guides
 
+- [Beta guide](BETA.md): publication status, source/bundle choices, supported evaluation platforms, testing, updates and safe feedback.
 - [Quickstart](QUICKSTART.md): pinned tools, isolated fixtures, generated login, first command and shutdown.
 - [Docker Desktop evaluation](DOCKER_DESKTOP.md): Windows/macOS Linux containers, private runtime files, named-volume fixtures and stop/resume.
 - [Installation](INSTALLATION.md): source-built Linux container, external runtime files, domain/IP HTTPS and owner claim.
@@ -41,6 +43,7 @@ These guides describe the unreleased `0.1.0-dev.0` candidate, SQLite schema 3, b
 - [Documentation maintenance](DOCUMENTATION.md): editorial rules, coverage and verification procedure.
 - [Automated testing](TESTING.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md).
 - [Release readiness crosswalk](RELEASE_READINESS.md), [release evidence index](release-evidence.json) and [release procedure](RELEASING.md).
+- [First beta release notes](releases/v0.1.0-beta.1.md): scope, compatibility, limitations and the frozen candidate verification record.
 - [Dependency maintenance](DEPENDENCY_MAINTENANCE.md): exact pins, candidate audits, security patches and release sign-off.
 - [Quality follow-up](QUALITY_HARDENING.md): the eight repository improvements and verification record.
 - [Dependency inventory](DEPENDENCIES.md), [supplemental licenses](../licenses/README.md) and [MIT license](../LICENSE).

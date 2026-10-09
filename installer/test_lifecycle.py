@@ -30,9 +30,9 @@ def state(**overrides):
                      target={key: target()[key] for key in ("kind", "value", "distribution", "sourceRef", "version", "accepted")}, previous=None), **overrides)
 
 
-def archive(path, members=None):
+def archive(path, members=None, version="0.1.0-dev.0"):
     with tarfile.open(path, "w:gz") as output:
-        for name, contents, kind in members or [("kekbot/Dockerfile", b"FROM scratch", tarfile.REGTYPE), ("kekbot/package.json", b'{"version":"0.1.0-dev.0"}', tarfile.REGTYPE)]:
+        for name, contents, kind in members or [("kekbot/Dockerfile", b"FROM scratch", tarfile.REGTYPE), ("kekbot/package.json", json.dumps({"version": version}).encode(), tarfile.REGTYPE)]:
             entry = tarfile.TarInfo(name)
             entry.type, entry.size = kind, len(contents)
             if kind == tarfile.SYMTYPE:
@@ -92,11 +92,11 @@ class Contracts(unittest.TestCase):
         core.extract_source(self.root / "good.tar.gz", self.root / "good")
         self.assertTrue((self.root / "good/Dockerfile").is_file())
 
-    def bundle(self, image=False):
+    def bundle(self, image=False, version="0.1.0-dev.0"):
         bundle = self.root / "bundle"
         bundle.mkdir()
-        archive(bundle / "kekbot-source.tar.gz")
-        metadata = dict(format="kekbot-release", version=1, applicationVersion="0.1.0-dev.0", sourceRef=SHA, sourceArchive="kekbot-source.tar.gz", image=None, status="candidate-unaccepted", schemaVersion=3, backupFormat=1)
+        archive(bundle / "kekbot-source.tar.gz", version=version)
+        metadata = dict(format="kekbot-release", version=1, applicationVersion=version, sourceRef=SHA, sourceArchive="kekbot-source.tar.gz", image=None, status="candidate-unaccepted", schemaVersion=3, backupFormat=1)
         if image:
             metadata["image"] = dict(imageId=IMAGE, platform="linux/amd64")
             (bundle / "kekbot-linux-amd64-image.tar.gz").write_bytes(b"synthetic image, never loaded")
@@ -188,6 +188,30 @@ class Contracts(unittest.TestCase):
         assets[0]["browser_download_url"] = "https://untrusted.example/asset"
         with patch.object(core, "api_json", return_value=dict(tag_name="v0.1.0-dev.0", draft=False, assets=assets)), patch.object(core, "download", side_effect=fetch), self.assertRaises(core.Problem):
             core.prepare_target("release", "v0.1.0-dev.0", "image", stage)
+
+    def test_explicit_beta_release_supports_both_formats_without_stable_promotion(self):
+        version, tag = "0.1.0-beta.1", "v0.1.0-beta.1"
+        bundle = self.bundle(image=True, version=version)
+        assets = [{"name": item.name, "browser_download_url": core.REPOSITORY + "/releases/download/" + tag + "/" + item.name} for item in bundle.iterdir()]
+        release = dict(tag_name=tag, draft=False, prerelease=True, assets=assets)
+
+        def fetch(url, destination, **_kwargs):
+            Path(destination).write_bytes((bundle / url.rsplit("/", 1)[-1]).read_bytes())
+
+        for distribution in ("source", "image"):
+            stage = self.root / distribution
+            stage.mkdir()
+            with self.subTest(distribution=distribution), patch.object(core, "api_json", return_value=release), patch.object(core, "download", side_effect=fetch):
+                selected = core.prepare_target("release", tag, distribution, stage)
+            self.assertEqual(selected["version"], version)
+            self.assertEqual(selected["sourceRef"], SHA)
+            self.assertEqual(selected["distribution"], distribution)
+            self.assertFalse(selected["accepted"])
+            if distribution == "image":
+                self.assertEqual(selected["image"]["imageId"], IMAGE)
+        with patch.object(core, "api_json", return_value=release), patch.object(core, "download") as download, self.assertRaises(core.Problem):
+            core.prepare_target("stable", "", "image", self.root)
+        download.assert_not_called()
 
     def test_image_identity_is_exact_and_nonroot(self):
         inspection = dict(Id=IMAGE, Os="linux", Architecture="amd64", Config=dict(User="node", Labels={"org.opencontainers.image.revision": SHA, "org.opencontainers.image.version": "0.1.0-dev.0", "org.opencontainers.image.source": core.REPOSITORY, "org.opencontainers.image.licenses": "MIT"}))

@@ -1,6 +1,6 @@
 # Preparing and releasing KekBot
 
-The current `0.1.0-dev.0` build is an unreleased candidate. The [requirements audit](RELEASE_READINESS.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md) define the remaining work. Preparation can run without provider accounts or a local Docker installation. Stable sign-off requires the live results; publication requires the repository owner's explicit authorization.
+The current `0.1.0-beta.1` build is being prepared as the first beta; it is not published. The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.1.md) describe evaluation. The [requirements audit](RELEASE_READINESS.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md) define stable acceptance. Preparation can run without provider accounts or a local Docker installation. Stable sign-off requires the live results; any publication requires the repository owner's explicit authorization.
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
 
@@ -10,6 +10,7 @@ Review fixes change the candidate source even when versions/formats stay the sam
 **On this page**
 
 - [Release sequence](#release-sequence)
+- [Beta prerelease preparation and publication](#beta-prerelease-preparation-and-publication)
 - [Supported candidate versions](#supported-candidate-versions)
 - [Autonomous candidate preparation](#autonomous-candidate-preparation)
 - [Freeze and acceptance evidence](#freeze-and-acceptance-evidence)
@@ -28,6 +29,33 @@ Review fixes change the candidate source even when versions/formats stay the sam
 
 Before an independent installer trial, hand the operator the root README and [installation](INSTALLATION.md), not private maintainer commands. Use [first session](FIRST_SESSION.md), [provider setup](PROVIDERS.md), [OBS](OBS.md) and [recovery](BACKUP_RECOVERY.md) as the public path. Record where help was required and retest changed instructions. Editorial completeness does not itself pass O02.
 
+## Beta prerelease preparation and publication
+
+`v0.1.0-beta.1` uses the existing **unaccepted candidate** packaging contract. It must not use `--stable`, change the stable policy, mark fixture runs as live passes, or populate live evidence with inferred results. Its `release.json` retains `candidate-unaccepted`. Explicit installer **Specific release** selection supports prereleases; **Latest stable** never selects this beta.
+
+Preparation checklist:
+
+1. Align `package.json`, Docker's default version and Compose image name; preserve dependency pins and formats. Write tester-facing scope, compatibility, limitations, install/update and feedback guidance.
+2. Commit/freeze the candidate. Run ordinary PR checks and the full optional campaign below on that exact SHA, including source/history/image audits, source/image installer rehearsals and application/tooling/app-image/proxy-image vulnerability reviews.
+3. Inspect the actual target-platform dependency inventory/notices and obligations. Record dated reviews bound to the source/image; do not hide the raw locally patched tooling advisory. Investigate any new finding before recommending publication.
+4. Download only the audited candidate artifact, verify all checksums, and retain the exact source/image/notices/metadata bundle in protected release storage beyond CI's 14-day retention. Record its source, image ID and checksums. Do not rebuild it for publication.
+5. Add the exact CI/source/image outcomes to the [beta verification record](releases/v0.1.0-beta.1.md#verification-record). Keep unrun live/reference/operator checks explicit. An evidence-only follow-up commit does not change the frozen source recorded inside the bundle.
+
+Run from the reviewed checkout with GitHub CLI:
+
+```sh
+gh workflow run ci.yml --ref <BETA_REVIEW_BRANCH> --field soak=true --field package=true --field dependencies=true
+gh run view <RUN_ID> --json headSha,status,conclusion
+```
+
+Compare `headSha` with the frozen candidate. A passing dependency scan alone is not a license review or live acceptance. If a source fix is required, freeze a new commit, rebuild/retest affected checks and retain that new exact image. Never silently substitute an earlier artifact.
+
+**Publication is a separate owner decision.** Before recommending a wider beta, complete a fresh real-provider/OBS session with restart and backup/restore, or state clearly that the beta is limited to evaluation without that evidence. The destroyed test host is not available; preparation does not provision infrastructure. No live gate is waived by using a prerelease label.
+
+Once the owner explicitly authorizes beta publication, verify the candidate/evidence identities and assets again, create an immutable `v0.1.0-beta.1` tag at the **frozen candidate source**, and publish a GitHub **prerelease**, with latest-release promotion disabled. Attach only the retained audited assets and the final release notes. Keep the pending live limits visible. Do not publish a mutable `latest` registry tag or mark stable metadata accepted. This repository has no automatic release-publishing workflow; CI remains read-only.
+
+After publication, update the README/index/beta guide/notes publication status together and rehearse **Specific release** installation from the actual published assets. That final download/discovery path cannot be tested against a nonexistent release. Record it separately; automated bundle fixtures do not establish an unaided installer trial. Any registry publication or additional format requires its own authorized, verified distribution work.
+
 ## Supported candidate versions
 
 The [interactive installer](INSTALLER.md) supports repository branches, PR heads and exact commits through source builds, plus published/local audited source and Linux amd64 image bundles. Its default discovery uses GitHub's latest stable release and fails closed until stable metadata/assets exist. Host updates/removal follow [updating](UPDATING.md) and [uninstalling](UNINSTALLING.md); no releases are published by the installer.
@@ -38,7 +66,7 @@ The [interactive installer](INSTALLER.md) supports repository branches, PR heads
 | Next.js / React | 16.3.8 / 19.3.0 |
 | Production host | Linux x86-64, local persistent disk, one app replica; 2 vCPU / 2 GiB reference runtime target still unmeasured |
 | Windows/macOS | Documented Docker Desktop container path; native distribution not supported |
-| Application / database / backup / native config | `0.1.0-dev.0` / schema 3 / format 1 / format 1 |
+| Application / database / backup / native config | `0.1.0-beta.1` / schema 3 / format 1 / format 1 |
 | Proxy example | Caddy 2.11.6; domain or supported public-IP HTTPS; operator owns public reachability |
 | Upgrade | Schemas 1 and 2 → 3 supported; future schemas rejected; unsupported downgrade prohibited |
 

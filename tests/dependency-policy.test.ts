@@ -31,6 +31,24 @@ it("reports advisory counts only and does not turn scanner/network errors into p
   const report = reviewDependencies({ scanner: "fixture-scanner", "image-archive": "fixture.tar" }, (_binary, args) => { commands.push(args); return { status: 1, stdout: "" }; });
   expect(report.image.passed).toBe(false); expect(commands.every(args => !args.includes("update") && !args.includes("install"))).toBe(true);
 });
+it("opt-in image findings omit raw scanner fields, bound output and retain every severity count", () => {
+  const vulnerability = { VulnerabilityID: "CVE-2026-12345", PkgName: "libc6", InstalledVersion: "2.36-9+deb12u1", FixedVersion: "2.36-9+deb12u2", Severity: "HIGH", Status: "fixed", Title: "private scanner text", PkgPath: "/private/runtime", PrimaryURL: "https://private.example/token" };
+  const stdout = JSON.stringify({ Metadata: { ImageID: imageDigest }, Results: [{ Target: "/private/archive", Vulnerabilities: [...Array.from({ length: 201 }, () => vulnerability), { ...vulnerability, VulnerabilityID: "private scanner text", PkgName: "/private/runtime", InstalledVersion: "https://private.example", FixedVersion: "private scanner text", Severity: "CRITICAL", Status: "private scanner text" }] }] });
+  const ordinary = imageSummary({ status: 0, stdout });
+  expect(ordinary).not.toHaveProperty("findings");
+  const report = imageSummary({ status: 0, stdout }, true);
+  expect(report).toMatchObject({ passed: false, counts: { HIGH: 201, CRITICAL: 1 }, omittedFindings: 2 });
+  if (!("findings" in report) || !report.findings) throw new Error("missing_opt_in_findings");
+  expect(report.findings).toHaveLength(200);
+  expect(report.findings[0]).toEqual({ id: "unavailable", package: "unavailable", installed: "unavailable", fixed: "unavailable", severity: "CRITICAL", status: "unknown" });
+  expect(report.findings[1]).toEqual({ id: vulnerability.VulnerabilityID, package: vulnerability.PkgName, installed: vulnerability.InstalledVersion, fixed: vulnerability.FixedVersion, severity: "HIGH", status: "fixed" });
+  expect(JSON.stringify(report)).not.toMatch(/private|PrimaryURL|PkgPath|Title|Target/);
+  const oversized = imageSummary({ status: 0, stdout: JSON.stringify({ Metadata: { ImageID: imageDigest }, Results: [{ Vulnerabilities: [{ ...vulnerability, VulnerabilityID: "CVE-2026-" + "9".repeat(4096), PkgName: "@" + "a".repeat(4096) + "/name" }] }] }) }, true);
+  expect(oversized).toMatchObject({ findings: [{ id: "unavailable", package: "unavailable" }] });
+  const go = imageSummary({ status: 0, stdout: JSON.stringify({ Metadata: { ImageID: imageDigest }, Results: [{ Vulnerabilities: [{ ...vulnerability, VulnerabilityID: "GO-2026-12345", PkgName: "golang.org/x/net", InstalledVersion: "v0.57.0" }] }] }) }, true);
+  expect(go).toMatchObject({ findings: [{ id: "GO-2026-12345", package: "golang.org/x/net", installed: "v0.57.0" }] });
+});
+
 it("accepts only the exact advisory path with verified local remediation while preserving raw counts", () => {
   const advisory = { github_advisory_id: bracesRemediation.advisory, module_name: "braces", severity: "high", findings: [{ version: "3.0.3", paths: [bracesRemediation.path] }] };
   const report = (entry = advisory, high = 1) => ({ status: 1, stdout: JSON.stringify({ metadata: { vulnerabilities: { info: 0, low: 0, moderate: 0, high, critical: 0 } }, advisories: { fixture: entry } }) });

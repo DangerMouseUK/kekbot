@@ -2,6 +2,8 @@
 
 This repository is pre-release and has no supported stable version yet.
 
+The first beta is in preparation, not published. See the [beta guide](docs/BETA.md) for safe evaluation/reporting and the [candidate review](docs/RELEASE_READINESS.md#beta-dependency-review) for current package/image outcomes. A beta label does not waive security, license or live-acceptance checks; unresolved image findings still block publication.
+
 Maintainers review dependencies through [release-controlled maintenance](docs/DEPENDENCY_MAINTENANCE.md), including development/build tooling and the final image. A clean production-only npm audit is insufficient for stable sign-off. Advisory details and raw runtime diagnostics stay private until reviewed for disclosure. Optional installer diagnostics contain bounded lifecycle metadata only; inspect even those before sharing. No automated upgrade or deployment is implied by a security report.
 
 For ordinary setup/use problems, start with [troubleshooting](docs/TROUBLESHOOTING.md). The [documentation index](docs/README.md) links installation, provider and recovery procedures.

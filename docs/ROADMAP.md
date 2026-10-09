@@ -1,5 +1,7 @@
 # KekBot build roadmap
 
+The first beta, `v0.1.0-beta.1`, is in [preparation](BETA.md). It packages the implemented feature build for explicit evaluation and does not change the release capability boundaries or pass stable acceptance. See its [verification record](releases/v0.1.0-beta.1.md#verification-record) for exact candidate evidence.
+
 This is a release-scope/dependency reference, not an installation guide. Use [milestones](MILESTONES.md) for the current sequence and dated results, [release readiness](RELEASE_READINESS.md) for unresolved gates, and [the handbook](README.md) to install/use the current candidate. Requirements remain in the two identical PRDs; documentation changes do not retroactively accept planned scenarios.
 
 Updated: 2026-10-08. MIT, Next.js, one self-hosted installation per creator.

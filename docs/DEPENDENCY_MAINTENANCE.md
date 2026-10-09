@@ -8,6 +8,8 @@ Dependency changes belong in deliberate, reviewed maintenance PRs before a candi
 
 Direct application and development dependencies use exact versions, pnpm uses a frozen lockfile, and workflow actions use full commit SHAs. Node and pnpm versions must agree across the manifest, version file and Dockerfile. Node image version tags can be rebuilt upstream: acceptance therefore binds to the actual retained image ID, rather than assuming that rebuilding a tag produces identical bytes. Caddy's separate build also pins its base digest and downloaded binary checksum.
 
+Both application stages use Node `24.21.0-trixie-slim` (Debian 13). The runtime image applies available signed Debian package updates at build time and omits unused npm/Corepack/Yarn tools; the build-stage toolchain remains available. The Caddy build updates its reviewed zlib package to `1.3.2-r1` from the configured signed Alpine repository. OS repository contents can change, so retain and scan the exact resulting images. These measures do not waive unfixed findings or prove a zero-finding image. Container CI checks the removed runtime tools and all maintenance paths.
+
 From the checkout root, with the pinned Node/pnpm toolchain:
 
 ```sh
@@ -28,7 +30,7 @@ Normal maintenance targets main. An urgent security patch may target an affected
 
 ## Review a candidate
 
-From the candidate checkout, `pnpm dependencies:audit` audits production dependencies and the full development/tooling tree. `pnpm dependencies:review` adds the image check. Both print aggregate counts and identifiers of verified local remediations, without raw provider responses or paths. Unresolved findings and unavailable/malformed responses return nonzero; the complete review also fails on a missing image scan. Neither command installs updates or changes evidence records.
+From the candidate checkout, `pnpm dependencies:audit` audits production dependencies and the full development/tooling tree. `pnpm dependencies:review` adds the image check. Both print aggregate counts and identifiers of verified local remediations, without raw provider responses or paths. Optional `--image-findings` adds at most 200 allowlisted advisory IDs/package versions/severities/statuses, sorted by severity, with an omitted count; it never prints raw scanner titles, targets, paths or URLs. All findings still count and block the check, including omitted rows. Unresolved findings and unavailable/malformed responses return nonzero; the complete review also fails on a missing image scan. Neither command installs updates or changes evidence records.
 
 For the image check, use a trusted local **Trivy 0.75.0** executable, verified against the checksum in its [official release](https://github.com/aquasecurity/trivy/releases/tag/v0.75.0). On the Linux build host, save the already-tested candidate image into private storage and run:
 
@@ -45,7 +47,7 @@ Alternatively, maintainers can request the optional Linux CI review from a branc
 gh workflow run ci.yml --ref REVIEW_BRANCH --field dependencies=true
 ```
 
-Confirm the run's head SHA. The container job scans the same packaged application image and pinned Caddy image after its normal checks, using a checksum-verified Trivy binary. Its console contains counts, not raw vulnerability reports. It does not approve, publish or deploy anything. This profile has its own concurrency group. A finding makes the optional job fail and must be investigated.
+Confirm the run's head SHA. The container job scans the same packaged application image and pinned Caddy image after its normal checks, using a checksum-verified Trivy binary. Its console contains counts and bounded allowlisted advisory metadata using `--image-findings`, not raw vulnerability reports. It does not approve, publish or deploy anything. This profile has its own concurrency group. A finding makes the optional job fail and prevents the candidate artifact upload; investigate rather than bypassing the review to obtain assets.
 
 ## Record sign-off
 
@@ -63,6 +65,8 @@ Before the first stable release, there is no supported stable version. Afterward
 ## Current review record
 
 No frozen candidate has dependency sign-off. The two development-tool findings observed on 2026-10-08 are remediated as follows:
+
+The 2026-10-09 [beta review](RELEASE_READINESS.md#beta-dependency-review) records application/tooling passes for its exact source/image, a failed image scan and pending binary license review. Available OS/tooling fixes are applied; residual findings are not waived. Complete release sign-off is still absent.
 
 | Advisory | Affected path and remedy | Evidence and removal condition |
 | --- | --- | --- |

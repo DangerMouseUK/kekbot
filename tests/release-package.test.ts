@@ -5,6 +5,12 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { expect, it } from "vitest";
 
+it("keeps the default Docker and Compose distribution version equal to the application", () => {
+  const version = JSON.parse(readFileSync("package.json", "utf8")).version;
+  expect(readFileSync("Dockerfile", "utf8").match(/^ARG VERSION=(\S+)$/m)?.[1]).toBe(version);
+  expect(readFileSync("compose.yaml", "utf8").match(/^\s+image: kekbot:(\S+)$/m)?.[1]).toBe(version);
+});
+
 it("packages only committed public source, verifies identity/checksums and refuses a dirty source", () => {
   const root = mkdtempSync(join(tmpdir(), "kekbot-release-test-"));
   const git = (args: string[]) => execFileSync("git", ["-c", "core.autocrlf=false", ...args], { cwd: root, encoding: "utf8", windowsHide: true }).trim();
@@ -28,7 +34,7 @@ it("packages only committed public source, verifies identity/checksums and refus
     const result = prepare(); expect(result.status, result.stderr).toBe(0);
     const destination = join(root, "output/release", readdirSync(join(root, "output/release"))[0]);
     const manifest = JSON.parse(readFileSync(join(destination, "release.json"), "utf8"));
-    expect(manifest).toMatchObject({ sourceRef: git(["rev-parse", "HEAD"]), status: "candidate-unaccepted", image: null });
+    expect(manifest).toMatchObject({ applicationVersion: JSON.parse(readFileSync("package.json", "utf8")).version, sourceRef: git(["rev-parse", "HEAD"]), status: "candidate-unaccepted", image: null });
     const listing = execFileSync("tar", ["-tzf", join(destination, manifest.sourceArchive)], { encoding: "utf8", windowsHide: true });
     expect(listing).toContain("README.md"); expect(listing).not.toContain("runtime.env"); expect(listing).not.toContain("output/");
     for (const line of readFileSync(join(destination, "SHA256SUMS"), "utf8").trim().split("\n")) {

@@ -2,7 +2,7 @@
 
 Use the **interactive terminal wizard** to install one KekBot instance on Linux x86-64. It also provides updates, rollback, status, start/stop and uninstall. Every change has an explained review and typed confirmation. Application/module settings and provider consent continue in the browser after owner setup.
 
-KekBot is still a development candidate. **There is no stable release yet.** Latest stable is the wizard's default, and fails with an explanation until an accepted stable release is published. Choose a reviewed branch/PR/commit or candidate bundle explicitly for evaluation. Automated fixture testing does not establish an independent installer or real-provider acceptance.
+KekBot's first beta is being prepared. **There is no published beta or stable release yet.** Latest stable is the wizard's default, and fails with an explanation until an accepted stable release is published. Choose a reviewed branch/PR/commit or audited bundle explicitly for evaluation. After beta publication, use **Specific release** with its exact tag. The [beta guide](BETA.md) explains both paths. Automated fixture testing does not establish an independent installer or real-provider acceptance.
 
 [All documentation](README.md) · [Manual installation](INSTALLATION.md) · [Updating](UPDATING.md) · [Uninstalling](UNINSTALLING.md)
 
@@ -87,7 +87,7 @@ For multiple instances, use separate directories, project names, application por
 | Selection | Input | Supported format / resolution |
 | --- | --- | --- |
 | Latest stable (default) | None | GitHub's latest published non-prerelease, plus this project's accepted stable metadata. Default is the prebuilt Linux amd64 image. No automatic fallback to `main`. |
-| Specific release | Exact published tag | Explicit prereleases/candidates allowed with trust acknowledgement. Choose prebuilt image or source build. |
+| Specific release | Exact published tag, e.g. `v0.1.0-beta.1` after publication | Explicit prereleases/candidates allowed with trust acknowledgement. Choose prebuilt image or source build. A planned tag cannot be installed before it exists. |
 | Branch | Existing name, e.g. `main` | Fetch the official repository ref, pin full commit, archive public source, build with Docker. |
 | Pull request | Positive number, without `#` | Fetch official `refs/pull/NUMBER/head`, including fork contributions. Builds the PR head, not GitHub's synthetic merge result. Pin and review exact SHA. |
 | Commit | Full lowercase 40-character SHA | Fetch that exact commit; require matching identity; build source. |

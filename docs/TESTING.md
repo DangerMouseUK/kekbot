@@ -132,6 +132,8 @@ The report contains request/outcome counts, intake p95, receipt-to-decision/repl
 
 ## Security and release evidence
 
+The [first beta verification record](releases/v0.1.0-beta.1.md#verification-record) binds automated results to its frozen candidate. Its manual campaign selects `soak=true`, `package=true` and `dependencies=true`; ordinary PR checks still run independently. Explicit beta installer tests preserve stable rejection and inspect both source/image bundle paths. Version checks keep package, Docker and Compose defaults aligned. Image-review regressions verify opt-in finding metadata omits raw/private fields, bounds output and keeps all severity counts/failure outcomes. Publication download/discovery and real provider/OBS sessions stay pending until actually run.
+
 Use checksum-verified Gitleaks 8.30.1 for a redacted scan of a clean publication export (`gitleaks dir --redact --no-banner <EXPORT>`) and history (`gitleaks git --redact --no-banner --log-opts="--all" .`). Do not scan private runtime storage into public logs or add broad exclusions to silence findings. Review ignored/untracked artifacts and image contexts before pushing. Dependency audits and secret scans complement code/permission review; they do not prove the absence of vulnerabilities.
 
 Record source commit, application/schema/backup versions, exact commands, platform/browser/image and outcomes in [MILESTONES.md](MILESTONES.md). Publish only sanitised summaries. Keep addresses, provider apps, account names, credentials, payloads and private paths in the operator's private setup/evidence storage. Re-run affected checks after code changes. Stable release acceptance also requires Milestones 18–19; CI alone cannot complete them.

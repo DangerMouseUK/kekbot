@@ -2,6 +2,8 @@
 
 Operator walkthrough: [guided installer](../docs/INSTALLER.md), [updates](../docs/UPDATING.md), [uninstall](../docs/UNINSTALLING.md). Run `python3 -B installer/kekbot.py --help` from the source root. This is a Linux x86-64 interactive host tool, not an HTTP API or application-container command.
 
+The [beta walkthrough](../docs/BETA.md) explains explicit prerelease selection before/after publication. Offline contracts cover an unaccepted beta through both source/image release assets and reject it through latest-stable selection before downloading. Linux CI rehearses the actual exported candidate bundle; published release discovery and an independent installer trial remain separate evidence.
+
 `kekbot.py` owns explained menus, defaults, cancellation and typed final confirmation. `core.py` owns source resolution, verified bundle extraction, immutable image/Compose state and locked lifecycle transactions. It uses Python 3.10+ standard library only so a Docker host does not need Node/pnpm/pip. Do not add provider credentials to terminal prompts or execute downloaded management code implicitly.
 
 `test_lifecycle.py` runs offline with `pnpm test:installer` (included in `pnpm check`). Portable contract tests run on Windows; Linux additionally tests locks, interrupted updates, checkpoints, rollback and removal boundaries. `smoke.py` is CI-only, run with sudo **after** candidate package checksums: real audited image → isolated fixture installation/signed event → deliberately broken maintenance image → failed update → new-root rollback → verified source-bundle build → successful update → retained-data removal/resume → explicit purge. It never uses live providers, public TLS or uploads runtime artifacts.

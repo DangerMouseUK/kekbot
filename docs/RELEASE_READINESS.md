@@ -1,10 +1,10 @@
 # Stable v1 requirements and release readiness
 
-Updated: 2026-10-08. Application `0.1.0-dev.0`; SQLite schema 3; backup format 1; native configuration format 1. This is an unreleased candidate. Milestone 18 is prepared with deployment deferred. Milestone 19's audit, release guards and candidate packaging are prepared and automatically tested; stable acceptance and publication remain pending.
+Updated: 2026-10-09. Application `0.1.0-beta.1`; SQLite schema 3; backup format 1; native configuration format 1. The [first beta](BETA.md) is being prepared and has not been published. Milestone 18 is prepared with deployment deferred. Milestone 19's audit, release guards and candidate packaging are prepared and automatically tested; stable acceptance and publication remain pending. Beta verification is recorded [separately](releases/v0.1.0-beta.1.md#verification-record); none of the 33 live/reference/independent gates is passed by beta preparation.
 
 This crosswalk covers the normative scope in both identical [PRDs](PRD.md). It links implementation and behavioural checks rather than counting routes. **Automated** means synthetic/SQLite/browser/container evidence exists; it does not mean that all live scenarios have passed. **Pending** means required external acceptance or publication has no result. Historical Milestone 1 evidence applies only to that older foundation snapshot. The [milestones](MILESTONES.md) record exact tested commits and runs.
 
-The 2026-10-09 review fixes add targeted evidence for R25 (OAuth/refresh races), R27–R28 (command-error cooldowns), R46 (older pending reward decisions), R50 (older uncertain deliveries), and configuration/privacy safeguards. See [review regressions](../tests/review-regressions.test.ts), [Kick contracts](../tests/kick.test.ts) and [production browser workflows](../tests/e2e/application.spec.ts). Schema 3, backup/configuration format 1 and all pending source/image/live/dependency sign-off records remain unchanged; validate the final candidate again before release.
+The 2026-10-09 review fixes add targeted evidence for R25 (OAuth/refresh races), R27–R28 (command-error cooldowns), R46 (older pending reward decisions), R50 (older uncertain deliveries), and configuration/privacy safeguards. See [review regressions](../tests/review-regressions.test.ts), [Kick contracts](../tests/kick.test.ts) and [production browser workflows](../tests/e2e/application.spec.ts). Schema 3, backup/configuration format 1 and pending live acceptance remain unchanged. The beta package/image reviews are recorded below; complete sign-off is still absent.
 
 Operator journeys are documented separately in [installation](INSTALLATION.md), [provider setup](PROVIDERS.md), [user workflows](USER_GUIDE.md), [OBS](OBS.md) and [recovery](BACKUP_RECOVERY.md). Documentation coverage does not pass the independent-installer or live gates. Return to the [documentation index](README.md).
 
@@ -20,6 +20,7 @@ The handbook additionally includes [first session](FIRST_SESSION.md), [accounts/
 - [Quality, distribution and completion](#quality-distribution-and-completion)
 - [Acceptance record](#acceptance-record)
 - [Repository quality follow-up](#repository-quality-follow-up)
+- [Beta dependency review](#beta-dependency-review)
 <!-- contents:end -->
 
 ## Ownership, journeys and installation
@@ -127,4 +128,39 @@ Automated run identities/results belong in [MILESTONES.md](MILESTONES.md). Packa
 
 ## Repository quality follow-up
 
-[Eight follow-ups](QUALITY_HARDENING.md) cover active/history media, payload privacy, temporary-state expiry, installer cleanup/diagnostics, focused panels, dependency review and long-lived regressions. Storage is now schema 3; backup/configuration formats stay 1. These implementation/fixture checks do not change pending live gates. The two development-tool vulnerabilities have an exact esbuild override and a verified local braces patch; the raw registry audit still flags the unpatched upstream braces version. See the [remediation record](DEPENDENCY_MAINTENANCE.md#review-record). All four source/image-bound dependency reviews remain pending, including review of the local patch for the final candidate.
+[Eight follow-ups](QUALITY_HARDENING.md) cover active/history media, payload privacy, temporary-state expiry, installer cleanup/diagnostics, focused panels, dependency review and long-lived regressions. Storage is now schema 3; backup/configuration formats stay 1. These implementation/fixture checks do not change pending live gates. The two development-tool vulnerabilities have an exact esbuild override and a verified local braces patch; the raw registry audit still flags the unpatched upstream braces version. See the [remediation record](DEPENDENCY_MAINTENANCE.md#review-record). The beta package reviews below are now recorded; image review fails and final binary license review remains pending. Stable sign-off is not established.
+
+<a id="beta-dependency-review"></a>
+## Beta dependency review — 2026-10-09
+
+Source **`facd7da62874655247eed3bc52f683416aed78ae`**, application **`0.1.0-beta.1`**. [Manual review run 37866420949](https://github.com/DangerMouseUK/kekbot/actions/runs/37866420949) and [ordinary PR run 37866425101](https://github.com/DangerMouseUK/kekbot/actions/runs/37866425101) identify the same source. Ordinary verification, all three browser engines, Linux container/proxy/recovery, exported-image round trip and both installer formats passed. The optional image review **failed** and withheld the candidate artifact upload; no release is authorized by these results.
+
+| Review | Actual outcome |
+| --- | --- |
+| Application packages | **Pass:** production registry audit reports zero findings |
+| Tooling packages | **Pass with identified code remediation:** raw registry audit reports one high braces advisory; exact manifest/lockfile/patch/installed-parser verification and exploit/compatibility regressions pass. This is not a clean raw scan. |
+| Application image | **Fail:** Trivy 0.75.0 reports 0 critical, 43 high, 58 medium, 60 low and 1 unknown entries, with no omitted rows |
+| Proxy image | **Fail:** Trivy reports 1 unknown entry, with no omitted rows; the earlier zlib medium entry is absent after the pinned update |
+| Licenses/notices | Runtime inventory/copy/package checks pass. Final binary redistribution review, including native-library corresponding-source delivery and base-image obligations, remains **pending**; no license sign-off is inferred. |
+
+Application image ID: `sha256:5fddb866c15d307d4b43ff4a35f0a9590a62ed52908a24e03bdb977941da845d`. Proxy image ID: `sha256:1b944ddebb9a43e463d0a024a8569362f3297f22f7f0c2d6a554c219e44423bf`. These identify the tested ephemeral images; upload was withheld, so they are not retained downloadable release assets. A later image must be scanned and reviewed under its own identity.
+
+The initial Bookworm image reported 4 critical / 60 high / 113 medium / 78 low / 1 unknown entries. Available Debian updates and removal of unused bundled npm/Corepack/Yarn reduced that to 1 / 48 / 95 / 77 / 1. The final official Node 24.21.0 Debian 13 slim base produced the current 0 / 43 / 58 / 60 / 1 result. Build tooling remains intact; Linux CI verifies the runtime tools are absent and maintenance still works. No application dependency or data format changed, and no scanner exclusion was added.
+
+### Remaining image work
+
+Counts are package/advisory **entries**, not distinct remotely exploitable KekBot defects. The 43 high entries cover eight advisory IDs repeated across inherited OS packages:
+
+| Package group | Reported high entries / versions | Next review |
+| --- | --- | --- |
+| util-linux family | 36 entries for CVE-2026-76642, CVE-2026-78408, CVE-2026-78409 and CVE-2026-78410; `2.41.5-0+deb13u1` (epoch/compatibility prefixes on some packages) | Check upstream fixes/backports and exact installed binaries; do not treat repeated package matches as independent application bugs |
+| libacl | CVE-2026-54369; `2.3.2-2+b1` | Verify available remediation and application/native-library exposure |
+| systemd/udev libraries | 2 entries for CVE-2026-16742; `257.13-1~deb13u1` | Establish affected functionality and actual image reachability |
+| ncurses family | 3 entries for CVE-2025-69720; `6.5+20250216-2` | Establish affected consumers and available remediation |
+| Perl | CVE-2026-9538; `5.40.1-6+deb13u1`; unknown CVE-2026-82560 also remains | Review upstream status and whether affected text/regex functionality is used |
+
+The proxy's unknown entry is [GO-2026-5932](https://vuln.go.dev/ID/GO-2026-5932.json) in `golang.org/x/crypto v0.57.0`. Go's record concerns the unmaintained OpenPGP subpackages. A module-level match does not establish that the Caddy binary calls those packages; binary reachability still needs verification before any exception. No waiver is recorded. Lower-severity OS entries also remain part of the failed review.
+
+`--image-findings` exposes only bounded allowlisted identifiers/versions/statuses; `unavailable` means absent or outside the allowed format, not proof that upstream has no fix. Raw reports/runtime data stay private. Remediate applicable findings, or obtain explicit maintainer approval for each justified residual with affected versions, exposure, mitigation and review deadline as required by [dependency policy](DEPENDENCY_MAINTENANCE.md#record-sign-off). Do not approve the image from the production npm result alone, suppress all unfixed entries, or bypass the failed profile to upload assets.
+
+[dependency-review.json](dependency-review.json) records the two package passes, failed image review and pending license review against this candidate. All 33 live/reference/operator gates in [release-evidence.json](release-evidence.json) remain pending and separate. This preparation review does not authorize deployment or beta/stable publication.
