@@ -66,6 +66,8 @@ Before the first stable release, there is no supported stable version. Afterward
 
 No frozen candidate has dependency sign-off. The two development-tool findings observed on 2026-10-08 are remediated as follows:
 
+The 2026-10-09 [beta review](RELEASE_READINESS.md#beta-dependency-review) records application/tooling passes for its exact source/image, a failed image scan and pending binary license review. Available OS/tooling fixes are applied; residual findings are not waived. Complete release sign-off is still absent.
+
 | Advisory | Affected path and remedy | Evidence and removal condition |
 | --- | --- | --- |
 | [esbuild cross-origin development-server reads](https://github.com/evanw/esbuild/security/advisories/GHSA-67mh-4wv8-2f99) | Drizzle's legacy loader selected esbuild 0.18.20. An exact parent-scoped override selects 0.25.12, already used elsewhere in this lockfile; the upstream fix starts at 0.25.0. | The actual loader dependency rejects cross-origin reads and still transforms TypeScript. Drizzle generates/checks migrations normally. Remove the override when the loader selects a fixed version itself. |

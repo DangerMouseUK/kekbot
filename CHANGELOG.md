@@ -7,6 +7,7 @@
 - Added opt-in, bounded image advisory metadata to dependency reviews so failed scans can be investigated without publishing raw scanner reports or paths. Findings still block asset upload; no advisory is waived.
 - Moved both application stages to the official Node 24.21.0 Debian 13 slim base, applied available Debian security updates, removed unused bundled npm/Corepack/Yarn tools from the runtime image, and selected the proxy's fixed zlib `1.3.2-r1`. Build tooling remains intact. Linux CI checks maintenance without those runtime tools; remaining image findings still require review before publication.
 - No application dependency, database migration, backup or configuration format change from the final development candidate. The features and fixes below are included. Full-product live sessions, real OBS/provider delivery, reference-host and independent-operator acceptance remain pending; see the [beta verification record](docs/releases/v0.1.0-beta.1.md#verification-record).
+- Recorded exact candidate package passes, failed image scans and pending binary license review. Image upload/publication remains blocked; no release, registry image or advisory waiver is created by this preparation.
 
 ## 0.1.0-dev.0 — Local product build, unreleased
 

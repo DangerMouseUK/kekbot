@@ -18,7 +18,7 @@ This guide is for people evaluating `v0.1.0-beta.1`, including operators who hav
 
 The beta includes the implemented Kick commands/timers, local accounts, Discord controls, alerts/OBS sources, YouTube request queue, moderation, community features and host lifecycle tools. It is intended to find installation and real-world workflow problems. [The notes](releases/v0.1.0-beta.1.md#included-in-this-beta) describe scope; the [user guide](USER_GUIDE.md) explains daily use.
 
-Automated fixtures exercise these workflows without contacting live providers. Current full-product Kick → Discord → OBS delivery, public certificate renewal, independent installations and recovery onto another host still need live evidence. The historical Kick foundation proof applies to its original source only. Start on a disposable evaluation installation and keep a working recovery copy before using real data. Beta feedback does not automatically pass the [stable acceptance gates](RELEASE_READINESS.md).
+Automated fixtures exercise these workflows without contacting live providers. Current full-product Kick → Discord → OBS delivery, public certificate renewal, independent installations and recovery onto another host still need live evidence. The [image dependency review](RELEASE_READINESS.md#beta-dependency-review) also remains blocked, with final binary license review pending; downloadable image assets were withheld. The historical Kick foundation proof applies to its original source only. Start on a disposable evaluation installation and keep a working recovery copy before using real data. Beta feedback does not automatically pass the [stable acceptance gates](RELEASE_READINESS.md).
 
 ## Choose an installation
 
@@ -38,6 +38,7 @@ From Bash on a Linux evaluation host, clone and pin the reviewed **tool** source
 ```sh
 git clone https://github.com/DangerMouseUK/kekbot.git kekbot-beta-tools
 cd kekbot-beta-tools
+git fetch origin FROZEN_FULL_SHA
 git switch --detach FROZEN_FULL_SHA
 git rev-parse HEAD
 python3 -B installer/kekbot.py --help
