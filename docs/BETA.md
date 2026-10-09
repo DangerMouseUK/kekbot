@@ -1,12 +1,12 @@
 # Try the KekBot beta
 
-This guide is for people evaluating `v0.1.0-beta.2`, including operators who have never used KekBot. Read the [release notes](releases/v0.1.0-beta.2.md) before choosing an installation. Return to the [documentation index](README.md).
+This guide is for people evaluating `v0.1.0-beta.3`, including operators who have never used KekBot. Read the [release notes](releases/v0.1.0-beta.3.md) before choosing an installation. Return to the [documentation index](README.md).
 
-**[Beta 2 is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2), dated 2026-10-09.** Choose **Specific release** explicitly to install it. There is no registry image or supported stable release; `main` is not a frozen release. [Beta 1](releases/v0.1.0-beta.1.md) remains available as an immutable historical release.
+**[Beta 3 is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3), dated 2026-10-09.** Choose **Specific release** explicitly to install it. There is no registry image or supported stable release; `main` is not a frozen release. Beta 1/2 remain available as immutable historical releases.
 
-**Beta 2 includes the bundled HTTPS installer correction.** New installs use its matching tool and application from one tag. The [beta 1 workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) remains for the older immutable release.
+**Beta 3 includes the downloadable launcher and bundled HTTPS installer correction.** New installs can use matching tool/application source from one tag. The [beta 1 workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) remains for that older immutable release.
 
-Prefer a no-clone start? The [downloadable launcher](LAUNCHER.md) is available from `main` and can select the published beta application using independently reviewed current management tools. [Beta 3 is an unpublished candidate](releases/v0.1.0-beta.3.md) that adds the same launcher as a checksum-covered release download. The pinned beta 2 path below remains available; historical tags and assets stay unchanged.
+Prefer a no-clone start? Download the [versioned launcher](LAUNCHER.md#verify-a-versioned-launcher-download) from the published beta 3 assets, verify its checksum and review it before execution. Select `--tool-release v0.1.0-beta.3` and the same explicit application release. The pinned checkout below remains an alternative; historical tags/assets stay unchanged.
 
 **On this page**
 
@@ -20,9 +20,9 @@ Prefer a no-clone start? The [downloadable launcher](LAUNCHER.md) is available f
 
 ## What the beta means
 
-The beta includes the implemented Kick commands/timers, local accounts, Discord controls, alerts/OBS sources, YouTube request queue, moderation, community features and host lifecycle tools. It is intended to find installation and real-world workflow problems. [The notes](releases/v0.1.0-beta.2.md#included-in-this-beta) describe scope; the [user guide](USER_GUIDE.md) explains daily use.
+The beta includes the implemented Kick commands/timers, local accounts, Discord controls, alerts/OBS sources, YouTube request queue, moderation, community features and host lifecycle tools. It is intended to find installation and real-world workflow problems. [The notes](releases/v0.1.0-beta.3.md#included-in-this-beta) describe scope; the [user guide](USER_GUIDE.md) explains daily use.
 
-Automated fixtures exercise these workflows without contacting live providers. Current full-product Kick → Discord → OBS delivery, public certificate renewal, independent installations and recovery onto another host still need live evidence. The frozen beta 2 source/image passed its own [image and binary-license review](RELEASE_READINESS.md#beta-2-review). Raw tooling/proxy findings remain visible alongside their exact verified remediation or not-affected basis. The historical Kick foundation proof applies to its original source only. Start on a disposable evaluation installation and keep a working recovery copy before using real data. Beta feedback does not automatically pass the [stable acceptance gates](RELEASE_READINESS.md).
+Automated fixtures exercise these workflows without contacting live providers. Current full-product Kick → Discord → OBS delivery, public certificate renewal, independent installations and recovery onto another host still need live evidence. The frozen beta 3 source/image passed its own [image and binary-license review](RELEASE_READINESS.md#beta-3-review). Raw tooling/proxy findings remain visible alongside their exact verified remediation or not-affected basis. The historical Kick foundation proof applies to its original source only. Start on a disposable evaluation installation and keep a working recovery copy before using real data. Beta feedback does not automatically pass the [stable acceptance gates](RELEASE_READINESS.md).
 
 ## Choose an installation
 
@@ -43,21 +43,21 @@ From Bash on a Linux evaluation host, clone and pin the published beta's **tool*
 ```sh
 git clone https://github.com/DangerMouseUK/kekbot.git kekbot-beta-tools
 cd kekbot-beta-tools
-git fetch origin tag v0.1.0-beta.2
-git switch --detach v0.1.0-beta.2
+git fetch origin tag v0.1.0-beta.3
+git switch --detach v0.1.0-beta.3
 git rev-parse HEAD
 python3 -B installer/kekbot.py --help
 ```
 
-Compare `git rev-parse HEAD` with the frozen source in the [verification record](releases/v0.1.0-beta.2.md#verification-record) and downloaded `release.json`. Review the tool and checks before granting host authority. Then:
+Compare `git rev-parse HEAD` with the frozen source in the [verification record](releases/v0.1.0-beta.3.md#verification-record) and downloaded `release.json`. Review the tool and checks before granting host authority. Then:
 
 ```sh
 sudo python3 -B installer/kekbot.py --action install
 ```
 
-Choose **Isolated fixture evaluation**, a new root outside the checkout, **Specific release** → `v0.1.0-beta.2` → **Prebuilt Linux amd64 image**. Follow the [installer walkthrough](INSTALLER.md#installation-choices-explained) for remaining prompts. The wizard verifies source/image/notices checksums, version, platform, non-root user and the recorded image ID before applying. A published tag without the required audited assets is not installable through this path. Checksums detect corruption; they are not a publisher signature.
+Choose **Isolated fixture evaluation**, a new root outside the checkout, **Specific release** → `v0.1.0-beta.3` → **Prebuilt Linux amd64 image**. Follow the [installer walkthrough](INSTALLER.md#installation-choices-explained) for remaining prompts. The wizard verifies source/image/notices checksums, version, platform, non-root user and the recorded image ID before applying. A published tag without the required audited assets is not installable through this path. Checksums detect corruption; they are not a publisher signature.
 
-The wizard displays the version, full source SHA and selected format. Because a beta is unaccepted evaluation code, it requires `TRUST` followed by the first 12 characters of the reviewed source SHA, then a final `APPLY`. Cancel if its identities differ from the [published asset record](releases/v0.1.0-beta.2.md#candidate-assets). The tool checkout and application selection are independent; pin both deliberately.
+The wizard displays the version, full source SHA and selected format. Because a beta is unaccepted evaluation code, it requires `TRUST` followed by the first 12 characters of the reviewed source SHA, then a final `APPLY`. Cancel if its identities differ from the [published asset record](releases/v0.1.0-beta.3.md#candidate-assets). The tool checkout and application selection are independent; pin both deliberately.
 
 For a source build, select **Build the release source** for the same release; the resulting image has its own identity. For manual source setup, pin the same tag and follow [installation](INSTALLATION.md) in full. GitHub's automatic zip/tar is not an audited installer bundle. Do not pipe a downloaded script into a root shell.
 
@@ -72,7 +72,7 @@ git switch --detach FROZEN_FULL_SHA
 git rev-parse HEAD
 ```
 
-For the beta 3 candidate, use only the source and CI bundle named in its [verification record](releases/v0.1.0-beta.3.md#verification-record); do not select a nonexistent published tag. [Verify the standalone launcher](LAUNCHER.md#verify-a-versioned-launcher-download), then use `--tool-commit` with that full SHA and `--bundle` with the complete audited download. New installs retain the launcher for future management. A source build has its own image identity.
+For a later unpublished candidate, use only its reviewed source and audited CI bundle; a planned release tag cannot be selected before publication. [Verify its standalone launcher](LAUNCHER.md#verify-a-versioned-launcher-download), then pin `--tool-commit` to the full reviewed SHA and `--bundle` to the complete audited download. New installs retain the launcher for future management. A source build has its own image identity.
 
 Review that source and its checks, then run the installer with **Exact commit** and the same full SHA; this builds source. A CI candidate bundle is a separate path: extract only the audited workflow artifact into its own directory and choose **Local audited release bundle** with the absolute directory containing `release.json` and `SHA256SUMS`. Select the desired source/image format and verify its own identities. Do not reuse the published beta's review for a later build. Only audited public bundles belong in workflow artifacts; installed data and generated credentials remain private.
 
@@ -100,9 +100,9 @@ Read [updating](UPDATING.md) before an update. From Bash on a wizard-managed hos
 sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action update
 ```
 
-Use your actual root if different. For beta 1 → beta 2, first fetch/review the beta 2 tool tag using the installation steps above, then run `sudo python3 -B installer/kekbot.py --root /srv/kekbot --action update` from that pinned checkout and choose **Specific release** → `v0.1.0-beta.2`. Keep that reviewed checkout for subsequent management; the application update does not overwrite the copied beta 1 tool. Explicitly select the intended beta release, full commit or audited bundle; accepting **Latest stable** does not select the beta. Keep the previous image, original encryption key and an independent database/asset backup. Schemas 1/2 migrate to 3; backup and configuration format remain 1. There is no downgrade SQL or promise that arbitrary older builds understand schema 3.
+Use your actual root if different. Explicitly select the intended beta release, full commit or audited bundle; **Latest stable** does not select a beta. Keep the previous image, original encryption key and an independent database/asset backup. Schemas 1/2 migrate to 3; backup/configuration formats remain 1. There is no downgrade SQL or promise that arbitrary older builds understand schema 3.
 
-For beta 1/2 → the beta 3 candidate, review the candidate launcher and management SHA separately, then run `sudo bash install.sh update --root /srv/kekbot --tool-commit REVIEWED_FULL_SHA --bundle /srv/public-release-bundle --format image` from its audited download directory. Replace both placeholders. The application stays schema 3 and backup/configuration format 1; no new migration or dependency update is introduced. The older retained manager is not overwritten, and older installations do not gain `/tool/install.sh` automatically. Keep the separately reviewed launcher/tool source for subsequent management; do not copy over tool files during operations. Published-tag selection for beta 3 becomes available only after actual publication.
+For beta 1/2 → beta 3, download and review the published beta 3 launcher, then run `sudo bash install.sh update --root /srv/kekbot --tool-release v0.1.0-beta.3 --release v0.1.0-beta.3 --format image` from its download directory. Replace the root with your actual installation. No new migration or dependency update is introduced. The older copied manager is not overwritten, and older installations do not gain `/tool/install.sh` automatically. Keep the separately reviewed launcher/tool source for subsequent management; do not copy over tool files during operations. Automated published-release rehearsals do not establish an upgrade of a real beta 1/2 installation.
 
 After restart, verify readiness, sign-in, accounts, connections, assets and queue state before resuming media. If an update fails, use status and [separate-root rollback](UPDATING.md#roll-back-after-failure-or-a-bad-update); do not force Start or Update around the recovery guard. Manual deployments use [manual recovery](BACKUP_RECOVERY.md#upgrade-and-rollback).
 
@@ -112,7 +112,7 @@ After restart, verify readiness, sign-in, accounts, connections, assets and queu
 
 Use the repository's [bug report](https://github.com/DangerMouseUK/kekbot/issues/new?template=bug_report.md) or [documentation report](https://github.com/DangerMouseUK/kekbot/issues/new?template=documentation.md). Include:
 
-1. The actual version (`0.1.0-beta.2` published or `0.1.0-beta.3` candidate), full source SHA and, for an image install, the recorded image ID. Say source build, prebuilt bundle or release selection.
+1. The actual version (for example `0.1.0-beta.3`), full source SHA and, for an image install, the recorded image ID. Say source build, prebuilt bundle or release selection.
 2. OS/architecture, browser or OBS version, fixture/live mode and which guide/step you followed.
 3. Small reproduction steps, expected result, actual result and whether restart changes it.
 4. A minimal synthetic example or manually reviewed diagnostic summary, plus checks that did and did not run.

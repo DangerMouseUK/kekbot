@@ -4,11 +4,11 @@ Use this guide for installations created by the [terminal wizard](INSTALLER.md).
 
 The [downloadable launcher](LAUNCHER.md#updates-recovery-and-removal) also opens updates: run `sudo bash install.sh update --root /srv/kekbot` from its reviewed download directory. It reuses the protected installed manager without new tool downloads. Current managers also support `--branch`, `--release`, `--pr`, `--commit` and `--bundle` shortcuts; older managers keep interactive source selection. Explicit `--tool-commit`/`--tool-branch` selection reviews new management code separately and does not overwrite the copied manager. Never update tools implicitly as part of an application change.
 
-For published `0.1.0-beta.2` or the unpublished [beta 3 candidate](releases/v0.1.0-beta.3.md), follow the [beta selection and compatibility guidance](BETA.md#update-recover-or-remove). Choose the exact published beta, reviewed commit or audited bundle explicitly. The default latest-stable choice does not install a beta; publication and current limitations are recorded in the [beta notes](releases/v0.1.0-beta.2.md).
+For published [beta 3](releases/v0.1.0-beta.3.md), follow the [beta selection and compatibility guidance](BETA.md#update-recover-or-remove), including older beta 1/2 installations. Choose the exact published beta, reviewed commit or audited bundle explicitly. The default latest-stable choice does not install a beta; published outcomes and current limitations are recorded in the beta notes.
 
 [Documentation index](README.md) · [Installer options/formats](INSTALLER.md#sources-and-distribution-formats) · [Uninstall](UNINSTALLING.md)
 
-Beta 2 includes the corrected bundled HTTPS installer, with the same schema/formats as beta 1. For beta 1 → beta 2, use the [reviewed beta 2 tool checkout](BETA.md#update-recover-or-remove) and select beta 2 explicitly. Application updates do not replace copied host tools. The original beta 1 installer issue and its separate workaround remain [documented](INSTALLER.md#beta-1-bundled-https-installer-fix) for that older immutable release.
+Beta 2 introduced the bundled HTTPS installer correction; beta 3 retains it and adds the downloadable launcher, with the same schema/formats. For beta 1/2 → beta 3, use the [reviewed beta 3 launcher/tool selection](BETA.md#update-recover-or-remove) and select beta 3 explicitly. Application updates do not replace copied host tools. The original beta 1 installer issue and its separate workaround remain [documented](INSTALLER.md#beta-1-bundled-https-installer-fix) for that older immutable release.
 
 ## Before updating
 

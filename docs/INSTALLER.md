@@ -2,9 +2,9 @@
 
 Use the **interactive terminal wizard** to install one KekBot instance on Linux x86-64. It also provides updates, rollback, status, start/stop and uninstall. Every change has an explained review and typed confirmation. Application/module settings and provider consent continue in the browser after owner setup.
 
-The easiest entry is the [downloadable `install.sh` launcher](LAUNCHER.md): no clone, host readiness checks, optional confirmed Ubuntu prerequisites, reviewed management downloads and every application source option. It is available from `main`; [beta 3 preparation](releases/v0.1.0-beta.3.md) adds a checksum-covered release download. Beta 3 is not published yet; immutable beta 1/2 tags keep their original tools. The clone-based path below remains available for pinned/local review.
+The easiest entry is the [downloadable `install.sh` launcher](LAUNCHER.md): no clone, host readiness checks, optional confirmed Ubuntu prerequisites, reviewed management downloads and every application source option. [Published beta 3](releases/v0.1.0-beta.3.md) includes a checksum-covered standalone download. Immutable beta 1/2 tags keep their original tools. The clone-based path below remains available for pinned/local review.
 
-Beta 2 is [published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) with the corrected bundled HTTPS installer. Choose **Specific release** → `v0.1.0-beta.2` for evaluation using its matching tool tag. [Beta 1](releases/v0.1.0-beta.1.md) remains published; its original domain/IP installer needs the [workaround below](#beta-1-bundled-https-installer-fix). **There is no supported stable release yet.** Latest stable defaults to fail-closed discovery. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths; automated fixtures do not establish independent installation or real providers.
+Beta 3 is [published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3) with the launcher and corrected bundled HTTPS installer. Choose **Specific release** → `v0.1.0-beta.3` for evaluation using its matching tool tag. Beta 1/2 remain published; the original beta 1 domain/IP installer needs the [workaround below](#beta-1-bundled-https-installer-fix). **There is no supported stable release yet.** Latest stable defaults to fail-closed discovery. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths; automated fixtures do not establish independent installation or real providers.
 
 [All documentation](README.md) · [Manual installation](INSTALLATION.md) · [Updating](UPDATING.md) · [Uninstalling](UNINSTALLING.md)
 
@@ -66,7 +66,7 @@ Current Python tooling also accepts `--source stable|release|branch|pr|commit|bu
 
 ## Beta 1 bundled HTTPS installer fix
 
-Beta 2 contains this correction and needs no separate tool revision. The following instructions are retained for the older immutable release.
+Beta 2 and beta 3 contain this correction and need no separate tool revision. The following instructions are retained for the older immutable release.
 
 The published `v0.1.0-beta.1` tag's host tool omits the locked Go sources from its temporary Caddy build context. A fresh **Domain Caddy** or **IPv4 Caddy** installation therefore fails before creating the managed root. The original tag and downloadable application assets remain immutable. Fixture evaluation, an existing external proxy and the [manual Compose path](INSTALLATION.md) are unaffected.
 
@@ -120,7 +120,7 @@ For multiple instances, use separate directories, project names, application por
 | Selection | Input | Supported format / resolution |
 | --- | --- | --- |
 | Latest stable (default) | None | GitHub's latest published non-prerelease, plus this project's accepted stable metadata. Default is the prebuilt Linux amd64 image. No automatic fallback to `main`. |
-| Specific release | Exact published tag, e.g. `v0.1.0-beta.2` after publication | Explicit prereleases/candidates allowed with trust acknowledgement. Choose prebuilt image or source build. A planned tag cannot be installed before it exists. |
+| Specific release | Exact published tag, e.g. `v0.1.0-beta.3` | Explicit prereleases/candidates allowed with trust acknowledgement. Choose prebuilt image or source build. A planned tag cannot be installed before it exists. |
 | Branch | Existing name, e.g. `main` | Fetch the official repository ref, pin full commit, archive public source, build with Docker. |
 | Pull request | Positive number, without `#` | Fetch official `refs/pull/NUMBER/head`, including fork contributions. Builds the PR head, not GitHub's synthetic merge result. Pin and review exact SHA. |
 | Commit | Full lowercase 40-character SHA | Fetch that exact commit; require matching identity; build source. |

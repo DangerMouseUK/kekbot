@@ -2,13 +2,15 @@
 
 ## Unreleased
 
-## 0.1.0-beta.3 — Candidate, unreleased
+- Add opt-in public-only proxy-build diagnostics and a digest-preserving Docker Hub cache on disposable CI runners after an anonymous pull-limit failure. Released artifacts and operator hosts remain unchanged.
 
-- Prepare beta 3 with matching application/Docker/Compose versions and a standalone `install.sh` asset in audited source/image bundles. Export exact committed bytes, include the launcher in release metadata/checksums, and compare it with the source archive during verification. Older format-1 bundles remain supported.
-- Update public installation, launcher verification, existing-beta upgrades, contributor and release/evidence guidance. Fresh candidate source/image security and binary-license reviews are required; beta 2 sign-off is historical. No dependency, SQL, backup/configuration format or stable-acceptance change. Publication remains a separate authorized step.
+## 0.1.0-beta.3 — 2026-10-09
+
+- Publish beta 3 with matching application/Docker/Compose versions and a standalone `install.sh` asset in audited source/image bundles. Export exact committed bytes, include the launcher in release metadata/checksums, and compare it with the source archive during verification. Older format-1 bundles remain supported.
+- Update public installation, launcher verification, existing-beta upgrades, contributor and release/evidence guidance. Fresh candidate source/image security and binary-license reviews passed; beta 2 sign-off remains historical. No dependency, SQL, backup/configuration format or stable-acceptance change. Published as an evaluation prerelease; live/stable acceptance remains pending.
 - Add a downloadable `install.sh` entry without cloning the repository, with explained install/manage menus, offline host checks, optional confirmed Ubuntu 24.04 prerequisites, pinned branch/tag/PR/commit management downloads, prepare-for-review mode and explicit local/installed tool selection.
 - Integrate update/rollback/status/start/stop/uninstall through the same guarded lifecycle engine. Add application release/branch/PR/commit/bundle shortcuts while preserving exact source trust, final review, stopped-host backup and retained-data removal defaults. Retain the reviewed launcher on new installations; successful one-action installation exits after next steps.
-- Add launcher argument/transport/trust/terminal tests and real-image Linux installation through the public entry. Update public setup, maintenance, contributor and evidence guides. No new dependency, app feature, schema/format change or release publication; original beta 2 assets and all pending live/stable acceptance remain unchanged.
+- Add launcher argument/transport/trust/terminal tests and real-image Linux installation through the public entry. Update public setup, maintenance, contributor and evidence guides. No new dependency, app feature or schema/format change; original beta 1/2 assets and all pending live/stable acceptance remain unchanged.
 - Fix the fixture rehearsal's confirmation sequence for acceptance-verified bundles: send application source trust only when the wizard requests it, then retain final `APPLY`. Add a regression through the real wizard for accepted and candidate metadata; synthetic accepted metadata does not establish a stable release.
 
 ## 0.1.0-beta.2 — 2026-10-09

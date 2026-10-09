@@ -1,6 +1,6 @@
 # Preparing and releasing KekBot
 
-The [published `0.1.0-beta.2` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.2) includes the merged bundled-HTTPS installer fix and passed its exact source/image [candidate review](RELEASE_READINESS.md#beta-2-review). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.2.md) describe evaluation and upgrade compatibility. [Beta 1](releases/v0.1.0-beta.1.md) remains immutable. Stable acceptance requires the [live campaign](LIVE_ACCEPTANCE.md); publication requires explicit owner authorization. Current preparation targets [beta 3](releases/v0.1.0-beta.3.md), with the merged launcher in a standalone audited download. It is not published yet; beta 2 remains the available evaluation release. Preparation can run without provider accounts or local Docker.
+The [published `0.1.0-beta.3` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3) includes the merged lifecycle launcher as a standalone audited download and passed its exact source/image [candidate review](RELEASE_READINESS.md#beta-3-review). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.3.md) describe evaluation, checksums and upgrades. Beta 1/2 remain immutable. Stable acceptance requires the [live campaign](LIVE_ACCEPTANCE.md); every future publication requires explicit owner authorization. Preparation can run without provider accounts or local Docker.
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
 
@@ -31,7 +31,7 @@ Before an independent installer trial, hand the operator the root README and [in
 
 ## Beta prerelease preparation and publication
 
-The unpublished `v0.1.0-beta.3` candidate uses the existing **unaccepted candidate** packaging contract. It must not use `--stable`, change the stable policy, mark fixture runs as live passes, or populate live evidence with inferred results. Its `release.json` retains `candidate-unaccepted`. Explicit installer **Specific release** selection supports prereleases; **Latest stable** never selects this beta.
+The published `v0.1.0-beta.3` evaluation release uses the existing **unaccepted candidate** packaging contract. It must not use `--stable`, change the stable policy, mark fixture runs as live passes, or populate live evidence with inferred results. Its `release.json` retains `candidate-unaccepted`. Explicit installer **Specific release** selection supports prereleases; **Latest stable** never selects this beta.
 
 Preparation checklist:
 
@@ -52,7 +52,7 @@ Compare `headSha` with the frozen candidate. A passing dependency scan alone is 
 
 **Publication is a separate owner decision.** Before recommending a wider beta, complete a fresh real-provider/OBS session with restart and backup/restore, or state clearly that the beta is limited to evaluation without that evidence. The destroyed test host is not available; preparation does not provision infrastructure. No live gate is waived by using a prerelease label.
 
-Once the owner explicitly authorizes beta publication, verify the candidate/evidence identities and assets again, create an immutable `v0.1.0-beta.3` tag at the **frozen candidate source**, and publish a GitHub **prerelease**, with latest-release promotion disabled. Attach only the retained audited assets and the final release notes. Keep the pending live limits visible. Do not publish a mutable `latest` registry tag or mark stable metadata accepted. This repository has no automatic release-publishing workflow; CI remains read-only.
+Beta 3 has been published at its frozen source. For a future owner-authorized beta, choose a new version, verify its candidate/evidence identities and assets again, create an immutable tag at that **frozen candidate source**, and publish a GitHub **prerelease**, with latest-release promotion disabled. Never replace beta 3 or earlier tags/assets. Attach only the retained audited assets and the final release notes. Keep the pending live limits visible. Do not publish a mutable `latest` registry tag or mark stable metadata accepted. This repository has no automatic release-publishing workflow; CI remains read-only.
 
 After publication, update the README/index/beta guide/notes publication status together and rehearse **Specific release** installation from the actual published assets. That final download/discovery path cannot be tested against a nonexistent release. Record it separately; automated bundle fixtures do not establish an unaided installer trial. Any registry publication or additional format requires its own authorized, verified distribution work.
 
