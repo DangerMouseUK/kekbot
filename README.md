@@ -7,7 +7,7 @@
 
 KekBot brings Kick chat automation, Discord moderator controls, OBS sources and YouTube requests into a self-hosted dashboard. One installation serves one creator and their moderator team. You own the provider applications, configuration, local accounts and data.
 
-**Status: preparing `v0.1.0-beta.1`.** This is an evaluation build. The [image dependency review](docs/RELEASE_READINESS.md#beta-dependency-review) remains blocked; final binary license review, full-product live testing and stable acceptance are pending. Start with the [beta guide](docs/BETA.md) for installation choices, known limits and how to help test. The beta has not been published and downloadable image assets were withheld. See the [release notes](docs/releases/v0.1.0-beta.1.md), [milestones](docs/MILESTONES.md) and [release readiness](docs/RELEASE_READINESS.md) for evidence.
+**Status: `v0.1.0-beta.1` is ready for authorized publication.** The exact retained image has passed its [dependency and binary-license review](docs/RELEASE_READINESS.md#beta-remediation-review). This is an evaluation build; full-product live testing and all 33 stable acceptance gates remain pending. Start with the [beta guide](docs/BETA.md) for installation choices and known limits. The [release notes](docs/releases/v0.1.0-beta.1.md), [milestones](docs/MILESTONES.md) and [release readiness](docs/RELEASE_READINESS.md) record exact evidence. Publication status will be updated after the release exists.
 
 ## What you can do
 

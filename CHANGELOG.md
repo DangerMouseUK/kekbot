@@ -4,7 +4,7 @@
 
 - Assemble a shell-free application runtime from digest-pinned Node 24.21.0 Alpine stages with only musl/GCC runtime libraries, retaining its real OS package database and runtime notices in the image and notices archive. Disable the unused Next image optimizer and reject Sharp/libvips in standalone output.
 - Rebuild standard Caddy 2.11.6 using pinned Go 1.27.2 and x/net 0.60.0. Add exact-image binary vulnerability review; the OpenPGP module match requires proof that the packages are absent, with raw counts preserved. Additional findings and unavailable evidence block publication.
-- Add packaging/proof regression tests and maintenance/redistribution guidance. Fresh image checks and publication remain pending; live/stable gates are unchanged.
+- Add packaging/proof regression tests and maintenance/redistribution guidance. The frozen candidate passes image and manual binary/notices review; publication is owner-authorized and in progress. Live/stable gates are unchanged.
 
 ## 0.1.0-beta.1 — Preparation candidate, unreleased
 
@@ -13,7 +13,7 @@
 - Added opt-in, bounded image advisory metadata to dependency reviews so failed scans can be investigated without publishing raw scanner reports or paths. Findings still block asset upload; no advisory is waived.
 - Moved both application stages to the official Node 24.21.0 Debian 13 slim base, applied available Debian security updates, removed unused bundled npm/Corepack/Yarn tools from the runtime image, and selected the proxy's fixed zlib `1.3.2-r1`. Build tooling remains intact. Linux CI checks maintenance without those runtime tools; remaining image findings still require review before publication.
 - No application dependency, database migration, backup or configuration format change from the final development candidate. The features and fixes below are included. Full-product live sessions, real OBS/provider delivery, reference-host and independent-operator acceptance remain pending; see the [beta verification record](docs/releases/v0.1.0-beta.1.md#verification-record).
-- Recorded exact candidate package passes, failed image scans and pending binary license review. Image upload/publication remains blocked; no release, registry image or advisory waiver is created by this preparation.
+- Recorded the earlier candidate package passes, failed image scans and then-pending binary license review. Those historical blockers are superseded by the separately frozen remediation candidate above; prior images are not reused.
 
 ## 0.1.0-dev.0 — Local product build, unreleased
 

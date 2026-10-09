@@ -66,9 +66,9 @@ Before the first stable release, there is no supported stable version. Afterward
 <a id="review-record"></a>
 ## Current review record
 
-No frozen candidate has dependency sign-off. The two development-tool findings observed on 2026-10-08 are remediated as follows:
+The frozen first-beta candidate now has four dated dependency/license passes in the [remediation review](RELEASE_READINESS.md#beta-remediation-review). Stable/live acceptance remains pending. The two development-tool findings observed on 2026-10-08 are remediated as follows:
 
-The 2026-10-09 [beta review](RELEASE_READINESS.md#beta-dependency-review) records application/tooling passes for its exact source/image, a failed image scan and pending binary license review. Available OS/tooling fixes are applied; residual findings are not waived. Complete release sign-off is still absent.
+The earlier 2026-10-09 [beta review](RELEASE_READINESS.md#beta-dependency-review) remains a historical failed-image record. The new shell-free image removes the affected unused OS packages/optimizer; the rebuilt proxy proves the remaining OpenPGP match is absent from its binary. Review identities and raw counts are preserved, without an affected-code waiver.
 
 | Advisory | Affected path and remedy | Evidence and removal condition |
 | --- | --- | --- |
@@ -77,4 +77,4 @@ The 2026-10-09 [beta review](RELEASE_READINESS.md#beta-dependency-review) record
 
 **Raw `pnpm audit` still reports one high advisory for braces 3.0.3 and exits nonzero.** Registry version checks cannot identify a local code patch. `pnpm dependencies:audit` reports that count unchanged and lists the advisory under `locallyPatched` only after [verification](../scripts/dependency-patches.mjs) confirms the manifest binding, lockfile patch identity, checked-in patch checksum and installed parser checksum. It accepts only that exact version and dependency path. A missing/modified patch, another path, another advisory or an audit error fails. This is an identified code remediation, not a claim that the raw scan is clean.
 
-The local production audit has zero findings. No production package was added, no lint rules were removed, and no blanket advisory ignore is configured. Application/tooling/image/license acceptance remains pending until a frozen candidate receives all four reviews; the local patch must be included in that tooling review.
+The local production audit has zero findings. No production package was added, no lint rules were removed, and no blanket advisory ignore is configured. The current [dependency record](dependency-review.json) binds all four reviews, including this patch verification, to one frozen source/image. It does not pass the separate live/stable gates.

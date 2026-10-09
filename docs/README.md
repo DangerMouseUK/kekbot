@@ -1,6 +1,6 @@
 # KekBot documentation
 
-These guides describe the `0.1.0-beta.1` preparation candidate, SQLite schema 3, backup format 1 and configuration format 1. The beta is not published yet; [image review](RELEASE_READINESS.md#beta-dependency-review) is blocked, final binary license review and full-product live acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
+These guides describe the `0.1.0-beta.1` preparation candidate, SQLite schema 3, backup format 1 and configuration format 1. The retained beta has passed [image and binary-license review](RELEASE_READINESS.md#beta-remediation-review) and awaits authorized publication. Full-product live and stable acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
 
 ## Start here
 

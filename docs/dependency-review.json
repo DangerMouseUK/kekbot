@@ -2,29 +2,29 @@
   "format": "kekbot-dependency-review",
   "version": 1,
   "candidate": {
-    "sourceRef": "facd7da62874655247eed3bc52f683416aed78ae",
-    "imageDigest": "sha256:5fddb866c15d307d4b43ff4a35f0a9590a62ed52908a24e03bdb977941da845d"
+    "sourceRef": "42f23070c085b445760429beac6f0e7c897830c5",
+    "imageDigest": "sha256:3ed479c993b7ce69f7fcb49f3de2f1b03ff3266ea74ede13cee1bfc4529d0c20"
   },
   "reviews": {
     "application": {
       "outcome": "pass",
       "date": "2026-10-09",
-      "reference": "docs/RELEASE_READINESS.md#beta-dependency-review"
+      "reference": "docs/RELEASE_READINESS.md#beta-remediation-review"
     },
     "tooling": {
       "outcome": "pass",
       "date": "2026-10-09",
-      "reference": "docs/RELEASE_READINESS.md#beta-dependency-review"
+      "reference": "docs/RELEASE_READINESS.md#beta-remediation-review"
     },
     "image": {
-      "outcome": "fail",
-      "date": null,
-      "reference": null
+      "outcome": "pass",
+      "date": "2026-10-09",
+      "reference": "docs/RELEASE_READINESS.md#beta-remediation-review"
     },
     "licenses": {
-      "outcome": "pending",
-      "date": null,
-      "reference": null
+      "outcome": "pass",
+      "date": "2026-10-09",
+      "reference": "docs/RELEASE_READINESS.md#beta-remediation-review"
     }
   }
 }
