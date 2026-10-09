@@ -2,7 +2,7 @@
 
 Use this guide on an always-on **Linux x86-64 host**. The root [`install.sh`](../install.sh) launcher opens the explained Python lifecycle wizard without requiring a repository clone. It also checks prerequisites, offers optional Ubuntu 24.04 setup, and opens updates, rollback, status, start/stop and removal. For Windows/macOS evaluation use [Docker Desktop](DOCKER_DESKTOP.md). [All documentation](README.md).
 
-The launcher is available as a [published beta 3 download](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3), covered by `SHA256SUMS`, and in development source on `main`. Older beta tags do not contain it. Bootstrap, management tools and application have separate identities and trust checks. Pin both release selections deliberately; downloading tools does not pass live/stable acceptance.
+The launcher is available as a [published beta 3 download](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3), covered by `SHA256SUMS`, and in development source on `main`. Older beta tags do not contain it. For a first install use the current guided entry below. The versioned download section preserves exact-release/manual verification for advanced users. Bootstrap, management tools and application can have different identities; downloading them does not establish live/stable acceptance.
 
 **On this page**
 
@@ -19,29 +19,22 @@ The launcher is available as a [published beta 3 download](https://github.com/Da
 
 ## Quick start
 
-In **Bash on your Linux server**, from a directory outside the intended installation root, download and inspect the file:
+**For a first installation, follow [Getting started](GETTING_STARTED.md).** You only need the short entry below, then the explained menu. In Bash on your Linux server:
 
 ```sh
-curl --fail --location --proto '=https' --proto-redir '=https' \
-  --max-time 60 --retry 2 \
-  https://github.com/DangerMouseUK/kekbot/releases/download/v0.1.0-beta.3/install.sh \
-  --output install.sh &&
-  curl --fail --location --proto '=https' --proto-redir '=https' \
-    --max-time 60 --retry 2 \
-    https://github.com/DangerMouseUK/kekbot/releases/download/v0.1.0-beta.3/SHA256SUMS \
-    --output SHA256SUMS &&
-  grep -E '^[a-f0-9]{64}  install[.]sh$' SHA256SUMS | sha256sum --check - &&
-  less install.sh &&
-  sudo bash install.sh --tool-release v0.1.0-beta.3
+curl --proto '=https' -fsSLo install.sh https://raw.githubusercontent.com/DangerMouseUK/kekbot/main/install.sh &&
+sudo bash install.sh
 ```
 
-Use `q` to leave `less` after review. Run the final `sudo` command only when you trust the file; Ctrl+C interrupts instead. The `&&` chain stops on a failed download, launcher-checksum or review command. This quick check verifies `install.sh`; the wizard separately verifies the application bundle. [Full bundle verification](#verify-a-versioned-launcher-download) remains available. If `curl` is missing on Ubuntu 24.04, install it first with `sudo apt-get update` and `sudo apt-get install curl ca-certificates`. Resolve a download failure before execution; do not run an older or partial file accidentally. The URL pins the published beta 3 bootstrap; review that file and [verify its checksum](#verify-a-versioned-launcher-download) before granting administrator authority. The final command pins its management tools to the same release. It is not an independently signed installer. **Download to a file; do not pipe it to Bash.**
+The command downloads the current project launcher and runs it with administrator access. Its `--proto '=https'` setting limits the download and redirects to HTTPS; normal certificate verification stays enabled. Only run project code you trust. The launcher pins its management download to one full commit, shows its origin, then asks **Open the guided setup? [y/N]** before executing it. This is explicit project trust, not a cryptographic publisher signature. It does not ask ordinary users to audit code or type hashes.
 
-Choose **Install a new instance**. If prerequisites are missing, the launcher explains optional Ubuntu setup and requires `INSTALL PREREQUISITES`. Other Linux distributions require their own package setup. Existing working Docker installations are reused.
+Choose **Install a new instance → Recommended setup**. Standard storage, project, local port and account-mode replies are filled in. You choose live or demo, your HTTPS address and final approval. Published application downloads retain checksum/image validation. With no stable release, a beta is offered separately and **Stop for now** is the default. Explicit `--stable` still fails closed.
 
-The launcher downloads only the required management scripts and proxy resources into a private temporary directory. It prints their full resolved commit, review link and local inspection directory. Review that exact code/CI, then enter the displayed `TRUST <first 12 SHA characters>` phrase. You can inspect the files in another SSH session or cancel and use [prepare-only mode](#review-and-pin-management-tools).
+The simplified flow is newer than published beta 3. The `main` launcher uses current project management code; choosing the published beta application does not replace its files or turn `main` into a release. A beta 3 asset/tag launcher keeps its original review/hash prompts. Use the versioned route below when you want exactly those older tools.
 
-For a safe first evaluation, choose **Isolated fixture evaluation** in the Python wizard and **Specific release → v0.1.0-beta.3 → Prebuilt Linux amd64 image**. For a live creator, choose a separate live installation, HTTPS topology and owner-controlled integrations. There is no accepted stable release yet: **Latest stable** deliberately reports unavailable rather than selecting a beta.
+**Advanced setup** exposes custom settings. `--advanced`, development source selectors, source builds and local bundles retain exact-source trust. Manual verification and pinned management selection remain available below; they are optional advanced entry paths.
+
+If `curl` is missing on Ubuntu, install it with `sudo apt-get update && sudo apt-get install curl ca-certificates`, then retry. Do not execute a leftover script after a failed download. Optional prerequisite installation, final `APPLY`, failed-update recovery and explicit purge confirmations remain required.
 
 ## Verify a versioned launcher download
 
@@ -67,7 +60,9 @@ Choose `--format source` to build the archived source instead. Management downlo
 
 ## What happens next
 
-The wizard explains every installation choice: live/demo mode, new directory, Compose project, loopback port, domain/IP/external HTTPS, Kick sender identity, application source and distribution format. See [the complete prompt table](INSTALLER.md#installation-choices-explained). Enter accepts displayed defaults; `q`, `quit` or `cancel` cancels, and Ctrl+C interrupts.
+Recommended setup uses a published image, `/srv/kekbot`, project `kekbot`, local port 3000 and account-mode replies. Advanced setup exposes those settings individually. Both paths show the final values before applying. See [the beginner walkthrough](GETTING_STARTED.md) for first login and a remote demo tunnel.
+
+The advanced wizard explains every installation choice: live/demo mode, new directory, Compose project, loopback port, domain/IP/external HTTPS, Kick sender identity, application source and distribution format. See [the complete prompt table](INSTALLER.md#installation-choices-explained). Enter accepts displayed defaults; `q`, `quit` or `cancel` cancels, and Ctrl+C interrupts.
 
 There are separate trust boundaries: the downloaded Bash launcher; the selected management-tool code; and the selected application source/image. Application choices never silently replace the running management tool. Root/Docker authority permits host changes; the tool's final `APPLY` review describes the actual operation. Source branches/PRs can execute arbitrary build/application code: inspect the resolved SHA before trusting it.
 
@@ -109,8 +104,9 @@ All actions remain interactive and retain their final review. No `--yes`, unatte
 | `--check` | Read-only host readiness; nonzero if requirements are missing |
 | `--setup` | Separately confirmed Ubuntu prerequisite setup, then exit |
 | `--prepare-only` | Download pinned tools without executing them; retain the private stage for inspection |
+| `--advanced` | Show every host/source/format option and use exact-source trust for new management downloads |
 | `--stable` | Prefill latest accepted stable application selection |
-| `--release TAG`, `--branch NAME`, `--pr NUMBER`, `--commit FULL_SHA`, `--bundle PATH` | Prefill one application source; normal source trust and final review still apply |
+| `--release TAG`, `--branch NAME`, `--pr NUMBER`, `--commit FULL_SHA`, `--bundle PATH` | Prefill one application source; published images use explained review, while development/bundle choices retain exact-source trust. Final review always applies |
 | `--format image\|source` | Prefill release/bundle distribution; branch/PR/commit builds must use source |
 | `--tool-branch NAME`, `--tool-release TAG`, `--tool-pr NUMBER`, `--tool-commit FULL_SHA` | Explicitly choose new management code independently of the app; default is `main` for fresh installs |
 | `--local-tools DIRECTORY` | Explicit reviewed checkout or copied Python tool directory; requires `TRUST LOCAL` before running |
@@ -124,7 +120,7 @@ Supply one application selector and one tool selector at most. Readiness/setup/p
 From the directory containing your reviewed downloaded launcher:
 
 ```sh
-# Published beta application using current reviewed management tools
+# Published beta application using its released beta 3 management tools
 sudo bash install.sh install --tool-release v0.1.0-beta.3 --release v0.1.0-beta.3 --format image
 
 # A reviewed development branch (resolved once to a full SHA)

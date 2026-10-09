@@ -2,7 +2,7 @@
 
 This document preserves Milestone 1's historical provider/durability proof and its reusable diagnostic workflow. That live gate passed on 2026-10-02; the original droplet was destroyed before the local product build. Historical evidence below applies to the identified foundation snapshot, not to untested later features.
 
-**New operators:** start with [installation](INSTALLATION.md), [provider setup](PROVIDERS.md), [OBS](OBS.md) and [backup/recovery](BACKUP_RECOVERY.md). Normal operation uses local accounts with proof tools disabled. This page is for explicitly enabled diagnostics. The current [API](API.md), [milestones](MILESTONES.md) and [documentation index](README.md) cover the assembled product.
+**New operators:** start with [Getting started](GETTING_STARTED.md), [provider setup](PROVIDERS.md), [OBS](OBS.md) and [backup/recovery](BACKUP_RECOVERY.md). Normal operation uses local accounts with proof tools disabled. This page is for explicitly enabled diagnostics. The current [API](API.md), [milestones](MILESTONES.md) and [documentation index](README.md) cover the assembled product.
 
 Current command syntax is in [CLI](CLI.md); delegated access is in [accounts](ACCOUNTS.md). Run a new diagnostic against new authorized infrastructure and current provider settings. Do not infer a running host, reusable capture or surviving key from dated evidence in this document.
 

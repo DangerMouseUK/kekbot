@@ -1,5 +1,7 @@
 # Live acceptance campaign
 
+**Testing runbook for designated operators and maintainers.** This is not a first-install checklist. New users should follow [Getting started](GETTING_STARTED.md); this campaign records the additional real-world evidence needed for stable acceptance.
+
 For new Linux hosts, trial the [guided installer](INSTALLER.md) with its public explanations and then [first session](FIRST_SESSION.md). Exercise [updating/rollback](UPDATING.md) and [retained-data removal/purge](UNINSTALLING.md) only on designated test installations with independent backups/keys. Record where operators needed help. A fixture lifecycle rehearsal does not pass unaided installer, actual published-distribution, public certificate or another-host recovery gates.
 
 This is Milestone 18's operator runbook for the complete candidate. **Deployment is deferred; no new live campaign has run.** The original foundation droplet was destroyed. Historical foundation results remain valid only for their recorded source and scenarios. Do not assume its database, grants, captures, certificates or backups survived.

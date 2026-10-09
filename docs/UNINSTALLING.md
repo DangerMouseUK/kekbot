@@ -1,5 +1,7 @@
 # Stop, remove or permanently purge KekBot
 
+**To remove the bot, open [your management menu](GETTING_STARTED.md#come-back-later) and choose Uninstall.** The normal choice keeps your files so you can return later. Read Permanent purge below only if you want to delete the installation's data and keys.
+
 This guide covers a [managed installation](INSTALLER.md). It requires trusted Linux host access and the copied management tool. Manual installations use their original Compose project/files; do not point this tool at an unrecorded directory.
 
 With a reviewed downloaded launcher, `sudo bash install.sh uninstall --root /srv/kekbot` opens the same removal review using protected installed tools without a network tool download. Newly created installations retain their launcher at `<root>/tool/install.sh`. It adds no unattended purge or package-removal behavior. See [launcher lifecycle commands](LAUNCHER.md#updates-recovery-and-removal).
@@ -17,10 +19,10 @@ With a reviewed downloaded launcher, `sudo bash install.sh uninstall --root /srv
 From **Bash on the Linux host**, replacing the path when necessary:
 
 ```sh
-sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action uninstall
+sudo bash /srv/kekbot/tool/install.sh uninstall --root /srv/kekbot
 ```
 
-Review the recorded project, image and data root before choosing anything. The wizard never runs global Docker prune or uninstalls Docker/Git/Python.
+Older installations without a retained launcher use `sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action uninstall`. Review the recorded project, image and data root before choosing anything. The wizard never runs global Docker prune or uninstalls Docker/Git/Python.
 
 ## Default: remove containers and keep data
 
@@ -29,10 +31,10 @@ Choose **Containers only; keep all data**, then normally choose a stopped-host s
 The database, uploaded assets, original encryption key, private environment, management/checkpoint records, backups, Docker images and certificate volumes survive. Removing containers does not remove your owner account or revoke provider grants. Resume later with:
 
 ```sh
-sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action start
+sudo bash /srv/kekbot/tool/install.sh start --root /srv/kekbot
 ```
 
-Start checks the existing database and recreates the recorded version; it does not reseed fixtures, create a new owner or migrate a failed update. Keep the original images available and resolve incomplete update state through rollback first.
+For an older installation without that launcher, use `sudo python3 -B /srv/kekbot/tool/kekbot.py --root /srv/kekbot --action start`. Start checks the existing database and recreates the recorded version; it does not reseed fixtures, create a new owner or migrate a failed update. Keep the original images available and resolve incomplete update state through rollback first.
 
 Removing containers from an interrupted or failed update/rollback preserves its incomplete status and original checkpoint. Status still reports that recovery is required; Start and Update remain blocked until recovery completes. If you deliberately retire that installation instead, explicitly confirmed purge remains available. When a pre-removal snapshot cannot run, removal aborts; skip it only under the walkthrough's stated independent-backup or deliberate-retirement conditions.
 

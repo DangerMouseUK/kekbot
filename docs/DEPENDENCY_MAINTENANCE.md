@@ -1,5 +1,7 @@
 # Maintaining release dependencies
 
+**Maintainer reference:** this is the process for changing software dependencies. Installing or updating your bot does not require following this audit procedure; use [the operator update guide](UPDATING.md).
+
 This guide is for maintainers preparing an upgrade or release. Operators choose when to update through [Updating KekBot](UPDATING.md). Start contribution work with [CONTRIBUTING](../CONTRIBUTING.md); candidate publication follows [Releasing](RELEASING.md).
 
 ## Policy

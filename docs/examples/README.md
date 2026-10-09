@@ -1,5 +1,7 @@
 # Configuration examples
 
+These are optional configuration examples for advanced/API use. For your first command or timer, follow [the first-session walkthrough](../FIRST_SESSION.md) in the dashboard. The [field reference](../CONFIGURATION_FIELDS.md) explains each value.
+
 These are synthetic **document data** examples for [the field reference](../CONFIGURATION_FIELDS.md). They contain no credentials or installation-specific values. CI parses every file against the current strict schema. They are not complete backup/import bundles and are not automatically installed.
 
 | Kind | Example | Notes |

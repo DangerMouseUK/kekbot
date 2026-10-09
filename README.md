@@ -1,145 +1,106 @@
 # KekBot
 
 [![CI](https://github.com/DangerMouseUK/kekbot/actions/workflows/ci.yml/badge.svg)](https://github.com/DangerMouseUK/kekbot/actions/workflows/ci.yml)
+
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/DangerMouseUK/kekbot?include_prereleases)](https://github.com/DangerMouseUK/kekbot/releases)
 
-**A self-hosted Kick bot and stream control room for your creator team.**
+**Your Kick chat, Discord team and stream tools, together in a dashboard you control.**
 
-KekBot brings Kick chat automation, Discord moderator controls, OBS sources and YouTube requests into a self-hosted dashboard. One installation serves one creator and their moderator team. You own the provider applications, configuration, local accounts and data.
+KekBot is a free, open-source bot for one creator and their moderators. Automate chat, display alerts in OBS, manage video requests, and run community activities. You host it yourself and keep your accounts, settings and data on your own server.
 
-**Status: [v0.1.0-beta.3 is available for evaluation](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3).** Beta 3 includes the downloadable lifecycle launcher, matching tool/application versions and the bundled HTTPS installer correction. Read its [release notes](docs/releases/v0.1.0-beta.3.md) and [security/binary-license review](docs/RELEASE_READINESS.md#beta-3-review). Full-product live testing and all 33 stable acceptance gates remain pending. Start with the [beta guide](docs/BETA.md); select **Specific release** because latest-stable discovery excludes betas.
+**Currently in beta:** [v0.1.0-beta.3](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3) is available for evaluation. Full live testing and stable acceptance are still pending. The easier setup described below is newer work on `main`; published beta 3 files remain unchanged. [Beta status and limitations →](docs/BETA.md)
 
-**Using beta 1?** Its original bundled HTTPS installer needs the [fixed-tool workaround](docs/INSTALLER.md#beta-1-bundled-https-installer-fix). Beta 2 includes that correction; beta 1 downloads stay unchanged.
+## Start here
 
-## What you can do
-
-| Area | Capabilities |
+| What would you like to do? | Start with |
 | --- | --- |
-| Kick chat | Custom commands, aliases, response pools, counters, restrictions, cooldowns and timers |
-| Discord | Explicit guild/channel notification routing and permission-controlled operator commands |
-| Stream presentation | Follow/subscription alerts, local image/sound assets, goals, three themes and 18 OBS source types |
-| Media | Kick `!sr` requests → dashboard or Discord approval → visible YouTube playback in OBS → durable queue advancement |
-| Moderation | Link/phrase/repetition/caps/burst rules, safe rule tests, notes, escalation and temporary incident presets |
-| Community | Points, estimated watchtime, reward fulfillment queues, polls, raffles and leaderboards |
-| Ownership | Local accounts/roles, scoped API/source tokens, analytics, retention, configuration portability and backup/recovery tools |
+| Install a bot for your channel | [Step-by-step getting started](docs/GETTING_STARTED.md) |
+| Try the dashboard without real accounts | [Windows/macOS demo](docs/DOCKER_DESKTOP.md), [Linux guided demo](docs/GETTING_STARTED.md#try-a-demo-first), or [developer demo](docs/QUICKSTART.md) |
+| Use an existing installation | [First session](docs/FIRST_SESSION.md) and [user guide](docs/USER_GUIDE.md) |
+| Update, stop or remove your bot | [Manage your installation](docs/GETTING_STARTED.md#come-back-later) |
+| Contribute code or documentation | [Contributing](CONTRIBUTING.md) |
 
-Discord and YouTube are optional to enable. KekBot runs without a project-operated account, relay or billing service. Enabled integrations contact their official services; OBS YouTube playback contacts YouTube. The [configuration reference](docs/CONFIGURATION.md) explains storage and secrets.
+New to servers or Docker? Start with the walkthrough. You do not need to understand the internals or read the developer references to install.
 
-Daily operation includes dedicated queues for pending rewards and uncertain provider deliveries, independent of recent history. The [user guide](docs/USER_GUIDE.md#points-and-rewards) explains fulfillment; the [operations guide](docs/OPERATIONS.md#reconcile-an-uncertain-action) explains inspecting and reconciling delivery without resending it.
+## Install on Linux
 
-The [runtime image](docs/RUNTIME_IMAGE.md) contains Node and the required native libraries without a shell or package manager. Use the documented Node maintenance commands. The guide covers Alpine/musl beta compatibility, the separate proxy build, binary scanning and bundled legal notices; the [release review](docs/RELEASE_READINESS.md#beta-3-review) binds checks to the published artifacts.
+You need an **always-on Linux x86-64 server**, administrator access, and an internet connection. Ubuntu 24.04 LTS has optional guided prerequisite setup. For a live bot, you also need a public HTTPS address; the walkthrough explains domains and the public-IP alternative.
 
-## Choose your starting point
-
-| You want to… | Start here | What you need |
-| --- | --- | --- |
-| Explore safely | [Local quickstart](docs/QUICKSTART.md) | Git, pinned Node/pnpm; no provider accounts or Docker |
-| Evaluate the beta | [Beta guide](docs/BETA.md) | A disposable installation, reviewed source or the exact published beta assets |
-| Host a real bot | [Downloadable launcher](docs/LAUNCHER.md) → [guided terminal installer](docs/INSTALLER.md), or [manual installation](docs/INSTALLATION.md) | Linux x86-64, local persistent disk and public HTTPS; optional Ubuntu prerequisite assistance |
-| Configure a fresh dashboard | [First session](docs/FIRST_SESSION.md) | Owner login and optional provider connections |
-| Join an existing team | [Accounts](docs/ACCOUNTS.md) → [user guide](docs/USER_GUIDE.md) | A private invitation from your installation's operator |
-| Put sources on stream | [OBS and playback](docs/OBS.md) | Owner-created source URLs; OBS Browser Source support |
-| Update or remove a managed host | [Updating](docs/UPDATING.md) · [uninstalling](docs/UNINSTALLING.md) | Trusted host access; wizard-created installation |
-| Back up or diagnose | [Operations](docs/OPERATIONS.md) → [recovery](docs/BACKUP_RECOVERY.md) | Trusted host access for maintenance commands |
-| Contribute or integrate | [Contributing](CONTRIBUTING.md) → [API](docs/API.md) | An isolated fixture installation |
-
-### Guided Linux installation
-
-Download the launcher to a file on your **Linux x86-64 server**, review it, then open its explained install/manage menu:
+In your server's terminal, paste:
 
 ```sh
-curl --fail --location --proto '=https' --proto-redir '=https' \
-  --max-time 60 --retry 2 \
-  https://github.com/DangerMouseUK/kekbot/releases/download/v0.1.0-beta.3/install.sh \
-  --output install.sh &&
-  curl --fail --location --proto '=https' --proto-redir '=https' \
-    --max-time 60 --retry 2 \
-    https://github.com/DangerMouseUK/kekbot/releases/download/v0.1.0-beta.3/SHA256SUMS \
-    --output SHA256SUMS &&
-  grep -E '^[a-f0-9]{64}  install[.]sh$' SHA256SUMS | sha256sum --check - &&
-  less install.sh &&
-  sudo bash install.sh --tool-release v0.1.0-beta.3
+curl --proto '=https' -fsSLo install.sh https://raw.githubusercontent.com/DangerMouseUK/kekbot/main/install.sh &&
+sudo bash install.sh
 ```
 
-The [complete launcher guide](docs/LAUNCHER.md) explains prerequisite checks, optional Ubuntu 24.04 setup, source review and every option. Choose **Specific release → v0.1.0-beta.3** for the published beta. Releases, branches, PRs, exact commits and audited source/image bundles remain available, with typed trust and final review. The launcher also opens update, rollback, start/stop, status and uninstall; removal keeps data by default.
+This downloads the current official launcher to a file and runs it with administrator access. Only run it if you trust the KekBot project. It asks before running downloaded installation tools or installing missing host packages.
 
-The [published beta 3 launcher](docs/releases/v0.1.0-beta.3.md) is a standalone, checksum-covered download. [Verify the complete bundle](docs/LAUNCHER.md#verify-a-versioned-launcher-download) before execution. The command above pins management tools to beta 3; select the application release explicitly in the wizard. Development `main`, branches and PRs remain separate reviewed choices. Beta 1/2 tags/assets stay unchanged. Do not pipe a downloaded script into a shell.
+Choose **Install a new instance → Recommended setup**. The wizard explains the remaining choices, checks downloads automatically, and shows a final review before you type `APPLY`. Recommended setup:
 
-### Local fixture setup
+- Uses a published application image, so you do not need Node.js or to compile the app.
+- Sets up standard storage and ports for one installation.
+- Offers a live bot or a separate demo.
+- Chooses latest stable when one exists. Until then, **trying a beta requires an explicit choice**.
+- Keeps every custom version, build and hosting option under **Advanced setup**.
 
-Install Git, **Node.js 24.21.0** and **pnpm 10.26.0** first. See [quickstart prerequisites](docs/QUICKSTART.md#prerequisites), including native SQLite build requirements.
+After installation, open the address shown by the wizard, create your local owner account, then connect Kick in your browser. Discord and YouTube can wait until you want them.
 
-```sh
-git clone https://github.com/DangerMouseUK/kekbot.git
-cd kekbot
-pnpm install --frozen-lockfile
-cp .env.example .env.local
-```
+**[Follow the complete walkthrough →](docs/GETTING_STARTED.md)** · [Advanced installer options](docs/LAUNCHER.md) · [Manual installation](docs/INSTALLATION.md)
 
-PowerShell uses `Copy-Item .env.example .env.local` for the last command. Edit `.env.local` before continuing:
+## What KekBot does
 
-```dotenv
-KEKBOT_MODE=fixture
-KEKBOT_RUN_JOBS=1
-KEKBOT_ENABLE_PROOF=0
-KEKBOT_PUBLIC_URL=http://127.0.0.1:3000
-KICK_BROADCASTER_USER_ID=123
-```
-
-Leave the provider client ID/secret empty and keep the local public URL exactly as above. Then:
-
-```sh
-pnpm kekbot init
-pnpm kekbot fixture-seed
-pnpm dev
-```
-
-Open **http://127.0.0.1:3000**. Read the protected `fixture-account.json` file at the path reported by seeding to sign in. The password is randomly generated. For manual owner setup instead, omit seeding and use the setup-token file reported by `init`.
-
-The [complete quickstart](docs/QUICKSTART.md) explains the first command, simulated playback, shutdown and storage. Fixture mode cannot send live provider mutations or play real YouTube videos.
-
-Prefer containers? The [Docker Desktop evaluation guide](docs/DOCKER_DESKTOP.md) covers Windows/macOS with Linux containers and a separate fixture volume, without host Node/pnpm.
-
-## Hosting requirements
-
-The [launcher](docs/LAUNCHER.md) opens the [guided installer](docs/INSTALLER.md), with explained terminal menus, final review, pinned branch/PR/commit/release selection, backup-before-update, recovery checkpoints and data-preserving default uninstall. Its application default is **latest stable**, which reports unavailable until stable releases exist; choose **Specific release** → `v0.1.0-beta.3` to evaluate the beta. Release formats are audited source builds or prebuilt Linux amd64 image archives. Bash launches host tooling; the wizard uses Python's standard library outside the application container and leaves provider consent/settings to the owner dashboard.
-
-The deployment target is **Linux x86-64**, one long-running application container, local persistent disk and publicly trusted HTTPS for provider callbacks. The included Compose examples build KekBot and an optional Caddy proxy from source. A domain is the usual path; a separate public-IPv4 HTTPS example is available. Windows/macOS can evaluate the Linux container with Docker Desktop or develop from source.
-
-SQLite storage is local to the installation. Multiple replicas sharing a database, network-filesystem storage and ARM64 distribution are outside the current supported topology. The 2 vCPU / 2 GiB runtime reference target still needs live benchmark acceptance; allow more memory for image builds. See [installation requirements](docs/INSTALLATION.md#requirements).
-
-## Documentation
-
-The [documentation index](docs/README.md) lists every guide, reference and project record. Start with the task-based guides above; the PRDs describe product requirements rather than installation steps.
-
-| Reference | Purpose |
+| For your stream | What you can configure |
 | --- | --- |
-| [Configuration](docs/CONFIGURATION.md) | Environment variables, file layout, secrets and module defaults |
-| [Dashboard fields](docs/CONFIGURATION_FIELDS.md) | Every editable field, default, unit and bound, with schema-checked examples |
-| [CLI](docs/CLI.md) | Complete command syntax, prerequisites, results and failure handling |
-| [Accounts](docs/ACCOUNTS.md) | Capability matrix, invitations, sessions and access removal |
-| [Dependency maintenance](docs/DEPENDENCY_MAINTENANCE.md) | Reviewed release upgrades, audits and candidate sign-off |
-| [HTTP API](docs/API.md) | Authentication, scopes, actions, schemas, SSE and error handling |
-| [Architecture](docs/ARCHITECTURE.md) | Runtime, persistence and provider design decisions |
-| [Testing](docs/TESTING.md) | Local checks, fixture isolation, browser and Linux CI coverage |
-| [Live acceptance](docs/LIVE_ACCEPTANCE.md) | Remaining provider, OBS, host and independent-operator trials |
-| [Release procedure](docs/RELEASING.md) | Candidate packages, checksums, acceptance and publication |
-| [Milestones](docs/MILESTONES.md) | Completed work, exact evidence and remaining milestones |
+| Chat automation | Commands, aliases, response pools, counters, cooldowns and scheduled messages |
+| Alerts and presentation | Follow/subscription alerts, local images/sounds, goals, themes and 18 OBS source types |
+| Video requests | Kick requests, dashboard or Discord approval, a visible YouTube player, and a persistent queue |
+| Moderator tools | Chat rules, notes, escalation, incident presets and permission-controlled actions |
+| Community activities | Points, estimated watchtime, rewards, polls, raffles and leaderboards |
+| Your team | Local accounts, invitations, roles, Discord notifications and operator controls |
+| Your data | Retention settings, exports, configuration transfer, backups and recovery tools |
 
-## Contributing and support
+These features are implemented and have automated fixture coverage; complete live acceptance is pending. [What has been tested →](docs/RELEASE_READINESS.md)
 
-Bug reports, documentation fixes and focused contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and [troubleshooting](docs/TROUBLESHOOTING.md#reporting-a-problem) before opening an [issue](https://github.com/DangerMouseUK/kekbot/issues). Use [SECURITY.md](SECURITY.md) for private vulnerability reporting.
+## How it fits together
 
-GitHub Actions checks documentation/publication policy, secrets, types/lint, real SQLite behavior, production builds, three browser engines and Linux container/proxy/recovery flows. Opt-in synthetic soak and candidate packaging are also available. Passing CI establishes automated evidence; live release gates remain separate.
+KekBot runs as one application container on your Linux server. Docker manages that container; the installer handles its normal setup. SQLite stores the database on local persistent disk. A bundled Caddy proxy can provide HTTPS for secure browser access and provider callbacks.
 
-Active media requests stay separate from paginated history, so older requests cannot hide the queue. See the [media workflow](docs/USER_GUIDE.md) and [quality follow-up](docs/QUALITY_HARDENING.md) for the current changes and verification limits. Updates are explicit operator actions; dependencies are maintained through reviewed release work.
+You configure the bot through its web dashboard. OBS opens private source URLs supplied by KekBot. Optional Discord and YouTube integrations use applications or keys that you create and own. There is no project-operated relay, account subscription or billing service.
 
-## Ownership and privacy
+One installation serves **one creator**. ARM64, native Windows/macOS hosting, shared network-disk databases and multiple application replicas are not supported. Windows/macOS can run a local evaluation with Docker Desktop. [Hosting details →](docs/INSTALLER.md#before-you-start)
 
-Your host retains local accounts and observed viewer activity. Provider grants are encrypted with a separate installation key; keep an independent protected copy because database/asset backups exclude it. Source URLs are private credentials and can be revoked individually. Read [data handling](docs/OPERATIONS.md#privacy-and-retention) before inviting operators or exporting history.
+## Make it yours, one step at a time
 
-Public examples use synthetic identities and reserved addresses. Keep environment files, databases, source URLs, raw provider payloads and screenshots containing credentials out of issues. KekBot stores what it observes; unavailable viewer counts and estimated watchtime are labeled honestly.
+1. **Connect Kick** and check one real reply in your channel. [Provider setup](docs/PROVIDERS.md)
+2. **Add a welcome command**, then a cautious timer. [First session](docs/FIRST_SESSION.md)
+3. **Add an OBS alert source** and test it. [OBS guide](docs/OBS.md)
+4. **Invite your moderators** with only the access they need. [Accounts](docs/ACCOUNTS.md)
+5. **Enable optional features** when you are ready. [User guide](docs/USER_GUIDE.md)
+6. **Keep a backup and a separate recovery key.** [Backup and recovery](docs/BACKUP_RECOVERY.md)
 
-## License
+You do not need to configure every module before using the bot.
 
-KekBot code and built-in themes are [MIT licensed](LICENSE). Dependencies retain their own licenses; see the [dependency inventory](docs/DEPENDENCIES.md) and [supplemental notices](licenses/README.md). Operators are responsible for the rights to uploaded assets and requested media.
+## Documentation and help
+
+The [documentation hub](docs/README.md) separates beginner walkthroughs, everyday tasks and technical references. Use the [glossary](docs/GLOSSARY.md) whenever a term is unfamiliar.
+
+- **Installing:** [Getting started](docs/GETTING_STARTED.md), [advanced launcher](docs/LAUNCHER.md), [manual hosting](docs/INSTALLATION.md)
+- **Using:** [First session](docs/FIRST_SESSION.md), [user guide](docs/USER_GUIDE.md), [OBS](docs/OBS.md), [accounts](docs/ACCOUNTS.md)
+- **Maintaining:** [Updating](docs/UPDATING.md), [uninstalling](docs/UNINSTALLING.md), [backups](docs/BACKUP_RECOVERY.md), [operations](docs/OPERATIONS.md)
+- **Finding a problem:** [Troubleshooting](docs/TROUBLESHOOTING.md), then [report an issue](https://github.com/DangerMouseUK/kekbot/issues)
+- **Developing:** [Contributing](CONTRIBUTING.md), [architecture](docs/ARCHITECTURE.md), [API](docs/API.md), [testing](docs/TESTING.md)
+
+Never attach passwords, keys, private OBS URLs, databases or unreviewed logs to an issue. Report vulnerabilities through [SECURITY.md](SECURITY.md).
+
+## Project status and contributing
+
+The [milestones](docs/MILESTONES.md), [roadmap](docs/ROADMAP.md) and [release readiness](docs/RELEASE_READINESS.md) record progress and remaining work. Passing automated tests does not establish real provider/OBS delivery, certificate renewal or independent installation. Historical release results stay tied to their original source and image.
+
+Focused fixes, better explanations and beginner feedback are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before making changes. Operators decide when to update; dependencies are maintained through reviewed release work.
+
+## Ownership and license
+
+KekBot and its built-in themes are [MIT licensed](LICENSE). Dependencies retain their own licenses; distributed packages include [third-party notices](docs/DEPENDENCIES.md). You are responsible for the rights to uploaded assets and requested media.
+
+Provider credentials are encrypted using a separate installation key. Keep that key independently protected: database/asset backups do not contain it. Private source URLs and account sessions can be revoked. [Privacy and retention →](docs/OPERATIONS.md#privacy-and-retention)

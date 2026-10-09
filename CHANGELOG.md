@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Simplify the current repository launcher with a short download-and-run entry, plain-English official-project consent and Recommended setup using published images and standard host settings. Retain every advanced source/format/hosting option and exact-source trust for development/local selections. Stable stays preferred; only a confirmed absence of stable can offer a separately declined-by-default beta. Final APPLY, backup/recovery and retained-data removal guards remain.
+- Rewrite the public README/documentation hub, add a beginner server-to-dashboard walkthrough and glossary, and refresh operator, contributor, security and reference guidance. Document managed-host provider lookup/backup commands, older-tool differences and separate current-tool/published-application identities. No dependency, schema, data-format or published-artifact change.
+- Add recommended/beta-refusal/transport/pinned-stable/final-review and live-hostname contracts plus Linux terminal consent/advanced checks. Existing lifecycle/image/SQLite/browser verification remains required; no live or independent-installer acceptance is inferred.
+
 - Add opt-in public-only proxy-build diagnostics and a digest-preserving Docker Hub cache on disposable CI runners after an anonymous pull-limit failure. Released artifacts and operator hosts remain unchanged.
 
 ## 0.1.0-beta.3 — 2026-10-09

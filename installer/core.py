@@ -257,6 +257,35 @@ def api_json(path, directory):
     return json.loads(target.read_text())
 
 
+def recommended_release(directory):
+    """Discover a public release; never interpret transport failure as no stable."""
+    try:
+        release = api_json("/releases/latest", directory)
+    except Problem as error:
+        if not isinstance(error.__cause__, urllib.error.HTTPError) or error.__cause__.code != 404:
+            raise
+        error.__cause__.close()
+        releases = api_json("/releases?per_page=100", directory)
+        if not isinstance(releases, list):
+            raise Problem("GitHub returned an invalid release list; try again later.")
+        candidates = [item for item in releases if isinstance(item, dict) and not item.get("draft")
+                      and item.get("prerelease") is True and isinstance(item.get("tag_name"), str)
+                      and re.fullmatch(r"v" + VERSION.pattern, item["tag_name"])
+                      and isinstance(item.get("published_at"), str)
+                      and isinstance(item.get("assets"), list)
+                      and {"release.json", "SHA256SUMS"}.issubset(
+                          {asset.get("name") for asset in item.get("assets", []) if isinstance(asset, dict)})]
+        # GitHub lists releases by creation time; prefer actual publication time.
+        candidates.sort(key=lambda item: item.get("published_at") or "", reverse=True)
+        return (candidates[0]["tag_name"], True) if candidates else (None, False)
+    if not isinstance(release, dict) or release.get("draft") or release.get("prerelease") is not False:
+        raise Problem("Latest stable did not identify a published stable release.")
+    tag = release.get("tag_name")
+    if not isinstance(tag, str) or not re.fullmatch(r"v\d+\.\d+\.\d+", tag):
+        raise Problem("Latest stable returned an unsupported release tag.")
+    return tag, False
+
+
 def checksum(path):
     digest = hashlib.sha256()
     with open(path, "rb") as source:
@@ -357,7 +386,7 @@ def prepare_target(kind, value, distribution, directory):
         if not bundle.is_dir():
             raise Problem("Choose the directory containing release.json and SHA256SUMS.")
     else:
-        release = api_json("/releases/latest" if kind == "stable" else "/releases/tags/" + urllib.parse.quote(value, safe=""), directory)
+        release = api_json("/releases/latest" if kind == "stable" and not value else "/releases/tags/" + urllib.parse.quote(value, safe=""), directory)
         if release.get("draft") or kind == "stable" and release.get("prerelease"):
             raise Problem("The default accepts only a published stable release.")
         value = release["tag_name"]

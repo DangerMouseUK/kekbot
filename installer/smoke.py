@@ -6,12 +6,14 @@ credentials or uploads runtime files. Called after release-package and checksums
 import contextlib
 import argparse
 import json
+import io
 import os
 from pathlib import Path
 import sqlite3
 import subprocess
 import time
 import tempfile
+import sys
 from unittest.mock import patch
 
 from core import Installation, Problem, check_host, copy_proxy_files, prepare_target, proxy_directory, run, stage_proxy_context, validate_options
@@ -73,6 +75,33 @@ def proxy_context_smoke():
         print("Retained installer resources build the staged Caddy context; domain/IP configurations adapt without requesting certificates.")
 
 
+def guided_install_smoke(root, target):
+    """Real recommended wizard/engine/image; only release discovery is a fixture."""
+    import kekbot
+    answers = ["", "2"]  # Recommended setup, isolated demo; standard project/port.
+    if not target["accepted"]:
+        answers.append("2")  # Deliberate beta opt-in; Enter would stop.
+    answers.append("APPLY")
+    engine = Installation(root)
+    try:
+        with patch.object(sys, "argv", ["kekbot.py", "--action", "install", "--root", str(root)]), \
+             patch.object(sys.stdin, "isatty", return_value=True), \
+             patch.object(kekbot, "recommended_release", return_value=("v" + target["version"], not target["accepted"])), \
+             patch.object(kekbot, "prepare_target", return_value=target), \
+             patch("builtins.input", side_effect=answers), contextlib.redirect_stdout(io.StringIO()):
+            kekbot.main()
+        recorded = engine.load()
+        if recorded["status"] != "ready" or recorded["options"]["mode"] != "fixture" or recorded["options"]["port"] != 3000:
+            raise Problem("Recommended fixture setup did not reach the expected ready state.")
+        if recorded["imageId"] != target["image"]["imageId"]:
+            raise Problem("Recommended setup did not install the audited fixture image.")
+    finally:
+        if (root / "installation.json").is_file():
+            with contextlib.redirect_stdout(io.StringIO()):
+                engine.uninstall(purge=True, backup_first=False)
+    print("Recommended wizard, explicit candidate choice and final APPLY install the audited fixture image; isolated cleanup passed. Release transport was simulated; no live acceptance is implied.")
+
+
 def main(release=None):
     if os.geteuid() != 0:
         raise Problem("The isolated CI lifecycle rehearsal requires sudo for UID ownership.")
@@ -88,6 +117,7 @@ def main(release=None):
         target = prepare_target(*selection, "image", stage)
         if release:
             print("Published release selection verified: " + target["sourceRef"] + " / " + target["image"]["imageId"])
+        guided_install_smoke(private / "recommended", target)
         root = private / "installation"
         project = "kekbot-ci-" + str(os.getpid())
         options = validate_options(project, "fixture", "local", "http://127.0.0.1:3317", 3317, "user")

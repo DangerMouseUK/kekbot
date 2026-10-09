@@ -2,11 +2,11 @@
 
 This guide is for people evaluating `v0.1.0-beta.3`, including operators who have never used KekBot. Read the [release notes](releases/v0.1.0-beta.3.md) before choosing an installation. Return to the [documentation index](README.md).
 
-**[Beta 3 is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3), dated 2026-10-09.** Choose **Specific release** explicitly to install it. There is no registry image or supported stable release; `main` is not a frozen release. Beta 1/2 remain available as immutable historical releases.
+**[Beta 3 is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3), dated 2026-10-09.** The current repository launcher offers it as an explicit testing choice. Older published tools use **Specific release**. There is no registry image or supported stable release; `main` is not a frozen release. Beta 1/2 remain available as immutable historical releases.
 
 **Beta 3 includes the downloadable launcher and bundled HTTPS installer correction.** New installs can use matching tool/application source from one tag. The [beta 1 workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) remains for that older immutable release.
 
-Prefer a no-clone start? Download the [versioned launcher](LAUNCHER.md#verify-a-versioned-launcher-download) from the published beta 3 assets, verify its checksum and review it before execution. Select `--tool-release v0.1.0-beta.3` and the same explicit application release. The pinned checkout below remains an alternative; historical tags/assets stay unchanged.
+**New users:** follow [Getting started](GETTING_STARTED.md), choose Recommended setup and explicitly choose the offered beta. The current `main` management tools are newer than published beta 3 and simplify the prompts; the installed application remains the verified published beta. For exactly the original beta 3 tools, use the advanced [versioned launcher](LAUNCHER.md#verify-a-versioned-launcher-download) with `--tool-release v0.1.0-beta.3`, or the pinned checkout below. Those older tools retain hash prompts. Historical tags/assets stay unchanged.
 
 **On this page**
 
@@ -30,13 +30,15 @@ Automated fixtures exercise these workflows without contacting live providers. C
 | --- | --- | --- |
 | Explore without provider accounts | [Fixture quickstart](QUICKSTART.md), then [first session](FIRST_SESSION.md) | Git, pinned Node/pnpm; generated local account and simulated delivery/playback |
 | Evaluate on Windows or macOS | [Docker Desktop guide](DOCKER_DESKTOP.md) | Linux containers and a separate fixture volume; this is not native host installation |
-| Evaluate the distributed Linux image | [Guided installer](INSTALLER.md) with **Specific release**, or **Local audited release bundle** for a trusted retained download | Linux x86-64, Python 3.10+, Git, Docker Engine/Compose; exact prebuilt image and private installation outside source |
+| Evaluate the distributed Linux image | [Getting started](GETTING_STARTED.md) with **Recommended setup** and explicit beta choice; advanced users can select a fixed release or local audited bundle | Linux x86-64, Python 3.10+, Git, Docker Engine/Compose; exact prebuilt image and private installation outside source |
 | Build the beta yourself | Guided installer **Exact commit**, or [manual source/Compose installation](INSTALLATION.md) | Full reviewed candidate SHA, Docker and build resources; a rebuild has its own image identity |
 
 The only prebuilt application format is a **Linux amd64 Docker image archive**. The audited source archive is a second option and builds with Docker. Native Windows/macOS executables, `.deb`/`.rpm`, ARM64 and a mutable registry `latest` image are not offered. No supported stable release exists; the wizard's **Latest stable** default deliberately fails instead of silently installing a beta.
 
 <a id="after-publication"></a>
 ### Install the published beta
+
+The simpler recommended path is [Getting started](GETTING_STARTED.md); no clone or hash typing is needed. The instructions below are an **advanced alternative** for using exactly the original, frozen beta 3 management tools.
 
 From Bash on a Linux evaluation host, clone and pin the published beta's **tool** source:
 

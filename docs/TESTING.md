@@ -1,5 +1,7 @@
 # Testing and candidate verification
 
+**Contributor/maintainer guide:** these checks verify changes before review and release. You do not need to run the developer suite to install the bot. Use [Getting started](GETTING_STARTED.md) for installation and [troubleshooting](TROUBLESHOOTING.md) for a specific problem.
+
 KekBot is a development candidate, not an accepted stable release. This guide covers Milestone 17's assembled-product checks. [Live acceptance](LIVE_ACCEPTANCE.md) covers Milestone 18. The [milestones](MILESTONES.md) record results and outstanding gates. Use [quickstart](QUICKSTART.md) for local setup, [installation](INSTALLATION.md) for hosting and [backup/recovery](BACKUP_RECOVERY.md) for maintenance procedures. Return to the [documentation index](README.md).
 
 <!-- contents:start -->
@@ -7,6 +9,7 @@ KekBot is a development candidate, not an accepted stable release. This guide co
 
 - [Safety and isolation](#safety-and-isolation)
 - [Downloadable host launcher](#downloadable-host-launcher)
+- [Guided setup and beginner documentation](#guided-setup-and-beginner-documentation)
 - [Run the campaign](#run-the-campaign)
 - [GitHub Actions](#github-actions)
 - [Coverage and limits](#coverage-and-limits)
@@ -17,7 +20,7 @@ KekBot is a development candidate, not an accepted stable release. This guide co
 
 ## Safety and isolation
 
-Launcher/host setup is separate from application fixtures. Never run the optional Ubuntu package installer in ordinary tests or against a creator host. Its command/consent policy is tested with mocks; a fresh-host package trial requires explicit operator evidence. Downloaded/local manager execution requires separate trust, and application source trust/final review remain intact.
+Launcher/host setup is separate from application fixtures. Never run the optional Ubuntu package installer in ordinary tests or against a creator host. Its command/consent policy is tested with mocks; a fresh-host package trial requires explicit operator evidence. Normal downloaded manager execution requires explicit project consent; advanced/development/local selections retain exact-source trust. Every application operation retains final review, with separate deliberate beta selection and stricter trust for development/bundle/source-build paths.
 
 All automated tests use synthetic accounts, generated RSA/Ed25519 signing keys, private temporary directories and real SQLite. Fixture mode refuses live integration configuration and provider mutations. The fixture player does not contact YouTube. Never supply Kick, Discord or YouTube credentials to CI. Builds disable background jobs and framework telemetry; runtime tests enable jobs explicitly.
 
@@ -31,7 +34,7 @@ Offline launcher contracts cover argument conflicts/quoting, branch/tag/PR/commi
 
 The ordinary Linux container campaign now installs its audited application bundle through the actual root launcher and Python wizard, verifies the launcher is retained, then uses that retained file for status/stop/start. Existing failed-update/separate-root-rollback/source-build/retained-removal/purge checks continue through the shared engine. PTY output is bounded and discarded; no transcript or generated credential is uploaded. Actual public download after merge, optional package installation on a new Ubuntu host and independent operators remain separate evidence; the historical beta 2 image result is not transferred to new tools or images.
 
-The installation response sequence includes application `TRUST <SHA>` only for unaccepted bundles; final `APPLY` remains required for both. A portable regression runs both candidate and synthetic acceptance-verified metadata through the real Python prompts with host effects isolated, checking installation is reached and no response is left over. This covers future accepted-release rehearsal compatibility without claiming that an accepted stable release exists.
+The advanced bundle installation response sequence includes application `TRUST <SHA>` only for unaccepted bundles; final `APPLY` remains required for both. A portable regression runs both candidate and synthetic acceptance-verified metadata through the real Python prompts with host effects isolated, checking installation is reached and no response is left over. This covers future accepted-release rehearsal compatibility without claiming that an accepted stable release exists.
 
 ## Run the campaign
 
@@ -41,7 +44,7 @@ Portable recovery regressions also exercise proxy build/inspection failure befor
 
 Domain/IP proxy regressions inspect the actual installer Docker build context against the Dockerfile's `COPY` inputs, verify all resources in the retained tool, and reject missing inputs before creating installation state. Launcher contracts additionally cover the downloadable entry point and terminal trust boundaries. The reserved example IP is classified as public only inside the isolated IP test; production address validation remains unchanged.
 
-Use the pinned Node/pnpm versions from the root README. An agent or CI can run these commands; operators do not need to execute them on a production installation.
+Use the pinned Node/pnpm versions from [Contributing](../CONTRIBUTING.md). An agent or CI can run these commands; operators do not need to execute them on a production installation.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -80,6 +83,14 @@ pnpm test:container
 ```
 
 The proxy command builds from copied, retained installer resources using the real staging helper, then adapts domain/IP configurations. Building directly from the whole checkout alone cannot detect missing staged files. Run the Compose validation from [.github/workflows/ci.yml](../.github/workflows/ci.yml) as well. Container tests create uniquely named disposable volumes/networks and remove only their own resources. They do not modify an operator installation or request public certificates.
+
+## Guided setup and beginner documentation
+
+The Linux container rehearsal also runs the real Recommended Python wizard and lifecycle engine against the audited image, with standard project/port settings and explicit candidate approval. Only release discovery/download selection is supplied by a test fixture; image loading, initialization, readiness and purge are real. This checks the beginner prompt sequence separately from the advanced Bash/local-bundle rehearsal. It does not establish a public download or unaided installation.
+
+`pnpm test:installer` covers recommended published-image setup, stopping by default when only a beta exists, explicit beta selection, pinned stable discovery, transport/rate-limit failures and final APPLY cancellation. Advanced and local paths retain the existing exact-source contracts. Linux adds real-terminal normal project consent/decline and the Advanced escape hatch. Existing lifecycle/container/privacy tests remain required; no provider grant or unattended installation is introduced.
+
+The root README, Getting started and launcher guide share a short download-then-run entry. Manual verification is in the advanced guide. Link/schema checks do not establish beginner usability: record actual confusion and assistance during the independent-operator trial.
 
 ## GitHub Actions
 

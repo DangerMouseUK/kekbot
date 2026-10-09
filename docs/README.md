@@ -1,77 +1,80 @@
 # KekBot documentation
 
-These guides describe the [published `0.1.0-beta.3` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3), SQLite schema 3 and backup/configuration formats 1. Beta 3 includes matching management/application tools and a checksum-covered launcher download; see its [release notes](releases/v0.1.0-beta.3.md) and [security/binary-license review](RELEASE_READINESS.md#beta-3-review). Beta 1/2 remain immutable. Full-product live and stable acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
+**New here? Start with [Get your first KekBot running](GETTING_STARTED.md).** It explains the server, the short install command, each normal choice and your first login. You can add features gradually. [Plain-English glossary](GLOSSARY.md).
 
-**Beta 2 includes the corrected bundled HTTPS installer.** For the older beta 1 tag, use its [fixed-tool workaround](INSTALLER.md#beta-1-bundled-https-installer-fix).
+The latest published application is [v0.1.0-beta.3](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3). The simplified launcher on `main` is newer than that release's original tools. Guides identify those differences; historical releases and their verification records remain unchanged. Full live/stable acceptance is pending.
 
 ## Start here
 
-| Your goal | Read in this order |
+| I want to… | Read next |
 | --- | --- |
-| Explore without provider accounts | [Quickstart](QUICKSTART.md) → [first session](FIRST_SESSION.md) → [user guide](USER_GUIDE.md) |
-| Evaluate or report a beta problem | [Beta guide](BETA.md) → [beta release notes](releases/v0.1.0-beta.3.md) |
-| Host a live installation | [Downloadable launcher](LAUNCHER.md) → [guided installer](INSTALLER.md) (or [manual installation](INSTALLATION.md)) → [provider setup](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [OBS](OBS.md) → [operations](OPERATIONS.md) |
-| Update, roll back or remove | [Updating](UPDATING.md) → [uninstalling](UNINSTALLING.md); manual deployments use [recovery](BACKUP_RECOVERY.md) |
-| Join a moderator team | [Accounts and permissions](ACCOUNTS.md) → the relevant [daily workflow](USER_GUIDE.md) |
-| Move, back up or recover a host | [Backup and recovery](BACKUP_RECOVERY.md) → [troubleshooting](TROUBLESHOOTING.md) |
-| Develop or integrate | [Contributing](../CONTRIBUTING.md) → [architecture](ARCHITECTURE.md) → [API](API.md) → [testing](TESTING.md) |
+| Install my first bot | [Getting started](GETTING_STARTED.md) → [Connect Kick](PROVIDERS.md#kick) → [First session](FIRST_SESSION.md) |
+| Try a demo first | [Guided Linux demo](GETTING_STARTED.md#try-a-demo-first), [Windows/macOS demo](DOCKER_DESKTOP.md), or [developer demo](QUICKSTART.md) |
+| Set up a command or timer | [First session](FIRST_SESSION.md) → [User guide](USER_GUIDE.md) |
+| Add alerts or video to OBS | [OBS and media](OBS.md) |
+| Invite a moderator | [Accounts and permissions](ACCOUNTS.md) |
+| Update, stop or remove the bot | [Return to the management menu](GETTING_STARTED.md#come-back-later) → [Updating](UPDATING.md) or [Uninstalling](UNINSTALLING.md) |
+| Back up, move or recover | [Backup and recovery](BACKUP_RECOVERY.md) |
+| Solve a problem | [Troubleshooting](TROUBLESHOOTING.md) |
+| Use a custom version or hosting layout | [Advanced launcher options](LAUNCHER.md) and [installer reference](INSTALLER.md) |
+| Contribute | [Contributing](../CONTRIBUTING.md) |
 
 ## Operator and user guides
 
-- [Beta 3 release notes](releases/v0.1.0-beta.3.md): downloads, exact source/image/checksums, compatibility and verification limits.
-- [Beta guide](BETA.md): publication status, source/bundle choices, supported evaluation platforms, testing, updates and safe feedback.
-- [Quickstart](QUICKSTART.md): pinned tools, isolated fixtures, generated login, first command and shutdown.
-- [Docker Desktop evaluation](DOCKER_DESKTOP.md): Windows/macOS Linux containers, private runtime files, named-volume fixtures and stop/resume.
-- [Installation](INSTALLATION.md): source-built Linux container, external runtime files, domain/IP HTTPS and owner claim.
-- [Guided installer](INSTALLER.md): explained Linux terminal walkthrough, every host/source/format choice, private layout and failure recovery.
-- [Downloadable launcher](LAUNCHER.md): no-clone entry, host checks/optional Ubuntu setup, reviewed management downloads, application shortcuts and complete lifecycle dispatch. Available from `main`; beta 3 adds a separately verified release download. Older tags remain immutable.
-- [Updating](UPDATING.md) and [uninstalling](UNINSTALLING.md): explicit version changes, pre-update checkpoints, separate-root rollback, retained-data removal and typed purge.
-- [First session](FIRST_SESSION.md): a command, cautious timer, manual alert/source, delegation and recovery checkpoint.
-- [Accounts](ACCOUNTS.md): role/capability matrix, claim, invitations, sessions and access removal.
-- [Configuration reference](CONFIGURATION.md): all supported environment variables, storage/secret paths and module defaults.
-- [Dashboard field reference](CONFIGURATION_FIELDS.md) and [JSON examples](examples/README.md): every schema field, default, bound, unit and matching behavior.
-- [Provider setup](PROVIDERS.md): owner-controlled Kick app/identity, Discord installation/routing/permissions and YouTube metadata key.
-- [User guide](USER_GUIDE.md): commands, timers, moderation, goals, points/rewards, polls/raffles and analytics.
-- [OBS and media](OBS.md): private sources, widget types, visible playback, audio, approval and recovery behavior.
-- [Operations](OPERATIONS.md): daily health, delivery reconciliation, privacy, exports and the CLI reference.
-- [CLI reference](CLI.md): source/container invocation, arguments, application-state requirements, expected outputs and failures.
-- [Backup and recovery](BACKUP_RECOVERY.md): stopped-host snapshots, keys, empty-target restore, owner recovery and upgrades/rollback.
-- [Troubleshooting](TROUBLESHOOTING.md): symptoms, safe diagnostics and redacted support reports.
+Read the page for the task you are doing. You do not need to read this whole list before installing.
+
+- [Getting started](GETTING_STARTED.md): beginner server-to-dashboard walkthrough.
+- [Glossary](GLOSSARY.md): everyday explanations of technical terms.
+- [First session](FIRST_SESSION.md): one command, a cautious timer and an OBS alert before extra modules.
+- [Provider setup](PROVIDERS.md): Kick application/identity, optional Discord and YouTube, and real-delivery checks.
+- [User guide](USER_GUIDE.md): commands, timers, moderation, goals, community activities and analytics.
+- [OBS and media](OBS.md): private sources, themes, video requests, approval, audio and playback recovery.
+- [Accounts](ACCOUNTS.md): owner setup, invitations, permissions, login and access removal.
+- [Updating](UPDATING.md), [uninstalling](UNINSTALLING.md) and [operations](OPERATIONS.md): everyday host maintenance and safe failure handling.
+- [Backup and recovery](BACKUP_RECOVERY.md): snapshots, separate keys, restoring and owner recovery.
+- [Troubleshooting](TROUBLESHOOTING.md): symptoms, first checks and safe support reports.
+- [Beta guide](BETA.md): evaluation limits, published version choices and feedback.
+
+## Installation alternatives and references
+
+These pages support advanced needs; recommended setup handles the usual defaults for you.
+
+- [Launcher reference](LAUNCHER.md): every action/flag, custom sources, inspection and versioned downloads.
+- [Installer reference](INSTALLER.md): every host choice, private file layout, HTTPS and recovery rules.
+- [Manual installation](INSTALLATION.md): manage your own source, Docker Compose and proxy configuration.
+- [Docker Desktop](DOCKER_DESKTOP.md): local Windows/macOS evaluation with Linux containers.
+- [Source quickstart](QUICKSTART.md): contributor/local demo with pinned Node and pnpm.
+- [Configuration](CONFIGURATION.md): environment variables, paths, secrets and precedence.
+- [Dashboard fields](CONFIGURATION_FIELDS.md) and [JSON examples](examples/README.md): field names, defaults, units, limits and matching behavior.
+- [CLI reference](CLI.md): application maintenance commands and host-tool selectors.
 
 ## Contributor and maintainer references
 
-- [Contributing](../CONTRIBUTING.md) and [coding-agent instructions](../AGENTS.md).
-- [Architecture decisions](ARCHITECTURE.md) and [HTTP/domain API](API.md).
-- [Runtime image](RUNTIME_IMAGE.md): minimal container contents, musl compatibility, shell-free maintenance, proxy binary review and redistribution notices.
-- [Host lifecycle implementation](../installer/README.md): standard-library Python boundary, state protocol and offline/real-Docker tests.
-- [Action reference](API_ACTIONS.md): payloads, capabilities and availability by control surface.
-- [Documentation maintenance](DOCUMENTATION.md): editorial rules, coverage and verification procedure.
-- [Automated testing](TESTING.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md).
-- [Release readiness crosswalk](RELEASE_READINESS.md), [release evidence index](release-evidence.json) and [release procedure](RELEASING.md).
-- [Beta 2 release notes](releases/v0.1.0-beta.2.md): installer correction, compatibility, limitations and exact verification.
-- [Beta 1 release notes](releases/v0.1.0-beta.1.md): immutable original artifacts and historical verification.
-- [Dependency maintenance](DEPENDENCY_MAINTENANCE.md): exact pins, candidate audits, security patches and release sign-off.
-- [Quality follow-up](QUALITY_HARDENING.md): the eight repository improvements and verification record.
-- [Dependency inventory](DEPENDENCIES.md), [supplemental licenses](../licenses/README.md) and [MIT license](../LICENSE).
-- [Security reporting](../SECURITY.md) and [changelog](../CHANGELOG.md).
+- [Contributing](../CONTRIBUTING.md), [agent instructions](../AGENTS.md) and [documentation maintenance](DOCUMENTATION.md).
+- [Architecture](ARCHITECTURE.md), [HTTP API](API.md) and [control actions](API_ACTIONS.md).
+- [Host lifecycle implementation](../installer/README.md) and [runtime image](RUNTIME_IMAGE.md).
+- [Testing](TESTING.md), [live acceptance](LIVE_ACCEPTANCE.md), [release readiness](RELEASE_READINESS.md), [evidence index](release-evidence.json) and [releasing](RELEASING.md).
+- [Dependency maintenance](DEPENDENCY_MAINTENANCE.md), [dependency inventory](DEPENDENCIES.md) and [supplemental licenses](../licenses/README.md).
+- [Security reporting](../SECURITY.md), [changelog](../CHANGELOG.md) and [MIT license](../LICENSE).
 
 ## Product plans and historical evidence
 
-- [Milestones](MILESTONES.md): project sequence, dated evidence and remaining acceptance.
-- [Roadmap](ROADMAP.md): requirements grouped by release capability and dependency.
-- [PRD](PRD.md) and [identical self-hosted PRD](PRD-self-hosted.md): declared product scope. Update both together when requirements change.
-- [Foundation proof](FOUNDATION.md): historical Milestone 1 results and opt-in diagnostic controls. Normal installation uses local accounts and the guides above.
+These explain plans and recorded results; they are not the normal install instructions.
 
-All examples use placeholders or synthetic data. Keep actual addresses, credentials, source URLs, provider payloads and private operator records outside Git. Documentation changes must preserve the distinction between implemented, fixture-tested and live-tested behavior.
+- [Milestones](MILESTONES.md), [roadmap](ROADMAP.md) and [quality follow-up](QUALITY_HARDENING.md).
+- [PRD](PRD.md) and [identical self-hosted PRD](PRD-self-hosted.md): product requirements.
+- [Foundation proof](FOUNDATION.md): historical Milestone 1 evidence and opt-in diagnostics.
+- Published release records: [beta 3](releases/v0.1.0-beta.3.md), [beta 2](releases/v0.1.0-beta.2.md), [beta 1](releases/v0.1.0-beta.1.md). For beta 1's old HTTPS installer, use its [specific workaround](INSTALLER.md#beta-1-bundled-https-installer-fix).
 
 ## Which record answers which question?
 
 | Question | Record |
 | --- | --- |
+| How do I install and use today's repository launcher? | Getting started and the task guides above |
+| What is different in the published beta? | Its release notes and the beta guide |
+| What does a field, command or permission mean? | The matching reference and glossary |
 | What should the product eventually do? | The identical PRDs |
-| In what dependency order was it built? | Roadmap and milestone sequence |
-| What evidence actually exists? | Dated milestone entries with exact source/run identities |
-| What still blocks stable release? | Release readiness, machine-readable evidence and live runbook |
-| How do I install/use today's code? | Task guides above; historical foundation instructions are not the normal setup path |
+| What has actually passed? | Dated milestone/release evidence tied to exact source/image identities |
+| What still blocks stable release? | Release readiness, evidence JSON and the live acceptance runbook |
 
-Provider-console details may change. Guides link official contracts; verify them again for a new live campaign. A documentation check proves local navigation and example/schema consistency, not external availability or usability acceptance by an independent installer.
+The current database schema is 3; backup/configuration formats are 1. A passing documentation or CI check does not prove real provider/OBS delivery, public certificate renewal or independent installation. Examples use synthetic identities and reserved addresses. Keep actual credentials, private source URLs, databases and setup records out of Git and public reports.

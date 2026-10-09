@@ -1,5 +1,7 @@
 # Configuration reference
 
+**Most users can configure the bot in the dashboard.** This is the advanced reference for environment variables, file locations and custom hosting. Recommended installation fills the normal host values for you. Start with [Getting started](GETTING_STARTED.md) or [the user guide](USER_GUIDE.md), and consult this page when a specific setting needs explanation.
+
 Use this reference alongside [installation](INSTALLATION.md), [provider setup](PROVIDERS.md) and [operations](OPERATIONS.md). Source defaults are defined in [config.ts](../src/server/config.ts); module fields/defaults are defined in [catalog.ts](../src/server/domain/catalog.ts). Return to the [documentation index](README.md).
 
 The [wizard](INSTALLER.md) generates protected `runtime.env` and `compose.json` outside source, uses immutable image IDs and fixes mode/project/data/proxy recovery assumptions in `installation.json`. It does not use the manual Compose interpolation exports below. Do not hand-edit its generated record/Compose or add custom mounts beneath it; custom topologies use manual deployment. Application settings remain the same dashboard/API contracts on both paths.

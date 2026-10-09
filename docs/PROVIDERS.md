@@ -1,6 +1,8 @@
 # Connect Kick, Discord and YouTube
 
-Complete [installation and owner setup](INSTALLATION.md) first. Use your final trusted HTTPS origin throughout. These steps configure live integrations; [fixtures](QUICKSTART.md) need none of these credentials. Keep actual IDs, addresses and secrets in your private operator record/runtime files. Return to the [documentation index](README.md).
+**Connect Kick first.** Discord and YouTube are optional, and each can wait until you want its features. Install and create your local owner account with [Getting started](GETTING_STARTED.md), then follow just the Kick section below. [Glossary](GLOSSARY.md).
+
+Complete [installation and owner setup](GETTING_STARTED.md) first. Use your final trusted HTTPS origin throughout. These steps configure live integrations; [fixtures](QUICKSTART.md) need none of these credentials. Keep actual IDs, addresses and secrets in your private operator record/runtime files. Return to the [documentation index](README.md).
 
 Replace `https://kekbot.example` with your own origin (or your configured trusted public-IP origin). Register these exact URLs:
 
@@ -51,7 +53,17 @@ The dashboard button currently requests moderation along with core scopes. Strea
 
 Kick's official [channels API](https://docs.kick.com/apis/channels) returns `broadcaster_user_id` for a slug using an app access token obtained through the [client-credentials flow](https://docs.kick.com/getting-started/generating-tokens-oauth2-flow). Use a trusted local API client, or this container-based lookup. It performs a token request and public channel read; it does not authorize the bot or print the token.
 
-Temporarily enter your `KICK_CLIENT_ID` and `KICK_CLIENT_SECRET` in the protected runtime file, plus `KICK_CHANNEL_SLUG` with the channel slug. The latter is used only by this snippet, not by KekBot configuration. Keep the running server unchanged. In the Bash shell with the installation guide's `dc` helper and exports:
+This lookup is currently the one server-side step in Kick connection setup. You are finding a public numeric account ID; the client secret stays in a private file and is never printed.
+
+For a **wizard-managed host**, run `sudoedit /srv/kekbot/runtime.env` in your server terminal. Add `KICK_CLIENT_ID=`, `KICK_CLIENT_SECRET=` and `KICK_CHANNEL_SLUG=` on separate lines, filling each with your own value after the equals sign. The slug is the last part of your Kick channel URL. Keep existing entries intact, save and close the editor. Use your actual installation directory if customized. The slug is used only by this lookup. Do not restart the app for this temporary edit.
+
+Next, define the helper below in Bash on that server. It uses the generated configuration and the active recorded data root, including after rollback. Replace the directory and project if you chose custom values; inspect the private `installation.json` when unsure:
+
+```sh
+dc() { sudo docker compose --project-name kekbot --file /srv/kekbot/compose.json "$@"; }
+```
+
+Keep that runtime file private, and do not edit `installation.json` or `compose.json`. For a **manual installation**, enter the same three temporary fields in its protected runtime file and instead use [its own `dc` helper and exports](INSTALLATION.md#3-build-and-initialize), with its protected runtime file. These are alternative helper definitions: use only the one matching your installation. Then run:
 
 ```sh
 dc run --rm --no-deps -T kekbot node --input-type=module <<'JS'
@@ -83,7 +95,9 @@ try {
 JS
 ```
 
-Record the number privately. Remove the temporary client ID/secret/slug entries from the runtime file if you will use dashboard-managed settings. If using environment bootstrap instead, retain the protected client fields and set `KICK_BROADCASTER_USER_ID` to the result; recreate the app container to load them. Never put the app token directly on a command line. A lookup failure should be resolved before OAuth.
+Success prints one result such as `{"broadcasterUserId":123456789}`; the example number is made up. Copy your actual number for the next step. If you see `channel_not_found`, check the slug; other errors are explained in [troubleshooting](TROUBLESHOOTING.md#kick-and-discord).
+
+Use `sudoedit` again to remove the three temporary lookup entries if you will use dashboard-managed settings. Keep your client ID/secret privately for entering in Connections. If using environment bootstrap instead, retain the protected client fields and set `KICK_BROADCASTER_USER_ID` to the result; recreate the app container to load them. Never put the app token directly on a command line. A lookup failure should be resolved before OAuth.
 
 ### 4. Authorize and subscribe
 

@@ -1,8 +1,10 @@
 # Your first session
 
-After [guided installation](INSTALLER.md), use the reported private setup-token or random fixture-account path. The terminal wizard handles the host; the browser steps below configure all application modules, with [every field](CONFIGURATION_FIELDS.md) explained separately. It never needs provider secrets in the terminal.
+**Your goal for today:** connect Kick, make one command work, then try one alert. You can stop there and add the other features later. If you have not installed or signed in yet, start with [Getting started](GETTING_STARTED.md).
 
-This walkthrough turns a claimed installation into a small, understandable setup. It is for the **owner**; [accounts](ACCOUNTS.md) explains delegated access. Start with [installation](INSTALLATION.md) for live hosting or the [quickstart](QUICKSTART.md) for an isolated demonstration. [All documentation](README.md).
+Sign in with the local owner account you created during installation, or the generated login for a demo. The terminal installer sets up the server; these browser steps configure the bot. This walkthrough is for the **owner**; [accounts](ACCOUNTS.md) explains access for your team. [All documentation](README.md).
+
+Start with steps 1 and 2. Add the timer and alert when ready; invitations and media are optional. You do not need to understand [every configuration field](CONFIGURATION_FIELDS.md) to follow these examples.
 
 Fixture installations simulate effects. On a live installation, the command and alert checks below contact real services. Use a channel and identities you control. This walkthrough is an operator check, not completion of the release acceptance campaign.
 
@@ -39,7 +41,7 @@ Open **Commands → Add command** and set the values below. If you used `fixture
 | Stream only | Off |
 | Condition | `always` |
 
-Save, then choose **Preview responses**. Expect substituted example text with no delivery, counter or cooldown change. On live Kick, send `!welcome` in **the configured creator's chat**, wait for the reply, and check **Maintenance → Delivery outcomes**. Allow the cooldown before repeating. On fixtures, the CLI's `fixture-event` exercises the built-in `!kekbot` path; it does not send arbitrary custom text. Preview your custom command separately.
+Save, then choose **Preview responses**. Expect substituted example text with no delivery, counter or cooldown change. On live Kick, send `!welcome` in **the configured creator's chat**, wait for the reply, and check **Maintenance → Delivery outcomes**. Allow the cooldown before repeating. In a demo, stop at the preview: it shows the response without sending to Kick. The developer CLI's `fixture-event` checks only the built-in `!kekbot` path, rather than arbitrary custom commands.
 
 Give the installation a useful **Name** under **Maintenance → Edit settings**; `{channel}` uses this configured name. Add rules/Discord/social text there if you want the built-in utility commands. [All command behaviors](USER_GUIDE.md#commands).
 

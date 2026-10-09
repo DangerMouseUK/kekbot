@@ -1,4 +1,6 @@
-# Install KekBot
+# Manual installation with Docker Compose
+
+**For the usual installation, follow [Getting started](GETTING_STARTED.md).** Use this page only when you want to manage Docker Compose and the proxy yourself. [Glossary](GLOSSARY.md).
 
 This is the **manual source/Compose installation** of the published `0.1.0-beta.3` evaluation release on Linux x86-64. Pin its tag or reviewed full source as explained in the [beta guide](BETA.md). Building development `main` is a separate source/image from the published artifact. For explained terminal menus covering installation, versions, updates and removal, use the [downloadable launcher](LAUNCHER.md) and [guided installer](INSTALLER.md). Stable publication, unaided installer trials and full-product live acceptance remain pending. For a safe local demonstration use [quickstart](QUICKSTART.md). Return to the [documentation index](README.md).
 

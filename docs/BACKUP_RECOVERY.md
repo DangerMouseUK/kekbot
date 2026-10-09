@@ -1,5 +1,7 @@
 # Backup, recovery and upgrades
 
+**A backup needs two things:** the database/assets snapshot and the original encryption key kept separately. Keep protected copies away from the application server. The managed-installation steps below cover the normal installer path; the later manual examples are for custom Compose deployments. [Glossary](GLOSSARY.md).
+
 This guide covers the development candidate, SQLite schema 3 and backup format 1. It assumes the Linux paths and Compose project from [installation](INSTALLATION.md). Keep backups, keys, credentials and private evidence outside Git. Return to the [documentation index](README.md).
 
 For [managed installations](INSTALLER.md), [updating](UPDATING.md) creates the same stopped-host database/asset format and [rollback](UPDATING.md#roll-back-after-failure-or-a-bad-update) restores into a new root automatically. Do not substitute the manual `dc` helper below for that installation's generated Compose. For manual disaster/owner recovery on a managed host, select its recorded project and `<root>/compose.json`, inspect the active recorded data root, and preserve original keys. Custom recovery to a different topology should use a separate manual installation, not edited lifecycle records.
@@ -35,6 +37,20 @@ Backups contain private history and are **not encrypted by the backup command**.
 Retain several dated recovery points according to your own storage/privacy needs, including a pre-upgrade copy. Keep at least one backup/key copy off the application host. No scheduled backup or automatic cloud upload is configured by KekBot.
 
 ## Open a maintenance shell
+
+### Managed installation: the normal installer path
+
+In Bash on the Linux server, define a helper using the **generated** Compose file. This default example uses `/srv/kekbot` and project `kekbot`; use the recorded root/project if customized:
+
+```sh
+dc() { sudo docker compose --project-name kekbot --file /srv/kekbot/compose.json "$@"; }
+```
+
+This generated file already points at the active data root, including after managed rollback. You can use this helper with **Create a snapshot** below. The installer created `/srv/kekbot/backups` with the application user's write permissions. Choose a new snapshot name for every backup.
+
+For a failed managed update, prefer [Roll back in the management menu](UPDATING.md#roll-back-after-failure-or-a-bad-update). The separate-data restore instructions later in this page use manual Compose interpolation; do not apply their exports to generated managed files. For disaster recovery, restore into a separate manual installation or use the recorded managed checkpoint; never hand-edit the record to pretend a restore completed.
+
+### Manual source/Compose installation
 
 Use the same source/image, private configuration, project name and proxy override as the installation. For the standard domain example:
 
