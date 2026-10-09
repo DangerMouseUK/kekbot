@@ -31,7 +31,7 @@ ADD --checksum=sha256:d585fd3b613c66151fc3249e8ed44f77020cb5e6c1e635a616d3f9f824
 
 FROM scratch AS runtime
 ARG VCS_REF=unknown
-ARG VERSION=0.1.0-beta.1
+ARG VERSION=0.1.0-beta.2
 LABEL org.opencontainers.image.title="KekBot" org.opencontainers.image.source="https://github.com/DangerMouseUK/kekbot" org.opencontainers.image.revision=$VCS_REF org.opencontainers.image.version=$VERSION org.opencontainers.image.licenses="MIT"
 ENV PATH=/usr/local/bin NODE_VERSION=24.21.0 NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 NEXT_MANUAL_SIG_HANDLE=1 KEKBOT_RUN_JOBS=1 KEKBOT_DATA_DIR=/data HOSTNAME=0.0.0.0 PORT=3000
 COPY --from=runtime-files /runtime /

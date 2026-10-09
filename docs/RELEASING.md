@@ -1,6 +1,6 @@
 # Preparing and releasing KekBot
 
-The retained `0.1.0-beta.1` candidate has passed [dependency and binary-license review](RELEASE_READINESS.md#beta-remediation-review); it is [published as an evaluation prerelease](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.1.md) describe evaluation. The [requirements audit](RELEASE_READINESS.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md) define stable acceptance. Preparation can run without provider accounts or a local Docker installation. Stable sign-off requires the live results; any publication requires the repository owner's explicit authorization.
+The `0.1.0-beta.2` candidate includes the merged bundled-HTTPS installer fix. Its [candidate review](RELEASE_READINESS.md#beta-2-review) must pass before publication; the [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.2.md) describe evaluation and upgrade compatibility. [Beta 1](releases/v0.1.0-beta.1.md) remains immutable. Stable acceptance requires the [live campaign](LIVE_ACCEPTANCE.md); publication requires explicit owner authorization. Preparation can run without provider accounts or local Docker.
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
 
@@ -31,7 +31,7 @@ Before an independent installer trial, hand the operator the root README and [in
 
 ## Beta prerelease preparation and publication
 
-`v0.1.0-beta.1` uses the existing **unaccepted candidate** packaging contract. It must not use `--stable`, change the stable policy, mark fixture runs as live passes, or populate live evidence with inferred results. Its `release.json` retains `candidate-unaccepted`. Explicit installer **Specific release** selection supports prereleases; **Latest stable** never selects this beta.
+`v0.1.0-beta.2` uses the existing **unaccepted candidate** packaging contract. It must not use `--stable`, change the stable policy, mark fixture runs as live passes, or populate live evidence with inferred results. Its `release.json` retains `candidate-unaccepted`. Explicit installer **Specific release** selection supports prereleases; **Latest stable** never selects this beta.
 
 Preparation checklist:
 
@@ -39,7 +39,7 @@ Preparation checklist:
 2. Commit/freeze the candidate. Run ordinary PR checks and the full optional campaign below on that exact SHA, including source/history/image audits, source/image installer rehearsals and application/tooling/app-image/proxy-image vulnerability reviews.
 3. Inspect the actual target-platform dependency inventory/notices and obligations. Record dated reviews bound to the source/image; do not hide the raw locally patched tooling advisory. Investigate any new finding before recommending publication.
 4. Download only the audited candidate artifact, verify all checksums, and retain the exact source/image/notices/metadata bundle in protected release storage beyond CI's 14-day retention. Record its source, image ID and checksums. Do not rebuild it for publication.
-5. Add the exact CI/source/image outcomes to the [beta verification record](releases/v0.1.0-beta.1.md#verification-record). Keep unrun live/reference/operator checks explicit. An evidence-only follow-up commit does not change the frozen source recorded inside the bundle.
+5. Add the exact CI/source/image outcomes to the [beta verification record](releases/v0.1.0-beta.2.md#verification-record). Keep unrun live/reference/operator checks explicit. An evidence-only follow-up commit does not change the frozen source recorded inside the bundle.
 
 Run from the reviewed checkout with GitHub CLI:
 
@@ -52,14 +52,14 @@ Compare `headSha` with the frozen candidate. A passing dependency scan alone is 
 
 **Publication is a separate owner decision.** Before recommending a wider beta, complete a fresh real-provider/OBS session with restart and backup/restore, or state clearly that the beta is limited to evaluation without that evidence. The destroyed test host is not available; preparation does not provision infrastructure. No live gate is waived by using a prerelease label.
 
-Once the owner explicitly authorizes beta publication, verify the candidate/evidence identities and assets again, create an immutable `v0.1.0-beta.1` tag at the **frozen candidate source**, and publish a GitHub **prerelease**, with latest-release promotion disabled. Attach only the retained audited assets and the final release notes. Keep the pending live limits visible. Do not publish a mutable `latest` registry tag or mark stable metadata accepted. This repository has no automatic release-publishing workflow; CI remains read-only.
+Once the owner explicitly authorizes beta publication, verify the candidate/evidence identities and assets again, create an immutable `v0.1.0-beta.2` tag at the **frozen candidate source**, and publish a GitHub **prerelease**, with latest-release promotion disabled. Attach only the retained audited assets and the final release notes. Keep the pending live limits visible. Do not publish a mutable `latest` registry tag or mark stable metadata accepted. This repository has no automatic release-publishing workflow; CI remains read-only.
 
 After publication, update the README/index/beta guide/notes publication status together and rehearse **Specific release** installation from the actual published assets. That final download/discovery path cannot be tested against a nonexistent release. Record it separately; automated bundle fixtures do not establish an unaided installer trial. Any registry publication or additional format requires its own authorized, verified distribution work.
 
 Maintainers can run that distribution rehearsal in Linux CI without asking testers to run Docker locally:
 
 ```sh
-gh workflow run ci.yml --ref <EVIDENCE_BRANCH> --field published_release=v0.1.0-beta.1
+gh workflow run ci.yml --ref <EVIDENCE_BRANCH> --field published_release=v0.1.0-beta.2
 ```
 
 Use a reviewed branch containing the `published_release` workflow input. CI resolves the actual release assets through the host tool, verifies their checksums and image identity, then rehearses image installation, source build, update failure/recovery and uninstall in isolated fixtures. It prints only the selected source/image identities and outcomes. The job does not publish, deploy live integrations, upload runtime evidence or approve an unaided installer gate. Record the published artifact identity separately from the CI helper revision; do not replace the retained release image with the helper checkout's new build.
@@ -80,7 +80,7 @@ The [interactive installer](INSTALLER.md) supports repository branches, PR heads
 | Next.js / React | 16.3.8 / 19.3.0 |
 | Production host | Linux x86-64, local persistent disk, one app replica; 2 vCPU / 2 GiB reference runtime target still unmeasured |
 | Windows/macOS | Documented Docker Desktop container path; native distribution not supported |
-| Application / database / backup / native config | `0.1.0-beta.1` / schema 3 / format 1 / format 1 |
+| Application / database / backup / native config | `0.1.0-beta.2` / schema 3 / format 1 / format 1 |
 | Proxy example | Caddy 2.11.6; domain or supported public-IP HTTPS; operator owns public reachability |
 | Upgrade | Schemas 1 and 2 → 3 supported; future schemas rejected; unsupported downgrade prohibited |
 

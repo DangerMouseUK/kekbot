@@ -1,15 +1,15 @@
 # KekBot documentation
 
-These guides describe the published `0.1.0-beta.1` evaluation beta, SQLite schema 3, backup format 1 and configuration format 1. The retained beta has passed [image and binary-license review](RELEASE_READINESS.md#beta-remediation-review) and is [published as a prerelease](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Full-product live and stable acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
+These guides describe the `0.1.0-beta.2` evaluation candidate, SQLite schema 3 and backup/configuration formats 1. Beta 2 includes the bundled HTTPS installer correction and is being verified for publication; see its [release notes](releases/v0.1.0-beta.2.md) and [candidate review](RELEASE_READINESS.md#beta-2-review). [Beta 1 is still published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.1). Full-product live and stable acceptance remain pending. Commands and screen labels follow the current implementation; provider portals can change.
 
-**Installing beta 1 with bundled HTTPS?** Use the [fixed host tool](INSTALLER.md#beta-1-bundled-https-installer-fix); the original tag's installer omits required Caddy build inputs. Fixture, external-proxy and manual Compose paths are unaffected.
+**Beta 2 includes the corrected bundled HTTPS installer.** For the older beta 1 tag, use its [fixed-tool workaround](INSTALLER.md#beta-1-bundled-https-installer-fix).
 
 ## Start here
 
 | Your goal | Read in this order |
 | --- | --- |
 | Explore without provider accounts | [Quickstart](QUICKSTART.md) → [first session](FIRST_SESSION.md) → [user guide](USER_GUIDE.md) |
-| Evaluate or report a beta problem | [Beta guide](BETA.md) → [beta release notes](releases/v0.1.0-beta.1.md) |
+| Evaluate or report a beta problem | [Beta guide](BETA.md) → [beta release notes](releases/v0.1.0-beta.2.md) |
 | Host a live installation | [Guided installer](INSTALLER.md) (or [manual installation](INSTALLATION.md)) → [provider setup](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [OBS](OBS.md) → [operations](OPERATIONS.md) |
 | Update, roll back or remove | [Updating](UPDATING.md) → [uninstalling](UNINSTALLING.md); manual deployments use [recovery](BACKUP_RECOVERY.md) |
 | Join a moderator team | [Accounts and permissions](ACCOUNTS.md) → the relevant [daily workflow](USER_GUIDE.md) |
@@ -46,7 +46,8 @@ These guides describe the published `0.1.0-beta.1` evaluation beta, SQLite schem
 - [Documentation maintenance](DOCUMENTATION.md): editorial rules, coverage and verification procedure.
 - [Automated testing](TESTING.md) and [live acceptance campaign](LIVE_ACCEPTANCE.md).
 - [Release readiness crosswalk](RELEASE_READINESS.md), [release evidence index](release-evidence.json) and [release procedure](RELEASING.md).
-- [First beta release notes](releases/v0.1.0-beta.1.md): scope, compatibility, limitations and the frozen candidate verification record.
+- [Beta 2 release notes](releases/v0.1.0-beta.2.md): installer correction, compatibility, limitations and exact verification.
+- [Beta 1 release notes](releases/v0.1.0-beta.1.md): immutable original artifacts and historical verification.
 - [Dependency maintenance](DEPENDENCY_MAINTENANCE.md): exact pins, candidate audits, security patches and release sign-off.
 - [Quality follow-up](QUALITY_HARDENING.md): the eight repository improvements and verification record.
 - [Dependency inventory](DEPENDENCIES.md), [supplemental licenses](../licenses/README.md) and [MIT license](../LICENSE).
