@@ -48,6 +48,7 @@ try {
   let origin = `http://${binding}`;
   await ready(origin);
   if (docker(["exec", name, "id", "-u"]) !== "1000") throw new Error("container_not_non_root");
+  docker(["exec", name, "node", "-e", "for(const binary of ['npm','npx','corepack','yarn','yarnpkg']) {const result=require('node:child_process').spawnSync(binary,['--version']); if(result.error?.code!=='ENOENT') process.exit(1)}"]);
   // The image root is read-only; only /data and the bounded temporary mount write.
   docker(["exec", name, "node", "-e", "try {require('node:fs').writeFileSync('/app/forbidden','x'); process.exit(1)} catch(e) {if(!['EROFS','EACCES'].includes(e.code)) process.exit(1)}"]);
   const credentials = JSON.parse(docker(["exec", name, "node", "-e", "process.stdout.write(require('node:fs').readFileSync('/data/fixture/secrets/fixture-account.json','utf8'))"]));

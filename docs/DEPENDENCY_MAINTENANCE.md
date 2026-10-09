@@ -8,6 +8,8 @@ Dependency changes belong in deliberate, reviewed maintenance PRs before a candi
 
 Direct application and development dependencies use exact versions, pnpm uses a frozen lockfile, and workflow actions use full commit SHAs. Node and pnpm versions must agree across the manifest, version file and Dockerfile. Node image version tags can be rebuilt upstream: acceptance therefore binds to the actual retained image ID, rather than assuming that rebuilding a tag produces identical bytes. Caddy's separate build also pins its base digest and downloaded binary checksum.
 
+The runtime image applies available signed Debian package updates at build time and omits unused npm/Corepack/Yarn tools; the build-stage toolchain remains available. The Caddy build updates its reviewed zlib package to `1.3.2-r1` from the configured signed Alpine repository. OS repository contents can change, so retain and scan the exact resulting images. These measures do not waive unfixed findings or prove a zero-finding image. Container CI checks the removed runtime tools and all maintenance paths.
+
 From the checkout root, with the pinned Node/pnpm toolchain:
 
 ```sh

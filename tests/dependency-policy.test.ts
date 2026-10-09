@@ -43,6 +43,10 @@ it("opt-in image findings omit raw scanner fields, bound output and retain every
   expect(report.findings[0]).toEqual({ id: "unavailable", package: "unavailable", installed: "unavailable", fixed: "unavailable", severity: "CRITICAL", status: "unknown" });
   expect(report.findings[1]).toEqual({ id: vulnerability.VulnerabilityID, package: vulnerability.PkgName, installed: vulnerability.InstalledVersion, fixed: vulnerability.FixedVersion, severity: "HIGH", status: "fixed" });
   expect(JSON.stringify(report)).not.toMatch(/private|PrimaryURL|PkgPath|Title|Target/);
+  const oversized = imageSummary({ status: 0, stdout: JSON.stringify({ Metadata: { ImageID: imageDigest }, Results: [{ Vulnerabilities: [{ ...vulnerability, VulnerabilityID: "CVE-2026-" + "9".repeat(4096), PkgName: "@" + "a".repeat(4096) + "/name" }] }] }) }, true);
+  expect(oversized).toMatchObject({ findings: [{ id: "unavailable", package: "unavailable" }] });
+  const go = imageSummary({ status: 0, stdout: JSON.stringify({ Metadata: { ImageID: imageDigest }, Results: [{ Vulnerabilities: [{ ...vulnerability, VulnerabilityID: "GO-2026-12345", PkgName: "golang.org/x/net", InstalledVersion: "v0.57.0" }] }] }) }, true);
+  expect(go).toMatchObject({ findings: [{ id: "GO-2026-12345", package: "golang.org/x/net", installed: "v0.57.0" }] });
 });
 
 it("accepts only the exact advisory path with verified local remediation while preserving raw counts", () => {

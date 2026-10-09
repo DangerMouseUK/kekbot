@@ -29,8 +29,8 @@ export function imageSummary(result, includeFindings = false) {
     const severity = ["LOW", "MEDIUM", "HIGH", "CRITICAL"].includes(vulnerability.Severity) ? vulnerability.Severity : "UNKNOWN";
     counts[severity] = (counts[severity] ?? 0) + 1;
     if (includeFindings) findings.push({
-      id: safe(vulnerability.VulnerabilityID, /^(?:CVE-\d{4}-\d{4,}|GHSA-[a-z0-9-]{10,24}|TEMP-[A-Fa-f0-9-]{4,80})$/),
-      package: safe(vulnerability.PkgName, /^(?:@[a-zA-Z0-9_.-]+\/)?[a-zA-Z0-9_.+-]{1,128}$/),
+      id: safe(vulnerability.VulnerabilityID, /^(?:CVE-\d{4}-\d{4,12}|GO-\d{4}-\d{4,12}|GHSA-[a-z0-9-]{10,24}|TEMP-[A-Fa-f0-9-]{4,80})$/),
+      package: safe(vulnerability.PkgName, /^(?:(?:@[a-zA-Z0-9_.-]{1,64}\/)?[a-zA-Z0-9_.+-]{1,128}|golang\.org\/[a-zA-Z0-9_.+/-]{1,128})$/),
       installed: safe(vulnerability.InstalledVersion, /^[a-zA-Z0-9][a-zA-Z0-9_.:+~,-]{0,127}$/),
       fixed: safe(vulnerability.FixedVersion, /^[a-zA-Z0-9][a-zA-Z0-9_.:+~,-]{0,127}$/),
       severity,
