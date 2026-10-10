@@ -2,7 +2,7 @@
 
 **New here? Start with [Get your first KekBot running](GETTING_STARTED.md).** It explains the server, the short install command, each normal choice and your first login. You can add features gradually. [Plain-English glossary](GLOSSARY.md).
 
-The latest published application is [v0.1.0-beta.3](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3). The simplified launcher on `main` is newer than that release's original tools. Guides identify those differences; historical releases and their verification records remain unchanged. [Beta 4 preparation](releases/v0.1.0-beta.4.md) packages the easier setup; it is not published yet. Full live/stable acceptance is pending.
+The latest published application is [v0.1.0-beta.4](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.4), with Recommended setup and the beginner handbook. Historical releases and their verification records remain unchanged. [Beta 4 notes and verification](releases/v0.1.0-beta.4.md) explain compatibility, downloads and remaining limits. Full live/stable acceptance is pending.
 
 ## Start here
 
@@ -64,7 +64,7 @@ These explain plans and recorded results; they are not the normal install instru
 - [Milestones](MILESTONES.md), [roadmap](ROADMAP.md) and [quality follow-up](QUALITY_HARDENING.md).
 - [PRD](PRD.md) and [identical self-hosted PRD](PRD-self-hosted.md): product requirements.
 - [Foundation proof](FOUNDATION.md): historical Milestone 1 evidence and opt-in diagnostics.
-- Current candidate: [beta 4 preparation and verification](releases/v0.1.0-beta.4.md).
+- Current evaluation release: [beta 4 notes and verification](releases/v0.1.0-beta.4.md).
 - Published release records: [beta 3](releases/v0.1.0-beta.3.md), [beta 2](releases/v0.1.0-beta.2.md), [beta 1](releases/v0.1.0-beta.1.md). For beta 1's old HTTPS installer, use its [specific workaround](INSTALLER.md#beta-1-bundled-https-installer-fix).
 
 ## Which record answers which question?

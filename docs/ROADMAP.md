@@ -2,9 +2,9 @@
 
 **Planning reference:** use this to understand feature scope and dependencies. To install or use the bot, follow [Getting started](GETTING_STARTED.md) and [the user guide](USER_GUIDE.md).
 
-[Beta 4 preparation](releases/v0.1.0-beta.4.md) packages Recommended setup and the beginner handbook; its fresh source/image review is separate from historical releases. It is not published yet. Beta 3 is published with the downloadable lifecycle launcher and matching application/tool source; see the [beta guide](BETA.md) and [verification record](releases/v0.1.0-beta.3.md#verification-record). Beta 1/2 remain published and immutable. Evaluation distribution does not change capability boundaries or pass stable acceptance; exact outcomes remain tied to their recorded source/image.
+[Beta 4](releases/v0.1.0-beta.4.md) is published with Recommended setup, the beginner handbook and matching application/tool source. Its fresh source/image review and published distribution record are separate from historical beta 1/2/3 results, which remain immutable. See the [beta guide](BETA.md). Evaluation distribution does not change capability boundaries or pass stable acceptance; exact outcomes remain tied to their recorded source/image.
 
-The [downloadable launcher](LAUNCHER.md) makes host installation and maintenance accessible without cloning while preserving all wizard source/format options. [Beta 3](releases/v0.1.0-beta.3.md) includes its standalone checksum-covered download. Frozen candidate, published distribution and pending fresh-host/independent/live acceptance remain separate evidence.
+The [downloadable launcher](LAUNCHER.md) makes host installation and maintenance accessible without cloning while preserving all wizard source/format options. [Beta 4](releases/v0.1.0-beta.4.md) includes its standalone checksum-covered download. Frozen candidate, published distribution and pending fresh-host/independent/live acceptance remain separate evidence.
 
 This is a release-scope/dependency reference, not an installation guide. Use [milestones](MILESTONES.md) for the current sequence and dated results, [release readiness](RELEASE_READINESS.md) for unresolved gates, and [the handbook](README.md) to install/use the current candidate. Requirements remain in the two identical PRDs; documentation changes do not retroactively accept planned scenarios.
 

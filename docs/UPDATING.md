@@ -6,9 +6,9 @@ Use this guide for installations created by the [terminal wizard](INSTALLER.md).
 
 The [downloadable launcher](LAUNCHER.md#updates-recovery-and-removal) also opens updates: run `sudo bash install.sh update --root /srv/kekbot` from its reviewed download directory. It reuses the protected installed manager without new tool downloads. Current managers also support `--branch`, `--release`, `--pr`, `--commit` and `--bundle` shortcuts; older managers keep interactive source selection. Explicit `--tool-commit`/`--tool-branch` selection reviews new management code separately and does not overwrite the copied manager. Never update tools implicitly as part of an application change.
 
-The [beta 4 candidate](releases/v0.1.0-beta.4.md#compatibility-and-upgrades) packages the friendlier host tools, without a schema or backup-format change. It is not published yet; use its reviewed exact SHA and audited bundle for candidate evaluation. Older installed managers remain unchanged by application updates.
+[Published beta 4](releases/v0.1.0-beta.4.md#compatibility-and-upgrades) includes the friendlier host tools, without a schema or backup-format change. Older installed managers remain unchanged by application updates; use the separately reviewed beta 4 launcher when you want its new prompts.
 
-For published [beta 3](releases/v0.1.0-beta.3.md), follow the [beta selection and compatibility guidance](BETA.md#update-recover-or-remove), including older beta 1/2 installations. Choose the exact published beta, reviewed commit or audited bundle explicitly. The default latest-stable choice does not install a beta; published outcomes and current limitations are recorded in the beta notes.
+Follow the [beta selection and compatibility guidance](BETA.md#update-recover-or-remove), including older beta 1/2/3 installations. Choose the exact published beta, reviewed commit or audited bundle explicitly. The default latest-stable choice does not install a beta; published outcomes and current limitations are recorded in the [beta 4 notes](releases/v0.1.0-beta.4.md).
 
 [Documentation index](README.md) · [Installer options/formats](INSTALLER.md#sources-and-distribution-formats) · [Uninstall](UNINSTALLING.md)
 

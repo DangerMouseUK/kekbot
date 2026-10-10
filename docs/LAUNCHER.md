@@ -2,7 +2,7 @@
 
 Use this guide on an always-on **Linux x86-64 host**. The root [`install.sh`](../install.sh) launcher opens the explained Python lifecycle wizard without requiring a repository clone. It also checks prerequisites, offers optional Ubuntu 24.04 setup, and opens updates, rollback, status, start/stop and removal. For Windows/macOS evaluation use [Docker Desktop](DOCKER_DESKTOP.md). [All documentation](README.md).
 
-The launcher is available as a [published beta 3 download](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3), covered by `SHA256SUMS`, and in development source on `main`. Older beta tags do not contain it. For a first install use the current guided entry below. The versioned download section preserves exact-release/manual verification for advanced users. Bootstrap, management tools and application can have different identities; downloading them does not establish live/stable acceptance.
+The launcher is available as a [published beta 4 download](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.4), covered by `SHA256SUMS`, and in development source on `main`. Beta 3 also includes it; beta 1/2 do not. For a first install use the guided entry below. The versioned download section preserves exact-release/manual verification for advanced users. Bootstrap, management tools and application can have different identities; downloading them does not establish live/stable acceptance.
 
 **On this page**
 
@@ -30,7 +30,7 @@ The command downloads the current project launcher and runs it with administrato
 
 Choose **Install a new instance → Recommended setup**. Standard storage, project, local port and account-mode replies are filled in. You choose live or demo, your HTTPS address and final approval. Published application downloads retain checksum/image validation. With no stable release, a beta is offered separately and **Stop for now** is the default. Explicit `--stable` still fails closed.
 
-The simplified flow is being packaged in [beta 4](releases/v0.1.0-beta.4.md), which is not published yet. It is newer than published beta 3. The `main` launcher uses current project management code; choosing the published beta application does not replace its files or turn `main` into a release. A beta 3 asset/tag launcher keeps its original review/hash prompts. Use the versioned route below when you want exactly those older tools.
+The simplified flow is included in [published beta 4](releases/v0.1.0-beta.4.md). The `main` launcher uses current project management code, while the versioned route below pins released tools and application separately. An older beta 3 asset/tag launcher keeps its original review/hash prompts; published assets are never replaced.
 
 **Advanced setup** exposes custom settings. `--advanced`, development source selectors, source builds and local bundles retain exact-source trust. Manual verification and pinned management selection remain available below; they are optional advanced entry paths.
 
@@ -38,7 +38,7 @@ If `curl` is missing on Ubuntu, install it with `sudo apt-get update && sudo apt
 
 ## Verify a versioned launcher download
 
-Published beta 3 bundles include `install.sh`, `release.json` and `SHA256SUMS` alongside the source/image/notices archives. Obtain the **complete audited bundle** from its [release page](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3); GitHub automatic source downloads are separate. Beta 1/2 bundles remain supported and have no standalone launcher asset. Development `main`, branches/PRs and later candidates require their own reviewed full SHA and source/image evidence.
+Published beta 4 bundles include `install.sh`, `release.json` and `SHA256SUMS` alongside the source/image/notices archives. Obtain the **complete audited bundle** from its [release page](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.4); GitHub automatic source downloads are separate. Beta 3 keeps the same six-file contract. Beta 1/2 bundles remain supported and have no standalone launcher asset. Development `main`, branches/PRs and later candidates require their own reviewed full SHA and source/image evidence.
 
 From Bash in the directory containing all downloaded assets, without sudo:
 
@@ -120,8 +120,8 @@ Supply one application selector and one tool selector at most. Readiness/setup/p
 From the directory containing your reviewed downloaded launcher:
 
 ```sh
-# Published beta application using its released beta 3 management tools
-sudo bash install.sh install --tool-release v0.1.0-beta.3 --release v0.1.0-beta.3 --format image
+# Published beta application using its released beta 4 management tools
+sudo bash install.sh install --tool-release v0.1.0-beta.4 --release v0.1.0-beta.4 --format image
 
 # A reviewed development branch (resolved once to a full SHA)
 sudo bash install.sh install --branch main
@@ -130,7 +130,7 @@ sudo bash install.sh install --branch main
 sudo bash install.sh install --pr 123
 
 # Build the published release source instead of loading its image
-sudo bash install.sh install --tool-release v0.1.0-beta.3 --release v0.1.0-beta.3 --format source
+sudo bash install.sh install --tool-release v0.1.0-beta.4 --release v0.1.0-beta.4 --format source
 
 # Transferred audited bundle containing release.json and SHA256SUMS
 sudo bash install.sh install --bundle /srv/public-release-bundle --format image
@@ -155,7 +155,7 @@ These commands reuse protected installed tools without new tool downloads. If cu
 
 ```sh
 sudo bash install.sh update --root /srv/kekbot --branch main
-sudo bash install.sh update --root /srv/kekbot --tool-release v0.1.0-beta.3 --release v0.1.0-beta.3 --format image
+sudo bash install.sh update --root /srv/kekbot --tool-release v0.1.0-beta.4 --release v0.1.0-beta.4 --format image
 ```
 
 For an older manager, choose the application in its interactive menu, or explicitly review fresh tools:
@@ -208,4 +208,4 @@ Offline contracts cover selectors, quoting, invalid inputs, pinned/bounded stagi
 
 The [dated launcher verification record](MILESTONES.md#downloadable-lifecycle-launcher--development-follow-up) identifies the tested source, CI campaign and local checks. It establishes automated behaviour, with the remaining boundaries below.
 
-Mocked package setup tests do not establish a successful fresh-host Docker installation. The [beta 3 notes](releases/v0.1.0-beta.3.md#verification-record) distinguish frozen candidate checks, actual anonymous published downloads and Linux published-release lifecycle outcomes. A fresh Ubuntu prerequisite trial, public certificates, real providers, OBS and unaided installation need their own dated evidence. Published beta 1/2 results remain tied to their original source/image; no stable acceptance gate is inferred from launcher tests.
+Mocked package setup tests do not establish a successful fresh-host Docker installation. The [beta 4 notes](releases/v0.1.0-beta.4.md#verification-record) distinguish frozen candidate checks, actual anonymous published downloads and Linux published-release lifecycle outcomes. A fresh Ubuntu prerequisite trial, public certificates, real providers, OBS and unaided installation need their own dated evidence. Published beta 1/2/3 results remain tied to their original source/image; no stable acceptance gate is inferred from launcher tests.
