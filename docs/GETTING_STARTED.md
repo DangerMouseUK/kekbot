@@ -2,7 +2,7 @@
 
 This beginner walkthrough takes you from a Linux server to your first dashboard login. Connect Kick next, then add Discord, video requests and other features at your own pace. [Documentation hub](README.md) · [Unfamiliar words](GLOSSARY.md).
 
-The simpler setup is on `main` and is being packaged in [beta 4](releases/v0.1.0-beta.4.md); beta 4 is not published yet. Published beta 3 tools keep their original prompts. You can install the published beta application using the current launcher without changing its release files. No supported stable release exists yet. [What beta means](BETA.md).
+[Beta 4](releases/v0.1.0-beta.4.md) includes the simpler Recommended setup and beginner handbook. The command below uses the current project launcher and offers the published beta explicitly when no stable release exists. Older installed tools keep their original prompts. No supported stable release exists yet. [What beta means](BETA.md).
 
 **In this walkthrough:** [what you need](#1-check-what-you-need) → [open the installer](#2-open-the-installer) → [choose settings](#3-follow-the-explained-choices) → [first login](#4-create-your-dashboard-account) → [connect Kick](#5-connect-one-thing-at-a-time). You can also [try a demo](#try-a-demo-first) or [manage an existing installation](#come-back-later).
 
@@ -53,7 +53,7 @@ Press **Enter** to use a displayed default. Type **q** to cancel. Opening a menu
 4. Choose **Recommended setup**.
 5. Choose **Live creator installation** for a real bot, or see [Try a demo first](#try-a-demo-first).
 6. For live installation, choose your HTTPS option. For bundled domain/IP hosting, enter your hostname or public IPv4; the wizard adds `https://`.
-7. The installer checks published versions. When a stable release exists, recommended setup selects it. Until a stable release is available, it explains evaluation limits and offers **Try** followed by the latest published beta tag (currently `v0.1.0-beta.3`). Select that option deliberately; pressing Enter chooses **Stop for now**.
+7. The installer checks published versions. When a stable release exists, recommended setup selects it. Until a stable release is available, it explains evaluation limits and offers **Try** followed by the latest published beta tag (currently `v0.1.0-beta.4`). Select that option deliberately; pressing Enter chooses **Stop for now**.
 8. Read **Review installation**. If the location, address and version are correct, type `APPLY`.
 
 Recommended settings use `/srv/kekbot`, the Docker project name `kekbot`, local port `3000` and replies from the account that authorizes Kick. To change those, cancel and select **Advanced setup**. A second installation needs a different directory, project and port; only one bundled proxy can use public ports 80/443.

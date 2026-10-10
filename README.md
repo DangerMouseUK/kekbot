@@ -9,7 +9,7 @@
 
 KekBot is a free, open-source bot for one creator and their moderators. Automate chat, display alerts in OBS, manage video requests, and run community activities. You host it yourself and keep your accounts, settings and data on your own server.
 
-**Currently in beta:** [v0.1.0-beta.3](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3) is available for evaluation. Full live testing and stable acceptance are still pending. The easier setup below is on `main` and is being packaged in [beta 4](docs/releases/v0.1.0-beta.4.md). Beta 4 is not published yet; beta 3 files remain unchanged. [Beta status and limitations →](docs/BETA.md)
+**Currently in beta:** [v0.1.0-beta.4](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.4) is available for evaluation, including the easier Recommended setup and beginner handbook. Full live testing and stable acceptance are still pending. [Beta status and limitations →](docs/BETA.md)
 
 ## Start here
 

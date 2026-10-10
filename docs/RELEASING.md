@@ -2,7 +2,7 @@
 
 **Maintainer guide:** follow this to prepare and publish a new version. Operators install through [Getting started](GETTING_STARTED.md) or [update an existing installation](UPDATING.md); they do not need to build release packages themselves.
 
-The [published `0.1.0-beta.3` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3) includes the merged lifecycle launcher as a standalone audited download and passed its exact source/image [candidate review](RELEASE_READINESS.md#beta-3-review). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.3.md) describe evaluation, checksums and upgrades. Beta 1/2 remain immutable. Stable acceptance requires the [live campaign](LIVE_ACCEPTANCE.md); every future publication requires explicit owner authorization. Preparation can run without provider accounts or local Docker.
+The [published `0.1.0-beta.4` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.4) includes Recommended setup, the beginner handbook and a standalone audited launcher. It passed its exact source/image [candidate review](RELEASE_READINESS.md#beta-4-review). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.4.md) describe evaluation, checksums and upgrades. Beta 1/2/3 remain immutable. Stable acceptance requires the [live campaign](LIVE_ACCEPTANCE.md); every future publication requires explicit owner authorization. Preparation can run without provider accounts or local Docker.
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
 
@@ -20,7 +20,7 @@ Review fixes change the candidate source even when versions/formats stay the sam
 - [Dependency review gate](#dependency-review-gate)
 <!-- contents:end -->
 
-The [beta 4 candidate](releases/v0.1.0-beta.4.md) packages the simplified setup and handbook. Freeze and review its changed launcher/manager together; do not rewrite old release files or reuse beta 3's source/image security sign-off. Verify both recommended and advanced journeys, explicit beta refusal/selection and strict latest-stable behavior.
+The [beta 4 release](releases/v0.1.0-beta.4.md) packages the simplified setup and handbook. For later releases, freeze and review changed launcher/manager code together; do not rewrite older release files or transfer an earlier source/image security sign-off. Verify both recommended and advanced journeys, explicit beta refusal/selection and strict latest-stable behavior.
 
 ## Release sequence
 
@@ -35,7 +35,7 @@ Before an independent installer trial, hand the operator the root README and [in
 
 ## Beta prerelease preparation and publication
 
-The published `v0.1.0-beta.3` evaluation release uses the existing **unaccepted candidate** packaging contract. It must not use `--stable`, change the stable policy, mark fixture runs as live passes, or populate live evidence with inferred results. Its `release.json` retains `candidate-unaccepted`. Explicit installer **Specific release** selection supports prereleases; **Latest stable** never selects this beta.
+The published `v0.1.0-beta.4` evaluation release uses the existing **unaccepted candidate** packaging contract. It must not use `--stable`, change the stable policy, mark fixture runs as live passes, or populate live evidence with inferred results. Its `release.json` retains `candidate-unaccepted`. Explicit installer **Specific release** selection supports prereleases; **Latest stable** never selects this beta.
 
 Preparation checklist:
 
@@ -56,21 +56,21 @@ Compare `headSha` with the frozen candidate. A passing dependency scan alone is 
 
 **Publication is a separate owner decision.** Before recommending a wider beta, complete a fresh real-provider/OBS session with restart and backup/restore, or state clearly that the beta is limited to evaluation without that evidence. The destroyed test host is not available; preparation does not provision infrastructure. No live gate is waived by using a prerelease label.
 
-Beta 3 has been published at its frozen source. For a future owner-authorized beta, choose a new version, verify its candidate/evidence identities and assets again, create an immutable tag at that **frozen candidate source**, and publish a GitHub **prerelease**, with latest-release promotion disabled. Never replace beta 3 or earlier tags/assets. Attach only the retained audited assets and the final release notes. Keep the pending live limits visible. Do not publish a mutable `latest` registry tag or mark stable metadata accepted. This repository has no automatic release-publishing workflow; CI remains read-only.
+Beta 4 has been published at its frozen source. For a future owner-authorized beta, choose a new version, verify its candidate/evidence identities and assets again, create an immutable tag at that **frozen candidate source**, and publish a GitHub **prerelease**, with latest-release promotion disabled. Never replace beta 4 or earlier tags/assets. Attach only the retained audited assets and the final release notes. Keep the pending live limits visible. Do not publish a mutable `latest` registry tag or mark stable metadata accepted. This repository has no automatic release-publishing workflow; CI remains read-only.
 
 After publication, update the README/index/beta guide/notes publication status together and rehearse **Specific release** installation from the actual published assets. That final download/discovery path cannot be tested against a nonexistent release. Record it separately; automated bundle fixtures do not establish an unaided installer trial. Any registry publication or additional format requires its own authorized, verified distribution work.
 
 Maintainers can run that distribution rehearsal in Linux CI without asking testers to run Docker locally:
 
 ```sh
-gh workflow run ci.yml --ref <EVIDENCE_BRANCH> --field published_release=v0.1.0-beta.3
+gh workflow run ci.yml --ref <EVIDENCE_BRANCH> --field published_release=v0.1.0-beta.4
 ```
 
 Use a reviewed branch containing the `published_release` workflow input. CI resolves the actual release assets through the host tool, verifies their checksums and image identity, then rehearses image installation, source build, update failure/recovery and uninstall in isolated fixtures. It prints only the selected source/image identities and outcomes. The job does not publish, deploy live integrations, upload runtime evidence or approve an unaided installer gate. Record the published artifact identity separately from the CI helper revision; do not replace the retained release image with the helper checkout's new build.
 
 ### Host-tool corrections after publication
 
-The [downloadable launcher](LAUNCHER.md) is published with beta 3; beta 2 assets do not contain it. The newer Recommended prompts and beginner handbook are development follow-up, not replacement beta 3 assets. Review bootstrap, management commit and application identity independently. Beta 3 packaging includes the root launcher both inside its source archive and as a standalone `install.sh` asset. The additive `launcher` metadata field remains format 1; older installer bundles still work. Preparation checks that this is a regular committed file, exports Git bytes without checkout newline conversion, and includes its hash in `SHA256SUMS`. The Linux archive round trip compares it with both committed and archived bytes without executing it. Publishing still needs normal frozen-source/image review and owner authorization. Test launcher syntax, trust/dispatch contracts, retained launcher resources and the real-image terminal installation before distribution. Do not replace existing release assets to add it or transfer historical binary/security sign-off to a new image. Optional fresh-Ubuntu package assistance requires a separate host trial.
+The [downloadable launcher](LAUNCHER.md) is published with beta 3; beta 2 assets do not contain it. Beta 4 distributes the newer Recommended prompts and beginner handbook under its own frozen source/image; beta 3 assets remain unchanged. Review bootstrap, management commit and application identity independently. Beta 3 packaging includes the root launcher both inside its source archive and as a standalone `install.sh` asset. The additive `launcher` metadata field remains format 1; older installer bundles still work. Preparation checks that this is a regular committed file, exports Git bytes without checkout newline conversion, and includes its hash in `SHA256SUMS`. The Linux archive round trip compares it with both committed and archived bytes without executing it. Publishing still needs normal frozen-source/image review and owner authorization. Test launcher syntax, trust/dispatch contracts, retained launcher resources and the real-image terminal installation before distribution. Do not replace existing release assets to add it or transfer historical binary/security sign-off to a new image. Optional fresh-Ubuntu package assistance requires a separate host trial.
 
 Published tags and assets remain immutable. A host-tool fix may manage an unchanged release from a separately reviewed, pinned tool checkout; record both identities rather than calling the published source fixed. Application updates never implicitly replace management code. The [beta 1 bundled-HTTPS workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) follows this path. Beta 2 distributes that correction under a new version through the normal authorized publication process; it does not replace beta 1's downloads.
 
@@ -86,7 +86,7 @@ The [interactive installer](INSTALLER.md) supports repository branches, PR heads
 | Next.js / React | 16.3.8 / 19.3.0 |
 | Production host | Linux x86-64, local persistent disk, one app replica; 2 vCPU / 2 GiB reference runtime target still unmeasured |
 | Windows/macOS | Documented Docker Desktop container path; native distribution not supported |
-| Application / database / backup / native config | `0.1.0-beta.4` candidate / schema 3 / format 1 / format 1 |
+| Application / database / backup / native config | `0.1.0-beta.4` evaluation release / schema 3 / format 1 / format 1 |
 | Proxy example | Caddy 2.11.6; domain or supported public-IP HTTPS; operator owns public reachability |
 | Upgrade | Schemas 1 and 2 → 3 supported; future schemas rejected; unsupported downgrade prohibited |
 

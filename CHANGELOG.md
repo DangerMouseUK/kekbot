@@ -2,9 +2,9 @@
 
 ## Unreleased
 
-## 0.1.0-beta.4 — Candidate, 2026-10-10
+## 0.1.0-beta.4 — 2026-10-10
 
-- Prepare beta 4 with aligned application/Docker/Compose versions and matching simplified launcher/management tools. Preserve schema 3, backup/configuration format 1 and exact dependency pins. Publication and fresh source/image sign-off are separate steps; beta 1/2/3 assets remain immutable.
+- Publish beta 4 as an evaluation prerelease from the retained reviewed bundle, with the immutable tag at its frozen source and latest-stable promotion disabled. All six actual uploaded/downloaded hashes match; anonymous release discovery and Linux published-source/image install/update-failure/rollback/uninstall rehearsals passed. Beta 1/2/3 releases remain unchanged. Update public entry, setup/update and release evidence together. Schema 3, backup/configuration format 1 and exact dependency pins are unchanged; all 33 live/stable acceptance gates remain pending.
 - Extend beta source/image asset verification and stable-rejection regressions through beta 4. Update beginner, maintenance, compatibility and contributor/release guidance while keeping currently published instructions usable.
 
 - Simplify the current repository launcher with a short download-and-run entry, plain-English official-project consent and Recommended setup using published images and standard host settings. Retain every advanced source/format/hosting option and exact-source trust for development/local selections. Stable stays preferred; only a confirmed absence of stable can offer a separately declined-by-default beta. Final APPLY, backup/recovery and retained-data removal guards remain.
