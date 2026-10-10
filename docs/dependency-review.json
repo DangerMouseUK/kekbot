@@ -2,29 +2,29 @@
   "format": "kekbot-dependency-review",
   "version": 1,
   "candidate": {
-    "sourceRef": null,
-    "imageDigest": null
+    "sourceRef": "3e2f1f8015109f497d0cf75a11ec7cd01f818365",
+    "imageDigest": "sha256:6a3b4f810c2e1b5bfe992236187a9ff113040bef8d361d42e31990efab93aa25"
   },
   "reviews": {
     "application": {
-      "outcome": "pending",
-      "date": null,
-      "reference": null
+      "outcome": "pass",
+      "date": "2026-10-10",
+      "reference": "docs/RELEASE_READINESS.md#beta-4-review"
     },
     "tooling": {
-      "outcome": "pending",
-      "date": null,
-      "reference": null
+      "outcome": "pass",
+      "date": "2026-10-10",
+      "reference": "docs/RELEASE_READINESS.md#beta-4-review"
     },
     "image": {
-      "outcome": "pending",
-      "date": null,
-      "reference": null
+      "outcome": "pass",
+      "date": "2026-10-10",
+      "reference": "docs/RELEASE_READINESS.md#beta-4-review"
     },
     "licenses": {
-      "outcome": "pending",
-      "date": null,
-      "reference": null
+      "outcome": "pass",
+      "date": "2026-10-10",
+      "reference": "docs/RELEASE_READINESS.md#beta-4-review"
     }
   }
 }

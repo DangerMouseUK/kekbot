@@ -13,6 +13,7 @@ This is the contributor/maintainer guide to the documentation set. Readers shoul
 - [Handbook verification record](#handbook-verification-record)
 - [Beginner handbook refresh](#beginner-handbook-refresh)
 - [Runtime quality follow-up](#runtime-quality-follow-up)
+- [Beta 4 documentation maintenance](#beta-4-documentation-maintenance)
 <!-- contents:end -->
 
 ## Structure and ownership

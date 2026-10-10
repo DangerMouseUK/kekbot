@@ -1,6 +1,6 @@
 # KekBot project milestones
 
-Updated: 2026-10-09. Target: complete the declared stable v1 product.
+Updated: 2026-10-10. Target: complete the declared stable v1 product.
 
 This is the milestone plan for upcoming work. It groups the requirements in the [PRD](PRD.md) and the identical [self-hosted PRD](PRD-self-hosted.md) into substantial build stages, followed by a bulk testing and release phase. The existing [roadmap](ROADMAP.md) remains the detailed feature and evidence reference; this document sets the working sequence and testing schedule. [Architecture decisions](ARCHITECTURE.md) continue to apply.
 
@@ -51,6 +51,7 @@ The public operator path is [Getting started](GETTING_STARTED.md) → [providers
 - [Beta 3 preparation — 2026-10-09](#beta-3-preparation--2026-10-09)
 - [Beta 3 publication — 2026-10-09](#beta-3-publication--2026-10-09)
 - [Beginner setup and handbook — development follow-up](#beginner-setup-and-handbook--development-follow-up)
+- [Beta 4 preparation — 2026-10-10](#beta-4-preparation--2026-10-10)
 <!-- contents:end -->
 
 ## Working approach
@@ -746,4 +747,6 @@ This is development follow-up to Milestone 16, not a new published application o
 
 Beta 4 packages the merged beginner setup/handbook work from PR 14 with aligned application, Docker and Compose versions. This is distribution follow-up to Milestone 16, not a new feature milestone or live acceptance. See the [beta 4 notes](releases/v0.1.0-beta.4.md) for scope, upgrade/tool-retention behavior, actual verification and asset identities.
 
-The fresh frozen-source/image campaign and security/binary-license reviews are pending at this checkpoint; prior beta sign-off remains historical. Original beta 1/2/3 artifacts stay immutable. Milestones 18–19 and all 33 stable acceptance gates remain pending. Publication and actual published-asset rehearsals are separate steps.
+Frozen source is `3e2f1f8015109f497d0cf75a11ec7cd01f818365`; retained image is `sha256:6a3b4f810c2e1b5bfe992236187a9ff113040bef8d361d42e31990efab93aa25`. [Ordinary PR CI 38056419495](https://github.com/DangerMouseUK/kekbot/actions/runs/38056419495) and all seven jobs in [candidate campaign 38056418399](https://github.com/DangerMouseUK/kekbot/actions/runs/38056418399) passed. Linux ran 155 application tests, all 64 installer/launcher contracts, three browsers, staged proxy/runtime/storage/recovery and source/image lifecycle checks. Fresh application/tooling/app-image/proxy scans, six-native-binary/171-file notice review and source/history/image privacy checks passed as detailed in [readiness](RELEASE_READINESS.md#beta-4-review). Exact audited assets are retained outside source; this evidence-only follow-up does not replace that frozen source/image.
+
+The one-hour hosted standalone fixture soak completed at **2026-10-10 14:39:19 UTC**: 96,000 decisions/replies, zero failed operations/driver errors, five browser clients, a 60-second 100/second burst, 511.45 MiB peak sampled application RSS, 518.54 ms backlog drain and 1,020.19 ms restart readiness. [The aggregate record](releases/v0.1.0-beta.4.md#verification-record) distinguishes shared-runner standalone evidence from actual container performance and reference-host/live acceptance. Original beta 1/2/3 artifacts stay immutable. Milestones 18–19 and all 33 stable acceptance gates remain pending. Beta 4 is not published yet; publication and actual published-asset rehearsals remain separate steps.

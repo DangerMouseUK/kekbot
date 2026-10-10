@@ -16,6 +16,7 @@ KekBot is a development candidate, not an accepted stable release. This guide co
 - [Workload and recovery harness](#workload-and-recovery-harness)
 - [Security and release evidence](#security-and-release-evidence)
 - [Long-lived state and lifecycle regressions](#long-lived-state-and-lifecycle-regressions)
+- [Beta 4 candidate verification](#beta-4-candidate-verification)
 <!-- contents:end -->
 
 ## Safety and isolation
