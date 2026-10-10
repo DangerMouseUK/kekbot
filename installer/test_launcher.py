@@ -1,16 +1,19 @@
 """Launcher contracts: no network, package manager, Docker or live credentials."""
 import io
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+import urllib.error
 from unittest.mock import patch
 
 import kekbot
-from test_lifecycle import target
+import core
+from test_lifecycle import state, target
 
 ROOT = Path(__file__).resolve().parent.parent
 LAUNCHER = ROOT / "install.sh"
@@ -56,6 +59,21 @@ class LauncherCase(unittest.TestCase):
 
 @unittest.skipUnless(BASH and Path(BASH).is_file(), "Bash is required; Linux CI always runs these contracts")
 class LauncherContracts(LauncherCase):
+    def test_beginner_download_command_stops_on_failure_and_guides_agree(self):
+        commands = []
+        for name in ("README.md", "docs/GETTING_STARTED.md", "docs/LAUNCHER.md"):
+            command = re.search(r"```sh\n(.*?)\n```", (ROOT / name).read_text(encoding="utf-8"), re.S).group(1)
+            commands.append(command)
+            self.assertIn("curl --proto '=https'", command)
+            # Run the actual documented shell sequence with only transport/sudo isolated.
+            failed = self.shell('curl() { return 37; }; sudo() { printf EXECUTED; }; ' + command)
+            self.assertEqual(failed.returncode, 37)
+            self.assertNotIn("EXECUTED", failed.stdout)
+            success = self.shell('curl() { return 0; }; sudo() { printf "%s\\n" "$@"; }; ' + command)
+            self.assertEqual(success.returncode, 0)
+            self.assertEqual(success.stdout.splitlines(), ["bash", "install.sh"])
+        self.assertEqual(len(set(commands)), 1, "Beginner entry points must stay consistent")
+
     def test_help_syntax_and_unknown_options_do_not_probe_or_mutate_host(self):
         result = subprocess.run([BASH, "-n", str(LAUNCHER)], capture_output=True, timeout=10)
         self.assertEqual(result.returncode, 0)
@@ -165,6 +183,109 @@ host_report() { :; }
 
 
 class LauncherWizardContracts(unittest.TestCase):
+    def test_recommended_discovery_prefers_stable_and_only_offers_public_betas_after_404(self):
+        with patch.object(core, "api_json", return_value=dict(tag_name="v1.0.0", draft=False, prerelease=False)) as api:
+            self.assertEqual(core.recommended_release(Path("/synthetic")), ("v1.0.0", False))
+            self.assertEqual(api.call_count, 1)
+        missing = core.Problem("No stable")
+        missing.__cause__ = urllib.error.HTTPError("https://api.github.com/synthetic", 404, "missing", {}, None)
+        self.addCleanup(missing.__cause__.close)
+        def release(tag, date, **overrides):
+            return dict(dict(tag_name=tag, published_at=date, draft=False, prerelease=True,
+                             assets=[dict(name="release.json"), dict(name="SHA256SUMS")]), **overrides)
+        releases = [release("v0.1.0-beta.2", "2026-10-01"), release("v0.1.0-beta.4", "2026-10-04", draft=True),
+                    release("v0.1.0-beta.3", "2026-10-03"), release("bad;tag", "2026-10-05"),
+                    release("v0.1.0-beta.5", "2026-10-05", assets=[])]
+        with patch.object(core, "api_json", side_effect=[missing, releases]):
+            self.assertEqual(core.recommended_release(Path("/synthetic")), ("v0.1.0-beta.3", True))
+        with patch.object(core, "api_json", side_effect=[missing, []]):
+            self.assertEqual(core.recommended_release(Path("/synthetic")), (None, False))
+
+    def test_recommended_discovery_never_treats_transport_or_rate_limits_as_missing_stable(self):
+        for code in (403, 429, 500):
+            error = core.Problem("Request failed")
+            error.__cause__ = urllib.error.HTTPError("https://api.github.com/synthetic", code, "failed", {}, None)
+            self.addCleanup(error.__cause__.close)
+            with self.subTest(code=code), patch.object(core, "api_json", side_effect=error) as api, self.assertRaises(core.Problem):
+                core.recommended_release(Path("/synthetic"))
+            self.assertEqual(api.call_count, 1)
+        error = core.Problem("TLS or network failure")
+        error.__cause__ = urllib.error.URLError("synthetic certificate failure")
+        with patch.object(core, "api_json", side_effect=error) as api, self.assertRaises(core.Problem):
+            core.recommended_release(Path("/synthetic"))
+        self.assertEqual(api.call_count, 1)
+        for release in ({}, [], dict(tag_name="v1.0.0", draft=True, prerelease=False),
+                        dict(tag_name="v0.1.0-beta.3", draft=False, prerelease=True)):
+            with self.subTest(release=release), patch.object(core, "api_json", return_value=release), self.assertRaises(core.Problem):
+                core.recommended_release(Path("/synthetic"))
+
+    def test_guided_beta_requires_explicit_choice_and_defaults_to_stopping(self):
+        for answer in ("", "q"):
+            with self.subTest(answer=answer), patch.object(kekbot, "recommended_release", return_value=("v0.1.0-beta.3", True)), \
+                 patch.object(kekbot, "prepare_target") as prepare, patch("builtins.input", return_value=answer), \
+                 patch("sys.stdout", new=io.StringIO()), self.assertRaises(kekbot.Cancelled):
+                kekbot.source_selection(Path("/synthetic"), guided=True)
+            prepare.assert_not_called()
+        with patch.object(kekbot, "recommended_release", return_value=("v0.1.0-beta.3", True)), \
+             patch.object(kekbot, "prepare_target", return_value=target(kind="release", distribution="image")) as prepare, \
+             patch.object(kekbot, "confirm") as confirm, patch("builtins.input", return_value="2"), patch("sys.stdout", new=io.StringIO()):
+            kekbot.source_selection(Path("/synthetic"), guided=True)
+            self.assertEqual(prepare.call_args.args[:3], ("release", "v0.1.0-beta.3", "image"))
+            confirm.assert_not_called()  # The operation's final APPLY remains in main().
+
+    def test_guided_stable_is_pinned_before_download_and_explicit_stable_never_offers_beta(self):
+        with patch.object(kekbot, "recommended_release", return_value=("v1.0.0", False)), \
+             patch.object(kekbot, "prepare_target", return_value=target(accepted=True)) as prepare, \
+             patch.object(kekbot, "choose", side_effect=AssertionError("No unnecessary source/format menu")), patch("sys.stdout", new=io.StringIO()):
+            kekbot.source_selection(Path("/synthetic"), guided=True)
+            self.assertEqual(prepare.call_args.args[:3], ("stable", "v1.0.0", "image"))
+        with patch.object(kekbot, "recommended_release", side_effect=AssertionError("No beta discovery for --stable")), \
+             patch.object(kekbot, "prepare_target", side_effect=core.Problem("No stable")) as prepare, \
+             patch("sys.stdout", new=io.StringIO()), self.assertRaises(core.Problem):
+            kekbot.source_selection(Path("/synthetic"), dict(source="stable", ref=""), guided=True)
+        self.assertEqual(prepare.call_args.args[:3], ("stable", "", "image"))
+
+    def test_recommended_installation_reaches_final_review_and_cancellation_prevents_install(self):
+        for confirmation, applied in (("q", False), ("APPLY", True)):
+            with tempfile.TemporaryDirectory(prefix="kekbot-guided-contract-") as temporary:
+                root = Path(temporary) / "installation"
+                with self.subTest(confirmation=confirmation), patch.object(sys, "argv", ["kekbot.py", "--action", "install", "--root", str(root)]), \
+                     patch.object(sys.stdin, "isatty", return_value=True), patch.object(kekbot, "check_host"), \
+                     patch.object(kekbot, "validate_root", return_value=root), patch.object(kekbot, "Installation") as engine, \
+                     patch.object(kekbot, "recommended_release", return_value=("v0.1.0-beta.3", True)), \
+                     patch.object(kekbot, "prepare_target", return_value=target(kind="release", distribution="image")), \
+                     patch.object(kekbot, "next_steps"), patch("builtins.input", side_effect=["", "2", "2", confirmation]), \
+                     patch("sys.stdout", new=io.StringIO()) as output:
+                    kekbot.main()
+                    self.assertEqual(engine.return_value.install.called, applied)
+                    self.assertIn("Review installation", output.getvalue())
+                    if applied:
+                        options = engine.return_value.install.call_args.args[0]
+                        self.assertEqual((options["project"], options["port"], options["mode"]), ("kekbot", 3000, "fixture"))
+
+    def test_recommended_live_setup_accepts_a_plain_hostname_without_technical_prompts(self):
+        with tempfile.TemporaryDirectory(prefix="kekbot-guided-live-contract-") as temporary:
+            root = Path(temporary) / "installation"
+            with patch.object(kekbot, "validate_root", return_value=root), patch("builtins.input", side_effect=["1", "1", "bot.example.com"]), patch("sys.stdout", new=io.StringIO()):
+                selected_root, options = kekbot.installation_options(str(root), advanced=False)
+            self.assertEqual(selected_root, root)
+            self.assertEqual(options, core.validate_options("kekbot", "live", "domain", "https://bot.example.com", 3000, "user"))
+
+    def test_recommended_update_still_requires_final_apply(self):
+        for confirmation, applied in (("q", False), ("APPLY", True)):
+            with tempfile.TemporaryDirectory(prefix="kekbot-guided-update-contract-") as temporary:
+                root = Path(temporary) / "installation"
+                with self.subTest(confirmation=confirmation), patch.object(sys, "argv", ["kekbot.py", "--action", "update", "--root", str(root)]), \
+                     patch.object(sys.stdin, "isatty", return_value=True), patch.object(kekbot, "check_host"), \
+                     patch.object(kekbot, "validate_root", return_value=root), patch.object(kekbot, "Installation") as engine, \
+                     patch.object(kekbot, "recommended_release", return_value=("v0.1.0-beta.3", True)), \
+                     patch.object(kekbot, "prepare_target", return_value=target(kind="release", distribution="image")), \
+                     patch("builtins.input", side_effect=["", "2", confirmation]), patch("sys.stdout", new=io.StringIO()) as output:
+                    engine.return_value.load.return_value = state()
+                    kekbot.main()
+                    self.assertIn("Review update", output.getvalue())
+                    self.assertEqual(engine.return_value.update.called, applied)
+
     def test_fixture_rehearsal_reaches_apply_for_accepted_and_candidate_bundles(self):
         from smoke import fixture_install_responses
         with tempfile.TemporaryDirectory(prefix="kekbot-rehearsal-contract-") as temporary:
@@ -228,6 +349,21 @@ python3() { printf '%s\n' "$@" >> "$CALLS"; }
         self.assertIn('update', calls)
         self.assertIn('--source', calls)
         self.assertIn('dev/beta', calls)
+
+    def test_recommended_project_consent_and_advanced_escape_hatch(self):
+        for response, runs in (("n\n", False), ("\n", False), ("y\n", True)):
+            (self.private / "calls").unlink(missing_ok=True)
+            if runs:
+                self.terminal('', response, 'install')
+            else:
+                with self.assertRaises(Exception):
+                    self.terminal('', response, 'install')
+            calls = (self.private / "calls").read_text().splitlines()
+            self.assertEqual('install' in calls, runs)
+            self.assertIn('refs/heads/main', calls)
+        (self.private / "calls").unlink()
+        self.terminal('', 'TRUST ' + SHA[:12] + '\n', 'install', '--advanced')
+        self.assertIn('--advanced', (self.private / "calls").read_text().splitlines())
 
     def test_local_tool_selection_is_explicit_and_cancel_does_not_execute(self):
         self.terminal('', 'q\n', 'install', '--local-tools', str(ROOT))

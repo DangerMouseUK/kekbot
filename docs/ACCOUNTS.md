@@ -1,6 +1,8 @@
 # Accounts and permissions
 
-Use this guide to claim an installation, invite operators and remove access. Host installation comes first: [installation guide](INSTALLATION.md). Daily controls are in the [user guide](USER_GUIDE.md). [All documentation](README.md).
+**Use this when:** you are creating the owner login, joining a team or changing someone's access. Your KekBot account is separate from Kick and Discord. First-time owners can follow [the login walkthrough](GETTING_STARTED.md#4-create-your-dashboard-account).
+
+Use this guide to claim an installation, invite operators and remove access. Host installation comes first: [getting started](GETTING_STARTED.md). Daily controls are in the [user guide](USER_GUIDE.md). [All documentation](README.md).
 
 <!-- contents:start -->
 **On this page**
@@ -25,6 +27,19 @@ There is one owner per installation. There is no public registration, email veri
 After `init`, read the setup-token file privately at the path it reports. Open the configured HTTPS origin and complete **Claim this installation** with that token, a username and a password. A username is 3–32 characters, starts with a letter/number, and otherwise permits letters/numbers, `_`, `-` and `.`. It is normalized to lowercase. Passwords must be 12–256 characters.
 
 The token expires after one hour and can claim only an unowned installation. If it expires before claim, stop the application, rerun `init` and start it again. This renews setup eligibility without replacing the encryption key. After claim, use owner recovery instead. Never send the setup token to a prospective moderator.
+
+### If the token expired before your first login
+
+For a default installer-managed host, run these in Bash on the Linux server. Change the directory/project only if you customized them:
+
+```sh
+dc() { sudo docker compose --project-name kekbot --file /srv/kekbot/compose.json "$@"; }
+dc stop kekbot
+dc run --rm --no-deps kekbot node src/cli.ts init
+dc up -d kekbot
+```
+
+Initialization renews an unclaimed token while retaining the original encryption key. If an instance-lease message appears after an unclean stop, wait up to 30 seconds and retry the initialization; do not delete lease records. Read the setup-token path printed by initialization privately and complete claim within an hour. This does not reset an existing owner. A manual installation uses [its own maintenance helper](BACKUP_RECOVERY.md#manual-sourcecompose-installation) instead.
 
 ## Capability matrix
 

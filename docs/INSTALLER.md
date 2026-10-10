@@ -1,10 +1,12 @@
 # Guided installation and host management
 
-Use the **interactive terminal wizard** to install one KekBot instance on Linux x86-64. It also provides updates, rollback, status, start/stop and uninstall. Every change has an explained review and typed confirmation. Application/module settings and provider consent continue in the browser after owner setup.
+**First time installing? Start with [Getting started](GETTING_STARTED.md).** This page is the detailed reference for each choice and for custom installations. [Glossary](GLOSSARY.md).
+
+Use the **interactive terminal wizard** to install one KekBot instance on Linux x86-64. It also provides updates, rollback, status, start/stop and uninstall. Every change has an explained review and final confirmation. Recommended setup fills in the normal host settings; Advanced setup preserves every custom choice. Application/module settings and provider consent continue in the browser after owner setup.
 
 The easiest entry is the [downloadable `install.sh` launcher](LAUNCHER.md): no clone, host readiness checks, optional confirmed Ubuntu prerequisites, reviewed management downloads and every application source option. [Published beta 3](releases/v0.1.0-beta.3.md) includes a checksum-covered standalone download. Immutable beta 1/2 tags keep their original tools. The clone-based path below remains available for pinned/local review.
 
-Beta 3 is [published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3) with the launcher and corrected bundled HTTPS installer. Choose **Specific release** → `v0.1.0-beta.3` for evaluation using its matching tool tag. Beta 1/2 remain published; the original beta 1 domain/IP installer needs the [workaround below](#beta-1-bundled-https-installer-fix). **There is no supported stable release yet.** Latest stable defaults to fail-closed discovery. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths; automated fixtures do not establish independent installation or real providers.
+Beta 3 is [published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3) with the launcher and corrected bundled HTTPS installer. The current recommended flow explicitly offers the published beta when no stable exists. Older beta 3 tools use **Specific release** → `v0.1.0-beta.3` with their matching tool tag; they keep the original prompts. Beta 1/2 remain published; the original beta 1 domain/IP installer needs the [workaround below](#beta-1-bundled-https-installer-fix). **There is no supported stable release yet.** Latest stable defaults to fail-closed discovery. Reviewed branch/PR/commit and audited-bundle paths remain available. The [beta guide](BETA.md) explains both paths; automated fixtures do not establish independent installation or real providers.
 
 [All documentation](README.md) · [Manual installation](INSTALLATION.md) · [Updating](UPDATING.md) · [Uninstalling](UNINSTALLING.md)
 
@@ -36,7 +38,11 @@ For Windows/macOS evaluation use [Docker Desktop](DOCKER_DESKTOP.md), or [source
 
 ## Start the wizard
 
-Run these in **Bash on the Linux host**, from a directory for public source checkouts. Keep that checkout outside the installation directory:
+Use [the short guided command](GETTING_STARTED.md#2-open-the-installer) for the normal path. Select **Recommended setup** for one standard installation, or **Advanced setup** to customize it. You do not need to clone the repository.
+
+### Advanced: run a reviewed checkout
+
+The following is the optional source-review path. Run these in **Bash on the Linux host**, from a directory for public source checkouts. Keep that checkout outside the installation directory:
 
 ```sh
 git clone https://github.com/DangerMouseUK/kekbot.git kekbot-tools
@@ -51,7 +57,7 @@ Review the checked-out tool and its CI before granting root/Docker access. To pi
 sudo python3 -B installer/kekbot.py
 ```
 
-The scrolling, numbered text interface works over SSH without a desktop, terminal mouse or third-party UI library. Press Enter to accept the displayed choice. Type `q`, `quit` or `cancel` at any prompt to abandon that walkthrough and return to the main menu. `Ctrl+C` exits; interrupted changes require status/recovery inspection. There is no unattended `--yes` or pipe-to-shell mode. The launcher downloads to private storage and requires explicit source trust before running management code.
+The scrolling, numbered text interface works over SSH without a desktop, terminal mouse or third-party UI library. Press Enter to accept the displayed choice. Type `q`, `quit` or `cancel` at any prompt to abandon that walkthrough and return to the main menu. `Ctrl+C` exits; interrupted changes require status/recovery inspection. There is no unattended `--yes` or pipe-to-shell mode. The launcher downloads to private storage and asks permission before running official project management code. `--advanced` and explicit development/local tool selections retain exact-source trust.
 
 The menu offers **Install**, **Update**, **Inspect status**, **Start or resume**, **Stop**, **Roll back**, **Uninstall** and **Exit**. `--action` opens a particular walkthrough; `--root` supplies an existing managed root. Both still require an interactive terminal and confirmation for changes:
 
@@ -95,6 +101,7 @@ If the original proxy build already failed, the installation directory should no
 
 | Prompt | Default / options | What the choice means |
 | --- | --- | --- |
+| Setup style | Recommended; Advanced | Recommended fills standard host settings and selects a published image. Advanced asks every setting and retains all source/build choices. |
 | Use | Live; fixture | Live uses owner-controlled real integrations. Fixture generates a random demo login and synthetic data, binds loopback HTTP and prevents live provider mutations/media. Mode is not changed by an update. |
 | Directory | `/srv/kekbot` | New, dedicated absolute directory outside the tool checkout. Existing paths, source overlap and symlink paths are refused. Avoid network/cloud-synced storage. Everything below this root belongs to this managed installation. |
 | Project | `kekbot` | Docker Compose namespace. Alternatives start `kekbot-`, then lowercase letters/numbers/hyphens. Existing project resources/certificate volumes are refused. |
@@ -103,7 +110,7 @@ If the original proxy build already failed, the installation directory should no
 | Origin | Required for live | Exact HTTPS origin, no trailing slash/path/query/credentials. Domain/IP bundled modes use standard HTTPS port. External proxy may use an explicit HTTPS port. |
 | Chat identity | Authorized account; official bot | `user` sends as the account granting Kick access. `bot` selects provider-supported official bot delivery. Developer app name does not establish sender identity. Verify a real reply. |
 | Version | Latest stable; release; branch; PR; commit; local bundle | See the format/source table below. All choices become fixed identities before review. |
-| Apply | No automatic acceptance | Review directory, project, mode, origin, port, version, SHA and format, then type `APPLY`. Development/unaccepted code first requires `TRUST <first 12 SHA characters>`. |
+| Apply | No automatic acceptance | Review directory, project, mode, origin, port, version, SHA and format, then type `APPLY`. Advanced development/unaccepted code first requires `TRUST <first 12 SHA characters>`. Recommended published-beta installation requires an explicit beta choice and final `APPLY`, without a hash-typing exercise. |
 
 For multiple instances, use separate directories, project names, application ports, applications and data. Only one bundled proxy can occupy public 80/443; use a shared external HTTPS proxy for additional origins. The wizard does not edit an existing proxy or host ports/firewall.
 
@@ -119,7 +126,7 @@ For multiple instances, use separate directories, project names, application por
 
 | Selection | Input | Supported format / resolution |
 | --- | --- | --- |
-| Latest stable (default) | None | GitHub's latest published non-prerelease, plus this project's accepted stable metadata. Default is the prebuilt Linux amd64 image. No automatic fallback to `main`. |
+| Latest stable (recommended when available) | None | GitHub's latest published non-prerelease, plus this project's accepted stable metadata. Default is the prebuilt Linux amd64 image. No automatic fallback to `main`. The recommended flow can separately offer a published beta after confirmed absence of stable; Enter stops instead. Explicit stable selection never offers a beta. |
 | Specific release | Exact published tag, e.g. `v0.1.0-beta.3` | Explicit prereleases/candidates allowed with trust acknowledgement. Choose prebuilt image or source build. A planned tag cannot be installed before it exists. |
 | Branch | Existing name, e.g. `main` | Fetch the official repository ref, pin full commit, archive public source, build with Docker. |
 | Pull request | Positive number, without `#` | Fetch official `refs/pull/NUMBER/head`, including fork contributions. Builds the PR head, not GitHub's synthetic merge result. Pin and review exact SHA. |

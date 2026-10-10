@@ -6,7 +6,7 @@ This is the milestone plan for upcoming work. It groups the requirements in the 
 
 For installation and daily use, start at the [documentation index](README.md). Project evidence below remains tied to its recorded source/date; documentation improvements alone do not accept a live milestone.
 
-The public operator path is [installation](INSTALLATION.md) → [providers](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [operations](OPERATIONS.md) → [recovery](BACKUP_RECOVERY.md). Field/action/CLI references and automated documentation contracts support Milestone 16. Independent operators must still complete that path without maintainer intervention for later acceptance gates.
+The public operator path is [Getting started](GETTING_STARTED.md) → [providers](PROVIDERS.md) → [first session](FIRST_SESSION.md) → [operations](OPERATIONS.md) → [recovery](BACKUP_RECOVERY.md). Field/action/CLI references and automated documentation contracts support Milestone 16. Independent operators must still complete that path without maintainer intervention for later acceptance gates.
 
 <!-- contents:start -->
 **On this page**
@@ -50,6 +50,7 @@ The public operator path is [installation](INSTALLATION.md) → [providers](PROV
 - [Downloadable lifecycle launcher — development follow-up](#downloadable-lifecycle-launcher--development-follow-up)
 - [Beta 3 preparation — 2026-10-09](#beta-3-preparation--2026-10-09)
 - [Beta 3 publication — 2026-10-09](#beta-3-publication--2026-10-09)
+- [Beginner setup and handbook — development follow-up](#beginner-setup-and-handbook--development-follow-up)
 <!-- contents:end -->
 
 ## Working approach
@@ -730,3 +731,13 @@ The one-hour hosted standalone fixture soak completed at **2026-10-09 20:28:25 U
 Published [v0.1.0-beta.3](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3) at **21:22:55 UTC**, as a prerelease without latest-stable promotion. Its tag targets frozen source `2290ea9c2501fb2053f6cc7293d93b36a95b9b93` and application image `sha256:a7cf9b61bca3c0836c081cce6ee75d85d24b342f60badf1ebf55004604ebbfe0`. All six uploaded/downloaded asset hashes match the retained audited bundle. Anonymous source/image discovery and checksum verification passed, including the standalone launcher; latest-stable discovery excludes betas. Beta 1/2 assets stay unchanged.
 
 [Published-release campaign 37993542545](https://github.com/DangerMouseUK/kekbot/actions/runs/37993542545) passed all six required jobs; its explicit release step completed at **2026-10-09 21:35:41 UTC**. Tool/helper source is `0e9d1e0aeca2c746df0f55fa38330b92dfb2ecbd`; the selected application remains frozen source `2290ea9c2501fb2053f6cc7293d93b36a95b9b93` and image `sha256:a7cf9b61bca3c0836c081cce6ee75d85d24b342f60badf1ebf55004604ebbfe0`. Actual published source/image downloads, image installation, signed fixture intake, failed-update guards, separate-root rollback preserving key/assets, published-source build, successful update, retained-data uninstall/resume and explicit purge passed. Helper builds are separate and never replace release assets. This automated fixture trial does not establish a real beta 1/2 upgrade, unaided installation, public certificate renewal or live provider/OBS acceptance. Milestones 18–19 and all 33 live/reference/operator gates remain pending.
+
+## Beginner setup and handbook — development follow-up
+
+The next host-tool revision adds Recommended setup with standard settings, verified published images and a plain-English project consent prompt. Advanced settings, source review, custom versions/builds, updates, rollback and retained-data removal remain available. Strict stable selection never chooses a beta; a confirmed absence of stable can produce a separate offer whose default is Stop.
+
+The root README and [documentation hub](README.md) lead into [Getting started](GETTING_STARTED.md), first login, Kick connection and one command. The [glossary](GLOSSARY.md), task guides, managed provider/backup procedures, contributor rules and detailed references support that path. Historical release/PRD/legal records remain intact. See [documentation review](DOCUMENTATION.md#beginner-handbook-refresh) and [targeted checks](TESTING.md#guided-setup-and-beginner-documentation).
+
+This is development follow-up to Milestone 16, not a new published application or a passed independent-installer gate. Beta 3 assets and all 33 pending stable acceptance gates are unchanged. Public TLS, fresh-host prerequisites, live providers/OBS and unaided beginner trials remain outstanding. The implementation is fixture-tested; publication and unaided/live acceptance remain separate.
+
+[PR CI 38000770841](https://github.com/DangerMouseUK/kekbot/actions/runs/38000770841) passed all six required jobs at **2026-10-09 22:49:08 UTC**, for PR head `4225fe1b7f701a43794e98e9abd5be72ea57762b` through GitHub's merge checkout `73903a7f75fb7dd7c5a2fb809ede1f783da64792`. Linux passed all 64 installer/launcher contracts, production/standalone checks, Chromium/Firefox/WebKit, the retained proxy context/domain/IP adaptation, container/storage/restart and package round trip. The real Recommended wizard/engine installed the audited fixture image, with explicit candidate selection and final APPLY, and purged its isolated root. Release discovery was supplied by a fixture for that rehearsal; anonymous real beta discovery was checked separately. The advanced launcher/bundle update-failure/rollback/removal rehearsal also passed. This campaign did not request public certificates, use live grants, publish artifacts or rerun the optional one-hour soak. This subsequent evidence-only revision does not change the tested implementation or any released asset.

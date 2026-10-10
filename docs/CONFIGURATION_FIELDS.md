@@ -1,5 +1,7 @@
 # Dashboard field reference
 
+**Look up the field you are editing.** You do not need to fill every field or read this reference before using the bot. The [first-session examples](FIRST_SESSION.md) provide sensible starting values; this page explains exact limits, units and defaults.
+
 Every editable configuration kind is listed here. Runtime/environment settings are in [configuration](CONFIGURATION.md); task instructions are in the [user guide](USER_GUIDE.md). [All documentation](README.md).
 
 The field names below are the JSON names used by [the API](API.md). The dashboard inserts spaces and capitalizes the first word: `userCooldown` becomes **User cooldown**. Defaults apply when a field is omitted; required fields have no default. The editor may supply a starting value instead, notably disabled new moderation rules and an activity deadline one hour ahead. CI validates the [example files](examples/README.md) against [catalog.ts](../src/server/domain/catalog.ts) and checks every field has a reference row.

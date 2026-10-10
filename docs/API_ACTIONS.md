@@ -1,5 +1,7 @@
 # Control action reference
 
+**Developer lookup:** find the action you want to call, its permission and its expected payload. For browser instructions use [the user guide](USER_GUIDE.md); for authentication read [the API overview](API.md).
+
 Use with [HTTP authentication and routes](API.md), [configuration fields](CONFIGURATION_FIELDS.md) and [accounts](ACCOUNTS.md). This describes the current development interface; it is not a stable compatibility promise. [All documentation](README.md).
 
 <!-- contents:start -->

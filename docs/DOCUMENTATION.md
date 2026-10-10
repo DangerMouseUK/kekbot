@@ -11,6 +11,7 @@ This is the contributor/maintainer guide to the documentation set. Readers shoul
 - [Verification checklist](#verification-checklist)
 - [Reviewing quality](#reviewing-quality)
 - [Handbook verification record](#handbook-verification-record)
+- [Beginner handbook refresh](#beginner-handbook-refresh)
 - [Runtime quality follow-up](#runtime-quality-follow-up)
 <!-- contents:end -->
 
@@ -30,7 +31,7 @@ The PRDs are intentionally identical. Edit both only when requirements change. T
 
 ## Writing a task guide
 
-Begin with who the guide is for, the state it assumes and a link to the preceding/next task. Put the successful path before alternatives. For each consequential action explain:
+Begin with who the guide is for, the state it assumes and a link to the preceding/next task. Put one successful beginner path before alternatives. The root README links [Getting started](GETTING_STARTED.md); manual source review, every CLI flag and custom Compose belong in advanced references. Keep the short launch command consistent across README, Getting started and the launcher guide. Explain server versus personal computer, live versus demo, and application versus host tools in everyday language. Link [the glossary](GLOSSARY.md) when a technical term is unavoidable. Do not make readers audit scripts or type source hashes on the recommended published-image path; exact-source trust remains available for advanced/development choices. For each consequential action explain:
 
 1. **Where:** host versus container, checkout root versus external directory, Bash versus PowerShell.
 2. **Authority:** owner, delegated capability, trusted host access or provider permissions.
@@ -87,6 +88,16 @@ Reviewed 2026-10-08 against runtime baseline `2219e36eea59a9ceebb10bfb8870954d57
 Verification included `pnpm check` (114 tests in 19 files, types/lint, publication/docs/release guards), `pnpm build`, and a fresh external fixture walkthrough. That walkthrough preserved keys across repeated initialization, seeded all 18 widget families, signed in, saved all 12 configuration example kinds, previewed commands/timers/alerts, safe-tested a rule, set an absolute goal value, uploaded an asset, accepted a read-only invitation and verified mutation denial, sent a signed fixture event, exercised/revoked a read API token, exported configuration, and performed stopped-host backup, separate-empty-target restore and owner recovery.
 
 Private generated accounts, keys, databases, assets and logs stayed outside the checkout. Linux container/proxy and browser verification belongs to the PR's ordinary CI. Docker Desktop operator trials, real provider/OBS delivery, certificate renewal, independent installers and another-host recovery are not established by this editorial/fixture review. PRDs, upstream license text, historical run identities and pending acceptance gates are preserved.
+
+## Beginner handbook refresh
+
+The current repository handbook puts the short guided launcher and [Getting started](GETTING_STARTED.md) before advanced setup. The review covers public entry points, operator tasks, references, contributor/security policy and release records. The [glossary](GLOSSARY.md) defines unfamiliar terms without becoming a prerequisite reading assignment. Managed provider lookup and snapshot instructions now distinguish generated Compose from manual deployment.
+
+Local verification on 2026-10-09: `pnpm check` passed publication/docs/release/pin guards, types, formatting, lint and all 155 application tests. The final targeted `pnpm test:installer` passed 53 portable contracts, with 11 Linux-only cases skipped locally. [PR CI 38000770841](https://github.com/DangerMouseUK/kekbot/actions/runs/38000770841) subsequently passed all 64 installer/launcher contracts and all six required jobs, including three browsers and both recommended/advanced container lifecycle paths. [Milestones](MILESTONES.md#beginner-setup-and-handbook--development-follow-up) records the exact head/merge-checkout identities and fixture limits. `pnpm docs:check` covers 57 Markdown files, matching PRDs, every catalog field and 12 schema examples. The actual shared beginner command is tested with successful and failed downloads, including prevention of execution after failure.
+
+Redacted Gitleaks 8.30.1 scans passed on all 259 publication files and full Git history. Additional personal-path/private-key pattern checks found zero matches in the current files and 880 historical blobs; no global IPv4-looking values were found in the publication set. Anonymous HTTPS release discovery returned published `v0.1.0-beta.3` as a separately offered beta. These are source/privacy/transport checks, not live installation evidence.
+
+Beta 3 and older release notes, PRD requirements, upstream license text and historical source/image/run identities remain unchanged. The new launcher/tools are development work until included in a separately reviewed release; they can select the existing published application. Link/schema checks, installer contracts and Linux CI provide automated evidence. Fresh-host prerequisites, public certificates, live providers/OBS and unaided beginner trials remain pending.
 
 ## Runtime quality follow-up
 

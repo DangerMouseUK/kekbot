@@ -12,7 +12,7 @@ KekBot is an MIT self-hosted Kick/Discord control room: one creator per installa
 
 Use these task-specific starting points:
 
-- Public entry/navigation: [README](README.md), [documentation index](docs/README.md).
+- Public entry/navigation: [README](README.md), [beginner walkthrough](docs/GETTING_STARTED.md), [documentation index](docs/README.md), [glossary](docs/GLOSSARY.md).
 - Local setup: [quickstart](docs/QUICKSTART.md), [contributing](CONTRIBUTING.md).
 - Initial configuration/delegation: [first session](docs/FIRST_SESSION.md), [accounts](docs/ACCOUNTS.md); Windows/macOS containers: [Docker Desktop](docs/DOCKER_DESKTOP.md).
 - Hosting/configuration: [installation](docs/INSTALLATION.md), [configuration](docs/CONFIGURATION.md).
@@ -42,7 +42,7 @@ Read only the material needed for the requested scope. The [foundation guide](do
 
 ## Documentation quality and evidence
 
-The root README serves new public users. Keep it and the documentation index linked to working task-based guides. Explain prerequisites, shell/platform, command location, host versus container paths, required permissions, expected results and recovery/next steps. Match actual screen labels, schemas and CLI behavior. Do not invent an installer, published image, default account or verified provider capability.
+The root README serves new public users. Put the short guided entry and one successful beginner journey first; keep source review, manual Compose and every custom selector in linked advanced references. Explain unfamiliar terms before use or link the glossary. Keep it and the documentation index linked to working task-based guides. Explain prerequisites, shell/platform, command location, host versus container paths, required permissions, expected results and recovery/next steps. Match actual screen labels, schemas and CLI behavior. Do not invent an installer, published image, default account or verified provider capability.
 
 Update relevant guides, CONTRIBUTING, CHANGELOG and architecture/API references with changed behavior. Keep roadmap/milestone/requirement records aligned. Update both identical PRDs together only when requirements change; preserve historical evidence identities.
 
@@ -54,7 +54,7 @@ Follow [documentation maintenance](docs/DOCUMENTATION.md) for repository-wide gu
 
 ## Verification
 
-Host lifecycle code uses Bash and Python 3.10+ standard library, separate from the TypeScript app. `pnpm check` includes offline installer/launcher contracts; Linux CI additionally tests terminal trust/dispatch, locks/transactions and the audited-bundle install/update-failure/rollback/uninstall rehearsal. Proxy changes must pass the retained/staged context build and domain/IP adaptation (`installer/smoke.py --proxy-context`); a whole-checkout build or local-proxy fixture alone cannot prove bundled HTTPS staging. Keep final typed review, latest-stable fail-closed behavior, immutable source/image selection, private state and retained-data defaults. Downloaded management code requires explicit trust of its resolved SHA before execution; installed tools require protected ownership/paths. Optional Ubuntu package setup needs its separate explained confirmation. Do not adopt arbitrary manual deployments, implicitly replace management code, prune global Docker resources or claim fixture coverage as an independent installer trial.
+Host lifecycle code uses Bash and Python 3.10+ standard library, separate from the TypeScript app. `pnpm check` includes offline installer/launcher contracts; Linux CI additionally tests terminal trust/dispatch, locks/transactions and the audited-bundle install/update-failure/rollback/uninstall rehearsal. Proxy changes must pass the retained/staged context build and domain/IP adaptation (`installer/smoke.py --proxy-context`); a whole-checkout build or local-proxy fixture alone cannot prove bundled HTTPS staging. Keep final typed review, latest-stable fail-closed behavior, immutable source/image selection, private state and retained-data defaults. Normal official-project management downloads require explicit plain-English project consent before execution and remain pinned to the resolved SHA. `--advanced` and development/local tool selections require exact-source trust. Recommended published application images keep checksum/identity verification, explicit beta opt-in and final APPLY. Strict `--stable` never offers a beta; only a confirmed latest-stable 404 may lead to a separately declined-by-default beta offer. Installed tools require protected ownership/paths. Optional Ubuntu package setup needs its separate explained confirmation. Do not adopt arbitrary manual deployments, implicitly replace management code, prune global Docker resources or claim fixture coverage as an independent installer trial.
 
 Run `pnpm check` and targeted checks appropriate to the change. Documentation-only work requires link/publication checks and validation of changed procedures; avoid unnecessary application rewrites or repeated performance tests.
 

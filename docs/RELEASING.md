@@ -1,5 +1,7 @@
 # Preparing and releasing KekBot
 
+**Maintainer guide:** follow this to prepare and publish a new version. Operators install through [Getting started](GETTING_STARTED.md) or [update an existing installation](UPDATING.md); they do not need to build release packages themselves.
+
 The [published `0.1.0-beta.3` evaluation release](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3) includes the merged lifecycle launcher as a standalone audited download and passed its exact source/image [candidate review](RELEASE_READINESS.md#beta-3-review). The [beta guide](BETA.md) and [release notes](releases/v0.1.0-beta.3.md) describe evaluation, checksums and upgrades. Beta 1/2 remain immutable. Stable acceptance requires the [live campaign](LIVE_ACCEPTANCE.md); every future publication requires explicit owner authorization. Preparation can run without provider accounts or local Docker.
 
 This is the maintainer release procedure. Operators should use [installation](INSTALLATION.md), [configuration](CONFIGURATION.md) and [upgrade/recovery](BACKUP_RECOVERY.md#upgrade-and-rollback). Return to the [documentation index](README.md).
@@ -17,6 +19,8 @@ Review fixes change the candidate source even when versions/formats stay the sam
 - [Final publication gate](#final-publication-gate)
 - [Dependency review gate](#dependency-review-gate)
 <!-- contents:end -->
+
+The current simplified setup is newer than beta 3's immutable launcher. A future release must package and review the changed launcher/manager together; do not rewrite old release files or reuse beta 3's source/image security sign-off. Verify both recommended and advanced journeys, explicit beta refusal/selection and strict latest-stable behavior.
 
 ## Release sequence
 
@@ -66,7 +70,7 @@ Use a reviewed branch containing the `published_release` workflow input. CI reso
 
 ### Host-tool corrections after publication
 
-The [downloadable launcher](LAUNCHER.md) is a later development addition; published beta 2 assets do not contain it. Review bootstrap, management commit and application identity independently. Beta 3 packaging includes the root launcher both inside its source archive and as a standalone `install.sh` asset. The additive `launcher` metadata field remains format 1; older installer bundles still work. Preparation checks that this is a regular committed file, exports Git bytes without checkout newline conversion, and includes its hash in `SHA256SUMS`. The Linux archive round trip compares it with both committed and archived bytes without executing it. Publishing still needs normal frozen-source/image review and owner authorization. Test launcher syntax, trust/dispatch contracts, retained launcher resources and the real-image terminal installation before distribution. Do not replace existing release assets to add it or transfer historical binary/security sign-off to a new image. Optional fresh-Ubuntu package assistance requires a separate host trial.
+The [downloadable launcher](LAUNCHER.md) is published with beta 3; beta 2 assets do not contain it. The newer Recommended prompts and beginner handbook are development follow-up, not replacement beta 3 assets. Review bootstrap, management commit and application identity independently. Beta 3 packaging includes the root launcher both inside its source archive and as a standalone `install.sh` asset. The additive `launcher` metadata field remains format 1; older installer bundles still work. Preparation checks that this is a regular committed file, exports Git bytes without checkout newline conversion, and includes its hash in `SHA256SUMS`. The Linux archive round trip compares it with both committed and archived bytes without executing it. Publishing still needs normal frozen-source/image review and owner authorization. Test launcher syntax, trust/dispatch contracts, retained launcher resources and the real-image terminal installation before distribution. Do not replace existing release assets to add it or transfer historical binary/security sign-off to a new image. Optional fresh-Ubuntu package assistance requires a separate host trial.
 
 Published tags and assets remain immutable. A host-tool fix may manage an unchanged release from a separately reviewed, pinned tool checkout; record both identities rather than calling the published source fixed. Application updates never implicitly replace management code. The [beta 1 bundled-HTTPS workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) follows this path. Beta 2 distributes that correction under a new version through the normal authorized publication process; it does not replace beta 1's downloads.
 
@@ -74,7 +78,7 @@ Require `python3 -B installer/smoke.py --proxy-context` in Linux container CI: i
 
 ## Supported candidate versions
 
-The [interactive installer](INSTALLER.md) supports repository branches, PR heads and exact commits through source builds, plus published/local audited source and Linux amd64 image bundles. Its default discovery uses GitHub's latest stable release and fails closed until stable metadata/assets exist. Host updates/removal follow [updating](UPDATING.md) and [uninstalling](UNINSTALLING.md); no releases are published by the installer.
+The [interactive installer](INSTALLER.md) supports repository branches, PR heads and exact commits through source builds, plus published/local audited source and Linux amd64 image bundles. Strict `--stable` discovery uses GitHub's latest stable release and fails closed until stable metadata/assets exist. The newer Recommended flow checks stable first; only a confirmed 404 permits a separate, declined-by-default published-beta offer. API/network failures never trigger that offer. Host updates/removal follow [updating](UPDATING.md) and [uninstalling](UNINSTALLING.md); no releases are published by the installer.
 
 | Component | Supported candidate |
 | --- | --- |

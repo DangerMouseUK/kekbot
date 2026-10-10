@@ -11,7 +11,7 @@ import sys
 import tempfile
 import textwrap
 
-from core import Diagnostics, diagnostic_session, Installation, Problem, REPOSITORY, check_host, prepare_target, validate_options, validate_root
+from core import Diagnostics, diagnostic_session, Installation, Problem, REPOSITORY, check_host, prepare_target, recommended_release, validate_options, validate_root
 
 
 class Cancelled(Exception):
@@ -50,8 +50,24 @@ def confirm(title, text, phrase="APPLY"):
         raise Cancelled()
 
 
-def source_selection(directory, selection=None):
+def source_selection(directory, selection=None, *, guided=False):
     selection = selection or {}
+    guided = guided and selection.get("source") in (None, "stable", "release") and selection.get("format") != "source"
+    if guided and not selection.get("source"):
+        tag, prerelease = recommended_release(directory)
+        if prerelease:
+            decision = choose("KekBot is currently in beta", f"There is no stable release yet. {tag} is a published test release. Choosing it does not establish full live testing or stable acceptance. Use a test installation and keep backups. Trying it is your choice; it will never be selected as latest stable.", [
+                ("Stop for now", "Wait for a stable release. Nothing will be installed.", "stop"),
+                (f"Try {tag}", "Install the published test image without compiling the app yourself.", "beta"),
+                ("Advanced version choices", "Choose another release, branch, PR, exact commit or local bundle.", "advanced"),
+            ])
+            if decision == "stop":
+                raise Cancelled()
+            if decision == "advanced":
+                return source_selection(directory, guided=False)
+        if tag is None:
+            raise Problem("No installable published release is available. Use Advanced setup for reviewed development code, or wait for a release.")
+        selection = dict(source="release" if prerelease else "stable", ref=tag, format="image")
     kind = selection.get("source") or choose("Choose the version", "Latest stable is the normal default. Every selection is resolved once and pinned; branches are never pulled automatically. Downloads use verified HTTPS. A branch or PR can execute arbitrary build/application code with access to this host's Docker daemon: review its exact commit first.", [
         ("Latest stable release (recommended)", "Published stable GitHub release with accepted metadata. If none exists, stop and explicitly choose development; never silently use main.", "stable"),
         ("Specific release", "Enter an exact published tag, e.g. v0.1.0-beta.2 or v1.0.0. A beta must already be published and remains an evaluation build.", "release"),
@@ -60,51 +76,59 @@ def source_selection(directory, selection=None):
         ("Exact commit", "Build a reviewed full 40-character commit SHA from the public repository.", "commit"),
         ("Local audited release bundle", "Directory containing release.json, SHA256SUMS and the required source/image/notices archives. Useful for transferred candidate or release artifacts.", "bundle"),
     ])
-    value = ""
+    value = (selection.get("ref") or "") if guided else ""
     if kind != "stable" and selection.get("source"):
         value = selection["ref"]
     elif kind != "stable":
         value = ask({"release": "Release tag", "branch": "Branch", "pr": "PR number", "commit": "Full commit SHA", "bundle": "Absolute bundle directory"}[kind])
     distribution = "source"
     if kind in ("stable", "release", "bundle"):
-        distribution = selection.get("format") or choose("Choose distribution format", "Both formats use the audited release metadata and SHA256SUMS. Checksums detect corruption; they are not a publisher signature. Only obtain bundles from the project or a trusted operator. Automatic GitHub source zip downloads are not installer bundles.", [
+        distribution = selection.get("format") or ("image" if guided else choose("Choose distribution format", "Both formats use the audited release metadata and SHA256SUMS. Checksums detect corruption; they are not a publisher signature. Only obtain bundles from the project or a trusted operator. Automatic GitHub source zip downloads are not installer bundles.", [
             ("Prebuilt Linux amd64 image (recommended)", "Load the exact image archive and verify image ID, source/version labels and non-root user. Avoids application compilation on your server.", "image"),
             ("Build the release source", "Verify the source tar.gz, then build with Docker and locked dependencies. Needs more RAM/time and build-network access; rebuilt image bytes differ from the accepted image.", "source"),
-        ])
+        ]))
     print("\nResolving and downloading the selected public source. No application code is being executed.")
     target = prepare_target(kind, value, distribution, directory)
     explain("Review the resolved version", f"Application: {target['version']}\n\nSource commit: {target['sourceRef']}\n\nFormat: {target['distribution']}. " + ("Accepted package metadata is present. A source rebuild still needs its own verification." if target["accepted"] else "This is an evaluation candidate; full-product live acceptance is not established."))
-    if kind in ("branch", "pr", "commit") or not target["accepted"]:
+    if kind in ("branch", "pr", "commit") or (not target["accepted"] and not guided):
         confirm("Trust this exact source?", "Only continue after reviewing the source and its CI. Root/Docker build access is powerful. This acknowledgement does not make a development build a supported release.", "TRUST " + target["sourceRef"][:12])
     return target
 
 
-def installation_options(default_root=None):
+def installation_options(default_root=None, *, advanced=True):
     mode = choose("How will you use KekBot?", "Choose deliberately: missing provider credentials never turn a live installation into a demo. You can leave optional integrations disabled after setup. A fixture installation is a separate simulated environment and cannot be converted into a live database.", [
         ("Live creator installation", "Always-on Linux host, real provider accounts you own and a publicly trusted HTTPS origin. Credentials are entered later in the browser, not this terminal.", "live"),
         ("Isolated fixture evaluation", "Loopback-only simulated chat/media and randomly generated demo login. No real provider mutations or YouTube playback.", "fixture"),
     ])
-    explain("Storage and instance name", "Use a new dedicated directory on local disk. The wizard owns everything underneath it: protected environment, generated keys, data, backups, proxy and management tool. NFS/SMB and shared databases are unsupported. The directory must be outside this checkout and must not already exist. Root protects the directory; the app writes data as UID 1000. Keep an independent recovery-key copy elsewhere.")
-    root = validate_root(ask("Installation directory", default_root or "/srv/kekbot"), new=True)
-    project = ask("Unique Compose project name", "kekbot")
-    explain("Application port", "The direct port binds only to 127.0.0.1. Choose an unused port from 1024 to 65535. Bundled HTTPS stays on ports 80/443. A second installation needs a different application port and an existing shared reverse proxy; two bundled proxies cannot own the same public ports.")
+    if advanced:
+        explain("Storage and instance name", "Use a new dedicated directory on local disk. The wizard owns everything underneath it: protected environment, generated keys, data, backups, proxy and management tool. NFS/SMB and shared databases are unsupported. The directory must be outside this checkout and must not already exist. Root protects the directory; the app writes data as UID 1000. Keep an independent recovery-key copy elsewhere.")
+    root = validate_root(ask("Installation directory", default_root or "/srv/kekbot") if advanced else default_root or "/srv/kekbot", new=True)
+    project = ask("Unique Compose project name", "kekbot") if advanced else "kekbot"
+    if advanced:
+        explain("Application port", "The direct port binds only to 127.0.0.1. Choose an unused port from 1024 to 65535. Bundled HTTPS stays on ports 80/443. A second installation needs a different application port and an existing shared reverse proxy; two bundled proxies cannot own the same public ports.")
+    else:
+        explain("Recommended settings", f"Your files will be stored in {root}. KekBot will manage one Docker application named kekbot, using local port 3000. Docker runs the app in its own container, so you do not need to install Node.js. Choose Advanced setup if you need another directory, name, port or reply mode. These settings will appear again in the final review.")
     try:
-        port = int(ask("Loopback application port", "3000"))
+        port = int(ask("Loopback application port", "3000")) if advanced else 3000
     except ValueError as error:
         raise Problem("Port must be a number.") from error
     if mode == "fixture":
         proxy, origin, chat_type = "local", f"http://127.0.0.1:{port}", "user"
     else:
-        proxy = choose("Public HTTPS and callbacks", "You must own the final origin and configure provider callbacks to it. This tool does not purchase a domain, edit DNS/firewalls, install Docker or change SSH. Normal certificate validation stays enabled.", [
+        proxy = choose("Public HTTPS and callbacks", "Your bot needs a secure web address so your browser and Kick can reach it. Caddy is the included web server that can set up HTTPS. For a domain, point its DNS A record to this server first. For bundled hosting, allow public TCP ports 80 and 443. This tool does not buy a domain, edit DNS/firewalls or change SSH. An existing proxy is an advanced option.", [
             ("Domain with bundled Caddy (recommended)", "Point a DNS A record to this host; route inbound TCP 80/443. Caddy stores certificates in persistent Docker volumes and renews them automatically.", "domain"),
             ("Public IPv4 with bundled Caddy", "No domain purchase required. Uses pinned Caddy 2.11.6 and short-lived Let's Encrypt certificates. Provider acceptance and actual renewal still need testing.", "ip"),
             ("Existing HTTPS reverse proxy", "You configure forwarding to the chosen loopback port, SSE streaming and request limits. The wizard will not replace your proxy.", "external"),
         ])
-        origin = ask("Exact HTTPS origin (no trailing slash)")
+        if advanced or proxy == "external":
+            origin = ask("Exact HTTPS origin (no trailing slash)")
+        else:
+            address = ask("Your domain, for example bot.example.com" if proxy == "domain" else "This server's public IPv4 address")
+            origin = (address if address.startswith("https://") else "https://" + address).rstrip("/")
         chat_type = choose("Kick reply identity", "The developer application's name does not set the chat sender. Later authorize the intended creator account and verify an actual reply. A standalone bot account cannot silently control a different creator's channel.", [
             ("Authorized account (recommended for initial proof)", "Use official user delivery as the Kick account that grants access.", "user"),
             ("Kick official bot delivery", "Use Kick's bot mode where the provider supports it. Verify availability and actual sender identity for the channel.", "bot"),
-        ])
+        ]) if advanced else "user"
     return root, validate_options(project, mode, proxy, origin, port, chat_type)
 
 
@@ -130,6 +154,7 @@ def main():
     parser.add_argument("--source", choices=["stable", "release", "branch", "pr", "commit", "bundle"], help="Prefill the application source; trust/final review still required")
     parser.add_argument("--ref", help="Release tag, branch, PR number, full commit or bundle directory for --source")
     parser.add_argument("--format", choices=["image", "source"], help="Prefill a release/bundle format; source refs always build source")
+    parser.add_argument("--advanced", action="store_true", help="Show all settings and require exact-source trust for evaluation code")
     args = parser.parse_args()
     if args.source:
         if args.action and args.action not in ("install", "update"):
@@ -143,7 +168,7 @@ def main():
     selection = dict(source=args.source, ref=args.ref, format=args.format)
     if not sys.stdin.isatty():
         parser.error("This wizard needs an interactive terminal. Read docs/INSTALLER.md; there is no unattended --yes mode.")
-    explain("KekBot host management", "This terminal walkthrough installs, updates or removes one Linux x86-64 installation. It explains choices before changing anything. Python 3.10+, Git, local Docker Engine and Compose v2 must already work. Review this public script before sudo; Docker/root access grants host authority. Type q at any prompt to cancel that walkthrough and return to the menu. Ctrl+C cancels; interrupted updates retain a recovery checkpoint. No host firewall/SSH/DNS settings are changed.")
+    explain("KekBot host management", "This walkthrough helps you install or manage your bot. Recommended setup fills in the usual settings; Advanced setup keeps every custom option. Provider accounts are connected later in your browser.\n\nPress Enter for a suggested choice, or type q to cancel. You will review changes before applying them. Ctrl+C exits. If you interrupt an update, inspect status before restarting. The installer does not change your SSH access, firewall or domain settings.")
     log = Diagnostics(args.diagnostics_dir) if args.diagnostics_dir else None
     if log:
         print("Private diagnostics enabled: bounded stage/exit/timing metadata only. No command output is saved.")
@@ -166,9 +191,15 @@ def main():
                 if action == "exit":
                     return
                 if action == "install":
-                    root, options = installation_options(args.root)
+                    advanced = args.advanced or args.source in ("branch", "pr", "commit", "bundle") or args.format == "source"
+                    if not advanced:
+                        advanced = choose("How would you like to set up KekBot?", "Start with recommended settings unless you already have another app on this server or need a custom layout. All normal features remain available in the dashboard.", [
+                            ("Recommended setup", "Published image, standard storage and ports, with a guided choice of live bot or demo.", False),
+                            ("Advanced setup", "Choose every host setting, version source, build format and Kick reply mode.", True),
+                        ])
+                    root, options = installation_options(args.root, advanced=advanced)
                     with tempfile.TemporaryDirectory(prefix="kekbot-install-stage-") as temporary:
-                        target = source_selection(Path(temporary), selection)
+                        target = source_selection(Path(temporary), selection, guided=not advanced)
                         confirm("Review installation", f"New directory: {root}\n\nProject: {options['project']}; mode: {options['mode']}; HTTPS: {options['proxy']}; origin: {options['origin']}; loopback port: {options['port']}; chat identity: {options['chatType']}.\n\nVersion: {target['version']}; commit: {target['sourceRef']}; format: {target['distribution']}.\n\nWill build/load the pinned app, optionally build Caddy, create private configuration/storage, initialize (seed only for fixtures), then start and check health. Existing installations are never adopted or overwritten. No provider credentials are requested. Builds may take several minutes and use network/disk/RAM.")
                         state = Installation(root).install(options, target)
                         next_steps(root, state)
@@ -187,7 +218,13 @@ def main():
                         print(f"{row.get('Service')}: {row.get('State')} ({row.get('Health', 'no health check')})")
                 elif action == "update":
                     with tempfile.TemporaryDirectory(prefix="kekbot-update-stage-") as temporary:
-                        target = source_selection(Path(temporary), selection)
+                        advanced = args.advanced or args.source in ("branch", "pr", "commit", "bundle") or args.format == "source"
+                        if not advanced and not args.source:
+                            advanced = choose("Choose an update", "Recommended uses a published image and checks whether a stable release is available. Advanced keeps every version and build choice.", [
+                                ("Recommended release", "Latest stable, or an explicit offer to try a beta when no stable exists.", False),
+                                ("Advanced version choices", "A specific release, branch, PR, commit, source build or local bundle.", True),
+                            ])
+                        target = source_selection(Path(temporary), selection, guided=not advanced)
                         confirm("Review update", f"Update {root} to {target['version']} ({target['sourceRef']}) using {target['distribution']}.\n\nThe current image remains available. Prepare the new image before downtime; stop the app; wait for its lease; create a new database/asset snapshot; apply migrations; recreate; check readiness/integrity. Keys/config/proxy/origin/mode are preserved. Media requires deliberate moderator resume.\n\nOn failure, leave the app stopped and use Roll back. No downgrade is attempted against newer storage. Keep your independent encryption-key copy; backups do not contain it. Read the selected version's release notes and compatibility boundary before applying.")
                         installation.update(target)
                         print("Update complete. Verify provider connections, permissions, assets and queue before resuming your stream.")

@@ -1,14 +1,11 @@
 # Troubleshooting KekBot
 
-For terminal install/update/removal problems start with [wizard failures](INSTALLER.md#failure-and-interruption-recovery), [update recovery](UPDATING.md) and [uninstall boundaries](UNINSTALLING.md). Check the recorded status after interruption; never rerun older code against migrated storage or delete keys to fix startup. These managed roots use generated Compose, while manual instructions use their original file set.
-
-For download/prerequisite/tool-trust failures use [launcher diagnosis](LAUNCHER.md#failures-and-cleanup). `bash install.sh --check` is offline; sudo may be needed to inspect a root-only Docker daemon. Missing stable releases do not trigger a beta fallback. Older installed managers may need interactive source choices or explicitly reviewed current tools for shortcut flags. Optional Ubuntu package setup is not a repair/reset command for existing Docker installations.
-
-Start with the symptom below. Work on your own authorized installation and keep diagnostics private until reviewed. Return to the [documentation index](README.md).
+Find the message or symptom below, then follow its next step. You do not need to run developer tests to get help with installation. For the full first-time sequence, use [Getting started](GETTING_STARTED.md). [All documentation](README.md).
 
 <!-- contents:start -->
 **On this page**
 
+- [Installer and first login](#installer-and-first-login)
 - [Collect safe diagnostics](#collect-safe-diagnostics)
 - [Find the failing boundary](#find-the-failing-boundary)
 - [Installation and accounts](#installation-and-accounts)
@@ -18,7 +15,28 @@ Start with the symptom below. Work on your own authorized installation and keep 
 - [Reporting a problem](#reporting-a-problem)
 <!-- contents:end -->
 
+## Installer and first login
+
+Start with the message on your screen. You do not need the developer test suite to diagnose a normal install. [Full beginner walkthrough](GETTING_STARTED.md).
+
+| What you see | What to do first |
+| --- | --- |
+| `curl: command not found` | On Ubuntu install curl/CA certificates as explained in Getting started, then download again. |
+| `sudo` asks for a password | Use your server login password; it is not your Kick or KekBot password. The terminal normally hides typed characters. |
+| Ubuntu package setup asks for confirmation | It is asking permission to install host prerequisites. Read the listed changes before typing the displayed phrase. |
+| `Open the guided setup?` | Enter `y` only if you trust the official project tools. `n`, Enter or `q` prevents those tools from running. |
+| No stable release; beta offered | Choose the beta explicitly to evaluate it, or stop. Enter stops; a network/rate-limit error never selects a beta automatically. |
+| Hash trust prompt instead of Recommended setup | You selected advanced/development/local code or older published tools. Use the current launcher for the simpler flow, or follow the advanced verification guide. |
+| Directory, project or port is already in use | Manage the existing installation, or cancel and select Advanced setup with separate values. Do not delete existing data to clear this message. |
+| Browser cannot open the live address | Check the domain/IP and public 80/443 routing; never bypass certificate validation. Local container health does not prove public HTTPS. |
+| Remote demo page will not open | Your laptop's `127.0.0.1` is not the server. Use [the documented SSH tunnel](GETTING_STARTED.md#try-a-demo-first). |
+| Setup token rejected | Check the printed path and one-hour expiry; claimed owners use [owner recovery](BACKUP_RECOVERY.md#recover-the-owner). |
+
+If an install created private files before failing, keep them and inspect status/recovery. Do not replace keys or delete the directory as a generic retry step.
+
 ## Collect safe diagnostics
+
+For terminal lifecycle problems use [wizard failures](INSTALLER.md#failure-and-interruption-recovery), [update recovery](UPDATING.md) and [uninstall boundaries](UNINSTALLING.md). Inspect status after interruption; keep private records/keys rather than starting over. Download/tool/prerequisite failures have a [launcher reference](LAUNCHER.md#failures-and-cleanup). `--check` is offline; optional Ubuntu package setup does not repair existing Docker installations.
 
 1. Record the commit/application version, install method, mode and time of failure. For containers, record image ID/source label locally.
 2. Use **Maintenance → Diagnostics** and **Delivery outcomes**, or run `pnpm kekbot doctor` from source. Containers use `docker compose exec kekbot node src/cli.ts doctor` with the same project/files/exports as installation (or `dc exec ...` using its helper).

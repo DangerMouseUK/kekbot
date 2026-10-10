@@ -8,13 +8,13 @@ assignees: ""
 
 **Guide and heading**
 
-Link to the page and identify the step. Start at docs/README.md for the guide index.
+Link to the page and identify the step. New users can start at docs/GETTING_STARTED.md; docs/README.md is the guide index.
 
 **What you were trying to do**
 
 **What happened and what instruction was missing or incorrect**
 
-Include the first step you could not complete, the expected result and any help needed. Do not paste the contents of a private runtime file.
+Include the first step you could not complete, the expected result and any help needed. Tell us which word, prompt or choice was confusing; you do not need to suggest a technical fix. Do not paste the contents of a private runtime file.
 
 **Version and environment**
 

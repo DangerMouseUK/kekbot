@@ -1,5 +1,7 @@
 # Application runtime and binary review
 
+**Packaging reference:** this explains what is inside the application container and how its binaries/licenses are reviewed. Recommended setup handles the image for you; see [Getting started](GETTING_STARTED.md).
+
 This guide explains the candidate image's contents, compatibility and maintenance. Start installation at [the guided installer](INSTALLER.md) or [manual hosting](INSTALLATION.md); release status is tracked in [readiness](RELEASE_READINESS.md). These packaging changes do not establish live or stable acceptance.
 
 ## What is shipped

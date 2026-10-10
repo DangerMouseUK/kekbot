@@ -1,5 +1,7 @@
 # KekBot build roadmap
 
+**Planning reference:** use this to understand feature scope and dependencies. To install or use the bot, follow [Getting started](GETTING_STARTED.md) and [the user guide](USER_GUIDE.md).
+
 Beta 3 is published with the downloadable lifecycle launcher and matching application/tool source; see the [beta guide](BETA.md) and [verification record](releases/v0.1.0-beta.3.md#verification-record). Beta 1/2 remain published and immutable. Evaluation distribution does not change capability boundaries or pass stable acceptance; exact outcomes remain tied to their recorded source/image.
 
 The [downloadable launcher](LAUNCHER.md) makes host installation and maintenance accessible without cloning while preserving all wizard source/format options. [Beta 3](releases/v0.1.0-beta.3.md) includes its standalone checksum-covered download. Frozen candidate, published distribution and pending fresh-host/independent/live acceptance remain separate evidence.
@@ -72,7 +74,7 @@ After v1: ARM64, optional TTS, supported clip helpers, OBS scene control, declar
 
 ## Release evidence and defaults
 
-The distribution increment now includes a [guided terminal lifecycle](INSTALLER.md): latest stable by default, explicit release/branch/PR/commit/bundle evaluation, source or prebuilt image, checkpointed updates/rollback and safe removal. Build/fixture evidence belongs in Milestone 16; published artifacts and unaided/live recovery still require Milestones 18–19. No deployment or publication is implied by installer preparation.
+The distribution increment now includes a [guided terminal lifecycle](INSTALLER.md): stable preferred, a separately declined-by-default beta offer when no stable exists, explicit release/branch/PR/commit/bundle evaluation, source or prebuilt image, checkpointed updates/rollback and safe removal. Build/fixture evidence belongs in Milestone 16; published artifacts and unaided/live recovery still require Milestones 18–19. No deployment or publication is implied by installer preparation.
 
 - Run targeted type/lint/unit/SQLite/browser checks and inspect final changes for accidental edits, secrets, debug code, and unnecessary complexity.
 - Provider tests cover signature/body trust, wrong channel/guild, replay, malformed input, scopes/auth, 429, uncertain sends, and safe refresh repair. Never enable provider mutations from fixtures.
@@ -90,3 +92,7 @@ Stable-v1 coverage is tracked in [RELEASE_READINESS.md](RELEASE_READINESS.md), i
 The [eight-item quality follow-up](QUALITY_HARDENING.md) improves the implemented candidate and its verification. It does not expand release scope, replace live trials or change either PRD. Stable preparation additionally requires [candidate dependency sign-off](DEPENDENCY_MAINTENANCE.md).
 
 The subsequent repository-review fixes preserve schema 3 and add OAuth-generation guards, monotonic replacement versions, generated-ID reconciliation, independent paginated waiting queues, gift-recipient privacy handling and utility-error throttling. [Targeted regressions](../tests/review-regressions.test.ts) and the [milestone evidence](MILESTONES.md#repository-review-fixes--2026-10-09) track verification. These fixes do not accept Milestones 18–19 or expand requirements.
+
+### Beginner installation and handbook
+
+Recommended installation now has one short download-and-run entry and explained standard settings. Advanced version/build/hosting options remain in the [launcher reference](LAUNCHER.md); [Getting started](GETTING_STARTED.md) covers first login and routine management. This extends distribution/documentation work without changing PRD scope or stable acceptance. Automated prompt, failure and container checks are recorded in [testing](TESTING.md#guided-setup-and-beginner-documentation); an unaided novice installation still requires real operator evidence.

@@ -1,5 +1,7 @@
 # Evaluate with Docker Desktop
 
+**Use this to try the bot on your own computer**, without a Linux server or live provider accounts. Docker Desktop supplies the Linux environment. This is an evaluation walkthrough, not a live hosted bot; [Getting started](GETTING_STARTED.md) explains live hosting. A [fixture](GLOSSARY.md) means a safe simulated demo.
+
 This is an isolated **fixture** evaluation on Windows or macOS using Linux containers. It does not expose public callbacks, load real YouTube or send provider actions. Live hosting follows [installation](INSTALLATION.md) on Linux. Native source development follows [quickstart](QUICKSTART.md). [All documentation](README.md).
 
 <!-- contents:start -->

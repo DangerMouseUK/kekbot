@@ -1,5 +1,7 @@
 # OBS sources and media playback
 
+Use this when you want alerts, chat or videos to appear on your stream. In OBS, a **Browser Source** displays a web page supplied by KekBot. Start with one alerts source; the video player can come later. Keep its private URL out of screenshots and public scene exports.
+
 Install/claim KekBot and connect the relevant [providers](PROVIDERS.md) first. Fixtures can exercise source layouts and simulated playback without real YouTube. Real OBS playback/audio and provider delivery remain live acceptance checks. Return to the [documentation index](README.md).
 
 <!-- contents:start -->

@@ -1,5 +1,7 @@
 # Try KekBot locally
 
+**This is the developer/source demo path.** If you want the shortest Linux installation, choose a demo in [Getting started](GETTING_STARTED.md#try-a-demo-first). Windows/macOS users can choose [Docker Desktop](DOCKER_DESKTOP.md). This guide keeps the no-Docker Node/pnpm route available.
+
 This walkthrough gives you an isolated dashboard with synthetic configurations, local accounts and simulated provider effects. You need no Kick, Discord or Google account. For a real channel, follow [installation](INSTALLATION.md) instead. Return to the [documentation index](README.md).
 
 <!-- contents:start -->

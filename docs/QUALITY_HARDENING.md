@@ -1,5 +1,7 @@
 # Repository quality follow-up
 
+**Historical engineering record:** these are earlier fixes and their evidence. For current installation use [Getting started](GETTING_STARTED.md); for remaining stable acceptance use [release readiness](RELEASE_READINESS.md).
+
 This records the eight follow-ups after the guided installer work. It complements [milestones](MILESTONES.md), [testing](TESTING.md) and [release readiness](RELEASE_READINESS.md); it does not replace their live gates.
 
 | Item | Implemented behavior | Acceptance evidence |

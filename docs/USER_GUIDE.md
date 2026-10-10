@@ -1,6 +1,8 @@
 # Using KekBot
 
-This guide is for creators and operators using an existing installation. For initial host setup use [installation](INSTALLATION.md), then [provider setup](PROVIDERS.md) and the [first-session walkthrough](FIRST_SESSION.md). For a demonstration with synthetic data, use the [quickstart](QUICKSTART.md). Every editor field has a [reference with defaults and bounds](CONFIGURATION_FIELDS.md). Return to the [documentation index](README.md).
+**Start small:** use [your first session](FIRST_SESSION.md) for a worked command/timer/alert. This page is the reference for daily tasks; read the module you need, not every section. [Glossary](GLOSSARY.md).
+
+This guide is for creators and operators using an existing installation. For initial host setup use [Getting started](GETTING_STARTED.md), then [provider setup](PROVIDERS.md) and the [first-session walkthrough](FIRST_SESSION.md). For a demonstration with synthetic data, use the [quickstart](QUICKSTART.md). Every editor field has a [reference with defaults and bounds](CONFIGURATION_FIELDS.md). Return to the [documentation index](README.md).
 
 <!-- contents:start -->
 **On this page**

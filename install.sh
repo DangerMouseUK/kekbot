@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Download this file, review it, then run with Bash. Never pipe it into a shell.
+# Download this file, then run with Bash in an interactive terminal.
 # Linux host launcher; application decisions remain in installer/kekbot.py.
 
 usage() {
@@ -13,6 +13,7 @@ KekBot guided launcher — Linux x86-64
   bash install.sh --check                  Offline host readiness report
   bash install.sh --setup                  Optional Ubuntu 24.04 prerequisite setup
   bash install.sh --prepare-only           Download tools for inspection; do not run
+  bash install.sh --advanced               Show all setup choices and exact-source trust
 
 Application choices (install/update only; interactive choices remain available):
   --stable                 Latest accepted stable (never falls back to a beta)
@@ -33,11 +34,12 @@ Management tool choices (separate from the application version):
   --action ACTION          Same as the positional action; menu opens the full wizard
   -h, --help               Help without root, Docker, network or a terminal
 
-Existing instances reuse their protected copied tool unless a tool source is
-explicitly selected. New downloads are pinned, staged privately and require
-TRUST <first 12 SHA characters> before execution. --prepare-only retains its
-private download for review. There is no --yes, silent upgrade or automatic
-purge. All lifecycle changes still require the wizard's final confirmation.
+Recommended setup uses the published application image and explained defaults.
+Until stable releases exist, trying a beta is a separate, explicit choice.
+New management downloads ask permission to run code from the official project.
+Advanced development/local selections retain exact-source trust. --prepare-only
+keeps downloads for inspection. Existing installations reuse protected copied
+tools. There is no --yes, silent upgrade or automatic purge.
 HELP
 }
 
@@ -62,12 +64,14 @@ parse_args() {
   action=; root=; app_kind=; app_value=; format=; diagnostics=
   tool_kind=branch; tool_value=main; tool_explicit=0; local_tools=
   check_only=0; setup_only=0; prepare_only=0
+  advanced=0
   while (($#)); do
     case "$1" in
       -h|--help) usage; return 2 ;;
       --check|doctor) check_only=1; shift ;;
       --setup) setup_only=1; shift ;;
       --prepare-only) prepare_only=1; shift ;;
+      --advanced) advanced=1; shift ;;
       --stable) select_app stable ''; shift ;;
       --root|--action|--format|--diagnostics-dir|--local-tools|--release|--branch|--pr|--commit|--bundle|--tool-branch|--tool-release|--tool-pr|--tool-commit)
         (($# >= 2)) && [[ -n "$2" ]] || fail 'An option is missing its value; see --help.'
@@ -101,6 +105,9 @@ parse_args() {
   if [[ -n "$root" ]]; then
     validate_root_arg
   fi
+  case "$app_kind" in branch|pr|commit|bundle) advanced=1 ;; esac
+  [[ "$format" != source ]] || advanced=1
+  if ((tool_explicit)) && [[ "$tool_kind" != release ]]; then advanced=1; fi
   return 0
 }
 
@@ -285,8 +292,14 @@ main() {
   else
     stage_tools
     if ((prepare_only)); then keep_stage=1; printf '\nPrepared only; no management code ran. Retained private directory: %s\n' "$stage"; return 0; fi
-    answer "After reviewing this exact source, type TRUST ${tool_sha:0:12} to execute: "
-    [[ "$REPLY" == "TRUST ${tool_sha:0:12}" ]] || fail 'Downloaded management code was not trusted.'
+    if ((advanced)); then
+      answer "After reviewing this exact source, type TRUST ${tool_sha:0:12} to execute: "
+      [[ "$REPLY" == "TRUST ${tool_sha:0:12}" ]] || fail 'Downloaded management code was not trusted.'
+    else
+      printf '\nThe next step runs installation tools from the official KekBot project\nwith administrator access. Continue only if you trust that project.\nYou will review the installation before it is applied.\n'
+      answer 'Open the guided setup? [y/N]: '
+      [[ "$REPLY" == y || "$REPLY" == Y || "$REPLY" == yes ]] || fail 'Setup was not confirmed; no downloaded management code ran.'
+    fi
     tools="$tools/installer"
   fi
   local arguments=()
@@ -295,12 +308,13 @@ main() {
   [[ -z "$diagnostics" ]] || arguments+=(--diagnostics-dir "$diagnostics")
   [[ -z "$app_kind" ]] || arguments+=(--source "$app_kind" --ref "$app_value")
   [[ -z "$format" ]] || arguments+=(--format "$format")
+  if ((advanced)) && grep -q 'parser.add_argument("--advanced"' "$tools/kekbot.py"; then arguments+=(--advanced); fi
   if [[ -n "$app_kind" ]] && ! grep -q 'parser.add_argument("--source"' "$tools/kekbot.py"; then
     fail 'This older tool lacks source shortcuts. Omit them and choose interactively, or explicitly select reviewed current tools with --tool-branch main.'
   fi
   title 'Opening the guided lifecycle wizard'
-  printf 'Application versions are selected independently; latest stable excludes betas.\n'
-  printf 'Review again before APPLY. Updates snapshot first; uninstall keeps data by default.\n'
+  printf 'Press Enter for a suggested choice; type q to cancel.\n'
+  printf 'Updates back up first; uninstall keeps your data by default.\n'
   python3 -B "$tools/kekbot.py" "${arguments[@]}"
 }
 

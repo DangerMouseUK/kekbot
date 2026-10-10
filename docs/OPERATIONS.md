@@ -1,6 +1,8 @@
 # Operating KekBot
 
-Use [installation](INSTALLATION.md) for initial deployment, [provider setup](PROVIDERS.md) for connections, [the user guide](USER_GUIDE.md) for dashboard workflows, and [OBS setup](OBS.md) for stream sources/media. This guide covers routine host operations and data handling for the unreleased candidate. Return to the [documentation index](README.md).
+**For everyday use**, follow Before a stream below. For updates, stop/start or removal, open [your management menu](GETTING_STARTED.md#come-back-later). The later sections explain delivery problems, privacy and maintenance in more detail. [Glossary](GLOSSARY.md).
+
+Use [installation](INSTALLATION.md) for initial deployment, [provider setup](PROVIDERS.md) for connections, [the user guide](USER_GUIDE.md) for dashboard workflows, and [OBS setup](OBS.md) for stream sources/media. This guide covers routine host operations and data handling for the published evaluation beta and current repository tooling. Return to the [documentation index](README.md).
 
 <!-- contents:start -->
 **On this page**

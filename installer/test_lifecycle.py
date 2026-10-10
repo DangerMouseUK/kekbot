@@ -140,6 +140,31 @@ class Contracts(unittest.TestCase):
         with patch.object(core, "api_json", return_value={"draft": False, "prerelease": True}), self.assertRaises(core.Problem):
             core.prepare_target("stable", "", "image", self.root)
 
+    def test_pinned_recommended_stable_keeps_acceptance_checks_and_verified_assets(self):
+        bundle = self.bundle(image=True, version="1.0.0")
+        metadata = json.loads((bundle / "release.json").read_text())
+        assets = [{"name": item.name, "browser_download_url": core.REPOSITORY + "/releases/download/v1.0.0/" + item.name} for item in bundle.iterdir()]
+
+        def fetch(url, destination, **_kwargs):
+            Path(destination).write_bytes((bundle / url.rsplit("/", 1)[-1]).read_bytes())
+
+        for accepted in (False, True):
+            metadata["status"] = "acceptance-verified-unpublished" if accepted else "candidate-unaccepted"
+            (bundle / "release.json").write_text(json.dumps(metadata))
+            (bundle / "SHA256SUMS").write_text("".join(f"{core.checksum(item)}  {item.name}\n" for item in sorted(bundle.iterdir()) if item.name != "SHA256SUMS"))
+            stage = self.root / ("accepted" if accepted else "unaccepted")
+            stage.mkdir()
+            with self.subTest(accepted=accepted), patch.object(core, "api_json", return_value=dict(tag_name="v1.0.0", draft=False, prerelease=False, assets=assets)) as api, patch.object(core, "download", side_effect=fetch):
+                if not accepted:
+                    with self.assertRaisesRegex(core.Problem, "stable acceptance"):
+                        core.prepare_target("stable", "v1.0.0", "image", stage)
+                else:
+                    selected = core.prepare_target("stable", "v1.0.0", "image", stage)
+                    self.assertTrue(selected["accepted"])
+                    self.assertEqual(selected["image"]["imageId"], IMAGE)
+                    self.assertEqual(selected["sourceRef"], SHA)
+                self.assertEqual(api.call_args.args[0], "/releases/tags/v1.0.0")
+
     def test_ref_arguments_and_exact_commit_are_checked(self):
         for kind, value in (("pr", "--upload-pack=evil"), ("pr", "0"), ("branch", "-evil"), ("branch", "with space"), ("commit", "a" * 12)):
             with self.subTest(kind=kind, value=value), self.assertRaises(core.Problem):
@@ -262,7 +287,7 @@ class Contracts(unittest.TestCase):
 
     def test_update_walkthrough_never_applies_before_final_review(self):
         for confirmation, applied in (("q", False), ("APPLY", True)):
-            with self.subTest(confirmation=confirmation), patch.object(sys, "argv", ["kekbot.py", "--root", str(self.root), "--action", "update"]), patch.object(sys.stdin, "isatty", return_value=True), patch.object(kekbot, "check_host"), patch.object(kekbot, "validate_root", return_value=self.root), patch.object(kekbot, "Installation") as engine, patch.object(kekbot, "prepare_target", return_value=target(kind="stable", accepted=True)), patch("builtins.input", side_effect=["1", "1", confirmation]), patch("sys.stdout", new_callable=io.StringIO) as output:
+            with self.subTest(confirmation=confirmation), patch.object(sys, "argv", ["kekbot.py", "--root", str(self.root), "--action", "update", "--advanced"]), patch.object(sys.stdin, "isatty", return_value=True), patch.object(kekbot, "check_host"), patch.object(kekbot, "validate_root", return_value=self.root), patch.object(kekbot, "Installation") as engine, patch.object(kekbot, "prepare_target", return_value=target(kind="stable", accepted=True)), patch("builtins.input", side_effect=["1", "1", confirmation]), patch("sys.stdout", new_callable=io.StringIO) as output:
                 engine.return_value.load.return_value = state()
                 kekbot.main()
                 self.assertEqual(engine.return_value.update.called, applied)
