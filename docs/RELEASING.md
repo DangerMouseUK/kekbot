@@ -20,7 +20,7 @@ Review fixes change the candidate source even when versions/formats stay the sam
 - [Dependency review gate](#dependency-review-gate)
 <!-- contents:end -->
 
-The current simplified setup is newer than beta 3's immutable launcher. A future release must package and review the changed launcher/manager together; do not rewrite old release files or reuse beta 3's source/image security sign-off. Verify both recommended and advanced journeys, explicit beta refusal/selection and strict latest-stable behavior.
+The [beta 4 candidate](releases/v0.1.0-beta.4.md) packages the simplified setup and handbook. Freeze and review its changed launcher/manager together; do not rewrite old release files or reuse beta 3's source/image security sign-off. Verify both recommended and advanced journeys, explicit beta refusal/selection and strict latest-stable behavior.
 
 ## Release sequence
 
@@ -43,7 +43,7 @@ Preparation checklist:
 2. Commit/freeze the candidate. Run ordinary PR checks and the full optional campaign below on that exact SHA, including source/history/image audits, source/image installer rehearsals and application/tooling/app-image/proxy-image vulnerability reviews.
 3. Inspect the actual target-platform dependency inventory/notices and obligations. Record dated reviews bound to the source/image; do not hide the raw locally patched tooling advisory. Investigate any new finding before recommending publication.
 4. Download only the audited candidate artifact, verify all checksums, and retain the exact source/image/notices/launcher/metadata bundle in protected release storage beyond CI's 14-day retention. Record its source, image ID and checksums. Do not rebuild it for publication.
-5. Add the exact CI/source/image outcomes to the [beta 3 verification record](releases/v0.1.0-beta.3.md#verification-record). Keep unrun live/reference/operator checks explicit. An evidence-only follow-up commit does not change the frozen source recorded inside the bundle.
+5. Add the exact CI/source/image outcomes to the [candidate verification record](releases/v0.1.0-beta.4.md#verification-record). Keep unrun live/reference/operator checks explicit. An evidence-only follow-up commit does not change the frozen source recorded inside the bundle.
 
 Run from the reviewed checkout with GitHub CLI:
 
@@ -86,7 +86,7 @@ The [interactive installer](INSTALLER.md) supports repository branches, PR heads
 | Next.js / React | 16.3.8 / 19.3.0 |
 | Production host | Linux x86-64, local persistent disk, one app replica; 2 vCPU / 2 GiB reference runtime target still unmeasured |
 | Windows/macOS | Documented Docker Desktop container path; native distribution not supported |
-| Application / database / backup / native config | `0.1.0-beta.3` / schema 3 / format 1 / format 1 |
+| Application / database / backup / native config | `0.1.0-beta.4` candidate / schema 3 / format 1 / format 1 |
 | Proxy example | Caddy 2.11.6; domain or supported public-IP HTTPS; operator owns public reachability |
 | Upgrade | Schemas 1 and 2 → 3 supported; future schemas rejected; unsupported downgrade prohibited |
 
@@ -135,7 +135,7 @@ Output is named with the application version and first twelve source-SHA charact
 - `release.json`: optional `launcher` filename, full source SHA, application/schema/backup versions, platform, immutable Docker image ID and acceptance state.
 - `SHA256SUMS`: hashes of the other files. Verify with `sha256sum --check SHA256SUMS` inside the bundle directory; PowerShell users can compare `Get-FileHash -Algorithm SHA256` with the listed hashes.
 
-A full beta 3 image bundle has six files (source, image, notices, launcher, metadata and checksum index), with five checksum entries. Source-only preparation has four files and three checksum entries; it has no prebuilt image/notices archive and cannot be selected as an image install. Historical beta 1/2 five-file image bundles remain immutable and supported. Do not upload a launcher or source archive from a later checkout alongside a frozen image.
+A full beta 3-or-later image bundle has six files (source, image, notices, launcher, metadata and checksum index), with five checksum entries. Source-only preparation has four files and three checksum entries; it has no prebuilt image/notices archive and cannot be selected as an image install. Historical beta 1/2 five-file image bundles remain immutable and supported. Do not upload a launcher or source archive from a later checkout alongside a frozen image.
 
 Source/dependency/toolchain pins make inputs inspectable. Image bytes are not promised identical across rebuilds: base-image tags, native compilation, build tooling and timestamps can affect them. SHA256 identifies the produced files. Record the loaded Docker image ID as well as the archive hash. A registry manifest digest is a different identity and must also be recorded when publishing. The notices archive includes application notices plus the image’s Node/musl/GCC runtime notices and real OS package inventory. Review [runtime redistribution](RUNTIME_IMAGE.md#licenses-and-inventory) on the exact image.
 

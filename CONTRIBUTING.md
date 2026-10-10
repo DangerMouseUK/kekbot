@@ -50,7 +50,7 @@ External contributors can fork the repository and clone their fork instead. Copy
 
 Read [architecture](docs/ARCHITECTURE.md) before changing boundaries and [API](docs/API.md) before changing contracts. Coding agents also follow [AGENTS.md](AGENTS.md).
 
-Published beta 3 packaging exports a standalone `install.sh` from Git bytes, alongside its matching source archive and checksum index. Preserve that identity check when changing packaging; never execute a release launcher during asset verification or transfer an earlier image review to a new source. Legacy bundles without the additive `launcher` metadata remain supported. See [releasing](docs/RELEASING.md) and [release notes](docs/releases/v0.1.0-beta.3.md). CI's optional public proxy diagnostics and disposable-runner registry cache are described in [testing](docs/TESTING.md#github-actions); neither changes operator hosts or frozen release inputs.
+Beta 4 retains the published beta 3 packaging contract: it exports a standalone `install.sh` from Git bytes, alongside its matching source archive and checksum index. Preserve that identity check when changing packaging; never execute a release launcher during asset verification or transfer an earlier image review to a new source. Legacy bundles without the additive `launcher` metadata remain supported. See [releasing](docs/RELEASING.md) and [beta 4 preparation](docs/releases/v0.1.0-beta.4.md). Each new source/image needs fresh vulnerability, binary-license and privacy review; prior reviews remain historical. CI's optional public proxy diagnostics and disposable-runner registry cache are described in [testing](docs/TESTING.md#github-actions); neither changes operator hosts or frozen release inputs.
 
 ## Implementation expectations
 

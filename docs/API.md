@@ -2,7 +2,7 @@
 
 **Developer reference:** use this when writing a client or integration. Installing and operating the bot does not require API knowledge; start with [Getting started](GETTING_STARTED.md) and [the user guide](USER_GUIDE.md).
 
-Development API version: `v1`; implementation: `0.1.0-beta.3`, schema 3. Routes are dynamic/no-store. This is a pre-release interface; compatibility beyond the declared configuration/backup versions is not yet promised. See the [beta compatibility notes](releases/v0.1.0-beta.3.md#compatibility-and-upgrades).
+Development API version: `v1`; implementation: `0.1.0-beta.4`, schema 3. Routes are dynamic/no-store. This is a pre-release interface; compatibility beyond the declared configuration/backup versions is not yet promised. See the [beta 4 compatibility notes](releases/v0.1.0-beta.4.md#compatibility-and-upgrades).
 
 Host installation/update/uninstall is deliberately outside HTTP/dashboard authority. The [terminal wizard](INSTALLER.md) needs trusted host/root access and its private management record; API tokens cannot invoke it. Application maintenance CLI and all domain/role contracts remain unchanged.
 

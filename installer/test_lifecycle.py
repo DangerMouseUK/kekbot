@@ -92,8 +92,8 @@ class Contracts(unittest.TestCase):
         core.extract_source(self.root / "good.tar.gz", self.root / "good")
         self.assertTrue((self.root / "good/Dockerfile").is_file())
 
-    def bundle(self, image=False, version="0.1.0-dev.0"):
-        bundle = self.root / "bundle"
+    def bundle(self, image=False, version="0.1.0-dev.0", name="bundle"):
+        bundle = self.root / name
         bundle.mkdir()
         archive(bundle / "kekbot-source.tar.gz", version=version)
         metadata = dict(format="kekbot-release", version=1, applicationVersion=version, sourceRef=SHA, sourceArchive="kekbot-source.tar.gz", image=None, status="candidate-unaccepted", schemaVersion=3, backupFormat=1)
@@ -238,9 +238,14 @@ class Contracts(unittest.TestCase):
             core.prepare_target("stable", "", "image", self.root)
         download.assert_not_called()
 
-    def test_beta3_additive_launcher_asset_is_not_executed_or_adopted(self):
-        version, tag = "0.1.0-beta.3", "v0.1.0-beta.3"
-        bundle = self.bundle(image=True, version=version)
+    def test_beta_additive_launcher_asset_is_not_executed_or_adopted(self):
+        for beta in (3, 4):
+            with self.subTest(beta=beta):
+                self.check_additive_launcher_asset(beta)
+
+    def check_additive_launcher_asset(self, beta):
+        version, tag = f"0.1.0-beta.{beta}", f"v0.1.0-beta.{beta}"
+        bundle = self.bundle(image=True, version=version, name=f"bundle-beta{beta}")
         metadata = json.loads((bundle / "release.json").read_text())
         metadata["launcher"] = "install.sh"
         (bundle / "release.json").write_text(json.dumps(metadata))
@@ -256,7 +261,7 @@ class Contracts(unittest.TestCase):
             Path(destination).write_bytes((bundle / url.rsplit("/", 1)[-1]).read_bytes())
 
         for distribution in ("source", "image"):
-            stage = self.root / ("beta3-" + distribution)
+            stage = self.root / (f"beta{beta}-" + distribution)
             stage.mkdir()
             with self.subTest(distribution=distribution), patch.object(core, "api_json", return_value=release), patch.object(core, "download", side_effect=fetch):
                 selected = core.prepare_target("release", tag, distribution, stage)

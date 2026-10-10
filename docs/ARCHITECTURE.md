@@ -2,7 +2,7 @@
 
 **Contributor reference:** this explains why the application, storage and background work are organized this way. For installation use [Getting started](GETTING_STARTED.md); for terms such as lease, migration and SSE use [the glossary](GLOSSARY.md).
 
-Updated: 2026-10-09. Status: foundation live gate passed historically; evaluation beta published; full-product live/stable acceptance pending. Published beta 3 packages the merged host launcher; beta 1/2 artifacts remain immutable. Database schema 3 and backup/configuration format 1 are unchanged.
+Updated: 2026-10-10. Status: foundation live gate passed historically; evaluation beta published; full-product live/stable acceptance pending. The beta 4 candidate packages Recommended setup and the beginner handbook. Published beta 1/2/3 artifacts remain immutable; beta 4 is not published yet. Database schema 3 and backup/configuration format 1 are unchanged.
 
 This is the design reference for contributors. Use [installation](INSTALLATION.md) for deployment, [configuration](CONFIGURATION.md) for runtime inputs, and [contributing](../CONTRIBUTING.md) for the source map/workflow. Return to the [documentation index](README.md).
 

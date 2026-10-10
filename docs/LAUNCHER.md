@@ -30,7 +30,7 @@ The command downloads the current project launcher and runs it with administrato
 
 Choose **Install a new instance → Recommended setup**. Standard storage, project, local port and account-mode replies are filled in. You choose live or demo, your HTTPS address and final approval. Published application downloads retain checksum/image validation. With no stable release, a beta is offered separately and **Stop for now** is the default. Explicit `--stable` still fails closed.
 
-The simplified flow is newer than published beta 3. The `main` launcher uses current project management code; choosing the published beta application does not replace its files or turn `main` into a release. A beta 3 asset/tag launcher keeps its original review/hash prompts. Use the versioned route below when you want exactly those older tools.
+The simplified flow is being packaged in [beta 4](releases/v0.1.0-beta.4.md), which is not published yet. It is newer than published beta 3. The `main` launcher uses current project management code; choosing the published beta application does not replace its files or turn `main` into a release. A beta 3 asset/tag launcher keeps its original review/hash prompts. Use the versioned route below when you want exactly those older tools.
 
 **Advanced setup** exposes custom settings. `--advanced`, development source selectors, source builds and local bundles retain exact-source trust. Manual verification and pinned management selection remain available below; they are optional advanced entry paths.
 
