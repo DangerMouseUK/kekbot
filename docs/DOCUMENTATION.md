@@ -13,6 +13,7 @@ This is the contributor/maintainer guide to the documentation set. Readers shoul
 - [Handbook verification record](#handbook-verification-record)
 - [Beginner handbook refresh](#beginner-handbook-refresh)
 - [Runtime quality follow-up](#runtime-quality-follow-up)
+- [Beta 4 documentation maintenance](#beta-4-documentation-maintenance)
 <!-- contents:end -->
 
 ## Structure and ownership
@@ -102,3 +103,7 @@ Beta 3 and older release notes, PRD requirements, upstream license text and hist
 ## Runtime quality follow-up
 
 The [quality follow-up](QUALITY_HARDENING.md) records the later runtime/installer changes and their current verification. Its docs update covers active/history media, retention/erasure, schema-3 recovery, diagnostics and release-controlled dependencies. Preserve the earlier handbook record above as historical editorial evidence; it is not a test record for the new runtime.
+
+## Beta 4 documentation maintenance
+
+The beta 4 candidate aligns application/Docker/Compose versions, the API/source-build references, contributor/agent entry points and current release procedures. Public walkthroughs continue to identify beta 3 as published until actual publication; beta 4 commands in its notes are explicitly conditional. Older beta assets, PRDs, license texts and historical evidence stay unchanged. After publication update README/index, beta/installation/launcher/update guides and notes together, verify actual downloads and record the new distribution independently of candidate checks.

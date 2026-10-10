@@ -88,7 +88,7 @@ docker compose run --rm kekbot node src/cli.ts init
 docker compose up -d
 ```
 
-Keep `.env.local` private. Compose overrides the container data directory to `/data` and binds its direct HTTP port to host loopback. Initialization must precede server startup. The current candidate source build is `kekbot:0.1.0-beta.3`; use the [beta guide](BETA.md) for current distribution status. Published packages are selected explicitly. Historical foundation evidence below retains its original source identity.
+Keep `.env.local` private. Compose overrides the container data directory to `/data` and binds its direct HTTP port to host loopback. Initialization must precede server startup. The current candidate source build is `kekbot:0.1.0-beta.4`; use the [beta guide](BETA.md) for current distribution status. Published packages are selected explicitly. Historical foundation evidence below retains its original source identity.
 
 For an existing reverse proxy, forward your public hostname to `127.0.0.1:3000`, limit provider requests to 64 KiB, permit up to 12 MiB for authenticated assets/configuration, and disable streaming buffering. Alternatively use the optional Caddy example:
 

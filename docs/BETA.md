@@ -4,6 +4,8 @@ This guide is for people evaluating `v0.1.0-beta.3`, including operators who hav
 
 **[Beta 3 is published](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.3), dated 2026-10-09.** The current repository launcher offers it as an explicit testing choice. Older published tools use **Specific release**. There is no registry image or supported stable release; `main` is not a frozen release. Beta 1/2 remain available as immutable historical releases.
 
+**[Beta 4 is being prepared](releases/v0.1.0-beta.4.md), dated 2026-10-10.** It packages Recommended setup and the beginner handbook. Until publication, no beta 4 tag/download is available; follow the reviewed-candidate path below with its actual frozen SHA and complete audited bundle. Beta 3 remains the published choice.
+
 **Beta 3 includes the downloadable launcher and bundled HTTPS installer correction.** New installs can use matching tool/application source from one tag. The [beta 1 workaround](INSTALLER.md#beta-1-bundled-https-installer-fix) remains for that older immutable release.
 
 **New users:** follow [Getting started](GETTING_STARTED.md), choose Recommended setup and explicitly choose the offered beta. The current `main` management tools are newer than published beta 3 and simplify the prompts; the installed application remains the verified published beta. For exactly the original beta 3 tools, use the advanced [versioned launcher](LAUNCHER.md#verify-a-versioned-launcher-download) with `--tool-release v0.1.0-beta.3`, or the pinned checkout below. Those older tools retain hash prompts. Historical tags/assets stay unchanged.
@@ -114,7 +116,7 @@ After restart, verify readiness, sign-in, accounts, connections, assets and queu
 
 Use the repository's [bug report](https://github.com/DangerMouseUK/kekbot/issues/new?template=bug_report.md) or [documentation report](https://github.com/DangerMouseUK/kekbot/issues/new?template=documentation.md). Include:
 
-1. The actual version (for example `0.1.0-beta.3`), full source SHA and, for an image install, the recorded image ID. Say source build, prebuilt bundle or release selection.
+1. The actual version (for example published `0.1.0-beta.3` or candidate `0.1.0-beta.4`), full source SHA and, for an image install, the recorded image ID. Say source build, prebuilt bundle or release selection.
 2. OS/architecture, browser or OBS version, fixture/live mode and which guide/step you followed.
 3. Small reproduction steps, expected result, actual result and whether restart changes it.
 4. A minimal synthetic example or manually reviewed diagnostic summary, plus checks that did and did not run.

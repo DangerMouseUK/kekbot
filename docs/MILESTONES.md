@@ -1,6 +1,6 @@
 # KekBot project milestones
 
-Updated: 2026-10-09. Target: complete the declared stable v1 product.
+Updated: 2026-10-10. Target: complete the declared stable v1 product.
 
 This is the milestone plan for upcoming work. It groups the requirements in the [PRD](PRD.md) and the identical [self-hosted PRD](PRD-self-hosted.md) into substantial build stages, followed by a bulk testing and release phase. The existing [roadmap](ROADMAP.md) remains the detailed feature and evidence reference; this document sets the working sequence and testing schedule. [Architecture decisions](ARCHITECTURE.md) continue to apply.
 
@@ -51,6 +51,7 @@ The public operator path is [Getting started](GETTING_STARTED.md) → [providers
 - [Beta 3 preparation — 2026-10-09](#beta-3-preparation--2026-10-09)
 - [Beta 3 publication — 2026-10-09](#beta-3-publication--2026-10-09)
 - [Beginner setup and handbook — development follow-up](#beginner-setup-and-handbook--development-follow-up)
+- [Beta 4 preparation — 2026-10-10](#beta-4-preparation--2026-10-10)
 <!-- contents:end -->
 
 ## Working approach
@@ -741,3 +742,11 @@ The root README and [documentation hub](README.md) lead into [Getting started](G
 This is development follow-up to Milestone 16, not a new published application or a passed independent-installer gate. Beta 3 assets and all 33 pending stable acceptance gates are unchanged. Public TLS, fresh-host prerequisites, live providers/OBS and unaided beginner trials remain outstanding. The implementation is fixture-tested; publication and unaided/live acceptance remain separate.
 
 [PR CI 38000770841](https://github.com/DangerMouseUK/kekbot/actions/runs/38000770841) passed all six required jobs at **2026-10-09 22:49:08 UTC**, for PR head `4225fe1b7f701a43794e98e9abd5be72ea57762b` through GitHub's merge checkout `73903a7f75fb7dd7c5a2fb809ede1f783da64792`. Linux passed all 64 installer/launcher contracts, production/standalone checks, Chromium/Firefox/WebKit, the retained proxy context/domain/IP adaptation, container/storage/restart and package round trip. The real Recommended wizard/engine installed the audited fixture image, with explicit candidate selection and final APPLY, and purged its isolated root. Release discovery was supplied by a fixture for that rehearsal; anonymous real beta discovery was checked separately. The advanced launcher/bundle update-failure/rollback/removal rehearsal also passed. This campaign did not request public certificates, use live grants, publish artifacts or rerun the optional one-hour soak. This subsequent evidence-only revision does not change the tested implementation or any released asset.
+
+## Beta 4 preparation — 2026-10-10
+
+Beta 4 packages the merged beginner setup/handbook work from PR 14 with aligned application, Docker and Compose versions. This is distribution follow-up to Milestone 16, not a new feature milestone or live acceptance. See the [beta 4 notes](releases/v0.1.0-beta.4.md) for scope, upgrade/tool-retention behavior, actual verification and asset identities.
+
+Frozen source is `3e2f1f8015109f497d0cf75a11ec7cd01f818365`; retained image is `sha256:6a3b4f810c2e1b5bfe992236187a9ff113040bef8d361d42e31990efab93aa25`. [Ordinary PR CI 38056419495](https://github.com/DangerMouseUK/kekbot/actions/runs/38056419495) and all seven jobs in [candidate campaign 38056418399](https://github.com/DangerMouseUK/kekbot/actions/runs/38056418399) passed. Linux ran 155 application tests, all 64 installer/launcher contracts, three browsers, staged proxy/runtime/storage/recovery and source/image lifecycle checks. Fresh application/tooling/app-image/proxy scans, six-native-binary/171-file notice review and source/history/image privacy checks passed as detailed in [readiness](RELEASE_READINESS.md#beta-4-review). Exact audited assets are retained outside source; this evidence-only follow-up does not replace that frozen source/image.
+
+The one-hour hosted standalone fixture soak completed at **2026-10-10 14:39:19 UTC**: 96,000 decisions/replies, zero failed operations/driver errors, five browser clients, a 60-second 100/second burst, 511.45 MiB peak sampled application RSS, 518.54 ms backlog drain and 1,020.19 ms restart readiness. [The aggregate record](releases/v0.1.0-beta.4.md#verification-record) distinguishes shared-runner standalone evidence from actual container performance and reference-host/live acceptance. Original beta 1/2/3 artifacts stay immutable. Milestones 18–19 and all 33 stable acceptance gates remain pending. Beta 4 is not published yet; publication and actual published-asset rehearsals remain separate steps.
