@@ -557,12 +557,15 @@ export default function Dashboard() {
                     key={editor.document?.id ?? kind}
                     kind={kind}
                     document={editor.document}
+                    snapshot={snapshot}
                     cancel={() => setEditor(undefined)}
-                    save={async (data) => {
+                    save={async (data, options) => {
                       await call("config.save", {
                         kind,
                         id: editor.document?.id,
-                        version: editor.document?.version,
+                        // The editor passes the version it loaded, which changes after a
+                        // conflict reload; the optimistic check itself stays server-side.
+                        version: options ? options.version : editor.document?.version,
                         data,
                       });
                       setEditor(undefined);
