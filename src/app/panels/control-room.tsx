@@ -1,0 +1,344 @@
+"use client";
+import { auditSentence, statusLabel } from "../messages";
+import { formatDuration, permitted, relative, text, useNow, type Row } from "../ui";
+import { scopes } from "./cards";
+import type { PanelProps } from "./types";
+
+type Step = { label: string; done: boolean; detail: string; panel: string; optional?: boolean };
+
+export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: PanelProps) {
+  const now = useNow(30000);
+  const owner = auth.actor?.role === "owner";
+  const has = (kind: string) => s.documents.some((doc) => doc.kind === kind);
+  const live = s.stream?.live === "true";
+  const started = Date.parse(s.stream?.startedAt ?? "");
+  const current = s.media.find((row) => row.id === s.player.current);
+  const jobs = Object.fromEntries(
+    ((s.diagnostics.jobs as Row[]) ?? []).map((row) => [String(row.status), Number(row.count)]),
+  );
+  const heartbeat = Number(s.diagnostics.workerHeartbeat ?? 0);
+  const sourceIssued = (s.tokens ?? []).some((token) =>
+    scopes(token).some((scope) => scope.startsWith("widget:")),
+  );
+  const steps: Step[] = [
+    {
+      label: "Connect Kick",
+      done: Boolean(s.kick.authorized),
+      detail: s.kick.authorized
+        ? `Connected as ${text(s.kick.authorizedUsername)}.`
+        : "Save your Kick app settings, then authorize your channel.",
+      panel: "Connections",
+    },
+    {
+      label: "Add a chat command",
+      done: has("command"),
+      detail: "Try !discord or !welcome. Preview it before you go live.",
+      panel: "Commands",
+    },
+    {
+      label: "Add an alert",
+      done: has("alert"),
+      detail: "Thank new followers and subscribers on stream.",
+      panel: "Alerts",
+    },
+    {
+      label: "Add an OBS source",
+      done: has("widget") && (!owner || sourceIssued),
+      detail: has("widget")
+        ? "Create a private source URL and paste it into an OBS Browser Source."
+        : "Create a widget such as alerts or chat, then add it to OBS.",
+      panel: "Widgets",
+    },
+    {
+      label: "Add a timer",
+      done: has("timer"),
+      detail: "A friendly reminder every 15 minutes or so.",
+      panel: "Timers",
+      optional: true,
+    },
+    {
+      label: "Turn on media requests",
+      done: Boolean(s.settings.mediaEnabled) && Boolean(s.integrations.youtube),
+      detail: s.integrations.youtube
+        ? "Turn on media requests in Maintenance → Edit settings."
+        : "Add a YouTube API key in Connections, then turn media on.",
+      panel: s.integrations.youtube ? "Maintenance" : "Connections",
+      optional: true,
+    },
+    {
+      label: "Connect Discord",
+      done: Boolean(s.integrations.discord),
+      detail: "Post go-live notices and let mods act from Discord.",
+      panel: "Connections",
+      optional: true,
+    },
+    {
+      label: "Invite a moderator",
+      done: (s.accounts?.length ?? 0) > 1,
+      detail: "Give a trusted person their own sign-in.",
+      panel: "Accounts",
+      optional: true,
+    },
+  ].filter((step) => owner || !["Connections", "Accounts"].includes(step.panel) || step.done);
+  const required = steps.filter((step) => !step.optional);
+  const doneCount = steps.filter((step) => step.done).length;
+  const pendingMedia = s.media.filter((row) => row.status === "pending");
+  const redemptions = s.pendingRedemptions.items;
+  const uncertain = s.uncertainJobs.items;
+  const canMedia = permitted(auth.actor, "media"),
+    canEngage = permitted(auth.actor, "engage");
+  const waiting = pendingMedia.length + redemptions.length + (owner ? uncertain.length : 0);
+  return (
+    <>
+      <div className="stats" aria-label="Live status">
+        <article>
+          <span>Stream</span>
+          <strong className={live ? "good" : undefined}>
+            {live ? "Live" : s.stream?.live === "false" ? "Offline" : "Unknown"}
+          </strong>
+          <p className="help">
+            {live && Number.isFinite(started)
+              ? `Went live ${relative(started, now)}.`
+              : live
+                ? "Start time unavailable."
+                : s.stream?.live === "false"
+                  ? "KekBot will notice when you go live."
+                  : "No stream status received from Kick yet."}
+          </p>
+        </article>
+        <article>
+          <span>Kick</span>
+          <strong className={s.kick.authorized ? "good" : "warn"}>
+            {s.kick.authorized ? "Connected" : "Not connected"}
+          </strong>
+          <p className="help">
+            {s.kick.authorized
+              ? `As ${text(s.kick.authorizedUsername)}.`
+              : owner
+                ? "Connect it in Connections."
+                : "The owner connects Kick."}
+          </p>
+        </article>
+        <article>
+          <span>Media player</span>
+          <strong className={s.player.error ? "warn" : undefined}>
+            {s.player.error
+              ? "Needs attention"
+              : s.player.state === "playing"
+                ? "Playing"
+                : "Paused"}
+          </strong>
+          <p className="help">
+            {current
+              ? `#${text(current.position)} · ${text(current.title ?? "Untitled")} · ${formatDuration(current.duration)}`
+              : s.settings.mediaEnabled
+                ? "Nothing playing."
+                : "Media requests are off."}
+          </p>
+        </article>
+        <article>
+          <span>Background work</span>
+          <strong className={s.healthy ? "good" : "warn"}>
+            {s.healthy ? "Running" : "Unavailable"}
+          </strong>
+          <p className="help">
+            {jobs.pending || jobs.running
+              ? `${(jobs.pending ?? 0) + (jobs.running ?? 0)} deliveries in progress. `
+              : ""}
+            {heartbeat ? `Last check ${relative(heartbeat, now)}.` : "No heartbeat recorded yet."}
+          </p>
+        </article>
+      </div>
+
+      <section aria-labelledby="pending-heading">
+        <div className="section-title">
+          <h2 id="pending-heading">Needs attention</h2>
+          <span className={`badge ${waiting ? "warn" : "muted"}`}>
+            {waiting ? `${waiting} waiting` : "All clear"}
+          </span>
+        </div>
+        {!waiting && (
+          <p className="empty">
+            Nothing is waiting for you. New requests and redemptions show up here.
+          </p>
+        )}
+        {pendingMedia.length > 0 && (
+          <>
+            <h3>Media requests to approve</h3>
+            <ul className="work-list">
+              {pendingMedia.slice(0, 5).map((item) => (
+                <li key={String(item.id)}>
+                  <span>
+                    <strong>
+                      #{text(item.position)} · {text(item.title ?? "Untitled")}
+                    </strong>{" "}
+                    · {text(item.requesterName ?? "unknown requester")} ·{" "}
+                    {formatDuration(item.duration)}
+                  </span>
+                  {canMedia && (
+                    <span className="actions">
+                      <button
+                        disabled={busy}
+                        onClick={() =>
+                          run("media.approve", { target: item.id, version: item.version })
+                        }
+                      >
+                        Approve<span className="visually-hidden"> {text(item.title)}</span>
+                      </button>
+                      <button
+                        className="secondary"
+                        disabled={busy}
+                        onClick={() =>
+                          run("media.reject", { target: item.id, version: item.version })
+                        }
+                      >
+                        Reject<span className="visually-hidden"> {text(item.title)}</span>
+                      </button>
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {pendingMedia.length > 5 && (
+              <button className="link" onClick={() => navigate("Media")}>
+                See all {pendingMedia.length} in Media
+              </button>
+            )}
+          </>
+        )}
+        {redemptions.length > 0 && (
+          <>
+            <h3>Rewards to fulfil</h3>
+            <ul className="work-list">
+              {redemptions.slice(0, 5).map((row) => (
+                <li key={String(row.id)}>
+                  <span>
+                    <strong>{text(row.viewerName ?? "A viewer")}</strong> redeemed{" "}
+                    <strong>{text(row.rewardName ?? "a reward")}</strong> ·{" "}
+                    {Number(row.cost).toLocaleString()} points ·{" "}
+                    {relative(Number(row.createdAt), now)}
+                  </span>
+                  {canEngage && (
+                    <span className="actions">
+                      <button
+                        disabled={busy}
+                        onClick={() => run("reward.complete", { target: row.id })}
+                      >
+                        Fulfilled
+                        <span className="visually-hidden">
+                          {" "}
+                          {text(row.rewardName)} for {text(row.viewerName)}
+                        </span>
+                      </button>
+                      <button
+                        className="secondary"
+                        disabled={busy}
+                        onClick={() => run("reward.reject", { target: row.id })}
+                      >
+                        Refund
+                        <span className="visually-hidden">
+                          {" "}
+                          {text(row.rewardName)} for {text(row.viewerName)}
+                        </span>
+                      </button>
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {redemptions.length > 5 && (
+              <button className="link" onClick={() => navigate("Points & rewards")}>
+                See all waiting redemptions
+              </button>
+            )}
+          </>
+        )}
+        {owner && uncertain.length > 0 && (
+          <>
+            <h3>Deliveries to check</h3>
+            <p>
+              KekBot could not confirm {uncertain.length === 50 ? "50 or more" : uncertain.length}{" "}
+              provider deliveries. Check Kick or Discord, then record what happened. Nothing is
+              resent automatically.
+            </p>
+            <button className="secondary" onClick={() => navigate("Maintenance")}>
+              Review uncertain deliveries
+            </button>
+          </>
+        )}
+      </section>
+
+      <section aria-labelledby="setup-heading">
+        <div className="section-title">
+          <h2 id="setup-heading">Setup checklist</h2>
+          <span className="badge muted">
+            {doneCount} of {steps.length} done
+          </span>
+        </div>
+        {required.every((step) => step.done) && (
+          <p className="help">The essentials are done. The remaining steps are optional.</p>
+        )}
+        <ol className="checklist">
+          <li className="done">
+            <span className="check" aria-hidden="true">
+              ✓
+            </span>
+            <span>
+              <strong>Claim this installation</strong>
+              <span className="visually-hidden"> (done)</span>
+              <span className="help">Your owner account exists.</span>
+            </span>
+          </li>
+          {steps.map((step) => (
+            <li key={step.label} className={step.done ? "done" : undefined}>
+              <span className="check" aria-hidden="true">
+                {step.done ? "✓" : ""}
+              </span>
+              <span>
+                <strong>{step.label}</strong>
+                {step.optional && <span className="badge muted">Optional</span>}
+                <span className="visually-hidden">{step.done ? " (done)" : " (not done)"}</span>
+                <span className="help">{step.detail}</span>
+              </span>
+              {(owner || !["Connections", "Accounts"].includes(step.panel)) && (
+                <button
+                  className={step.done ? "secondary small" : "small"}
+                  onClick={() => navigate(step.panel)}
+                >
+                  {step.done ? "Review" : "Set up"}
+                  <span className="visually-hidden"> {step.label.toLowerCase()}</span>
+                </button>
+              )}
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section aria-labelledby="activity-heading">
+        <h2 id="activity-heading">Recent activity</h2>
+        {s.audit.length ? (
+          <ul className="activity">
+            {s.audit.slice(0, 15).map((row) => (
+              <li key={String(row.id)}>
+                <span>{auditSentence(row, auth.actor?.id)}</span>
+                <time dateTime={new Date(Number(row.at)).toISOString()}>
+                  {relative(Number(row.at), now)}
+                </time>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="empty">
+            Nothing has happened yet. Actions by you, your team and KekBot appear here.
+          </p>
+        )}
+        {s.jobs.some((job) => job.status === "failed") && (
+          <p className="help">
+            Some deliveries failed recently ({statusLabel("failed").toLowerCase()}). Maintenance →
+            Delivery outcomes shows why.
+          </p>
+        )}
+      </section>
+    </>
+  );
+}

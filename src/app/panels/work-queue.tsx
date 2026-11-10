@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { describeError } from "../messages";
 import type { Row, WorkPage } from "../ui";
 
 export default function WorkQueue({
@@ -42,11 +43,11 @@ export default function WorkQueue({
         return;
       }
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "Queue unavailable");
+      if (!response.ok) throw new Error(describeError(String(result.error)).title);
       if (!controller.signal.aborted) setLoaded({ cursor, page: result });
     } catch (error) {
       if (!controller.signal.aborted)
-        setError(error instanceof Error ? error.message : "Queue unavailable");
+        setError(error instanceof Error ? error.message : "This list is unavailable right now.");
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
@@ -55,10 +56,7 @@ export default function WorkQueue({
   const refresh = () => load(loaded?.cursor);
   return (
     <>
-      <p>
-        This queue includes older work still awaiting a decision. Recent history is shown
-        separately.
-      </p>
+      <p className="help">Everything still waiting, oldest included, 50 at a time. Newest first.</p>
       <div className="actions">
         <button disabled={loading} onClick={() => load()}>
           Newest waiting items
@@ -74,10 +72,10 @@ export default function WorkQueue({
           </button>
         )}
       </div>
-      {loading && <p role="status">Loading waiting items...</p>}
+      {loading && <p aria-live="polite">Loading waiting items…</p>}
       {error && <p role="alert">{error}</p>}
       <QueueItems items={page.items} renderItem={children} refresh={refresh} />
-      {!page.items.length && <p>No waiting items on this page.</p>}
+      {!page.items.length && <p className="empty">Nothing is waiting.</p>}
     </>
   );
 }

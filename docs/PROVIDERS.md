@@ -104,12 +104,12 @@ Use `sudoedit` again to remove the three temporary lookup entries if you will us
 1. Sign into KekBot as owner at the final HTTPS origin. Open **Connections**.
 2. Save the Kick `clientId`, `clientSecret` and numeric `broadcasterId`.
 3. In the same browser, make sure Kick is signed into that creator. Select **Authorize Kick with moderation** and approve consent.
-4. Return to Connections; inspect the saved authorization/creator/scopes, then select **subscribe**. Repeated reconciliation repairs missing subscriptions rather than intentionally creating duplicates.
+4. Return to Connections; inspect the saved authorization/creator/scopes, then select **Subscribe to events**. Repeated reconciliation repairs missing subscriptions rather than intentionally creating duplicates.
 5. In **that creator's Kick channel chat**, send `!kekbot`. Confirm the real reply and its visible sender. Check **Maintenance → Delivery outcomes** if it is missing. Repeat a configured custom command.
 
 For account-mode delivery, set `KICK_CHAT_TYPE=user` in the runtime environment and recreate the app container. `bot` selects Kick's official bot delivery type; the app does not silently fall back. Historical foundation evidence confirmed account-mode replies, but a new installation still needs its own verification.
 
-Refresh and subscription repair run in the background. **refresh** exercises refresh explicitly. **disconnect** clears local authority and attempts provider revocation; check its result and revoke in Kick as well if necessary. Reauthorize after an invalid/revoked grant. Changing app credentials invalidates the saved grant. Do not repeatedly retry uncertain outbound sends; [operations](OPERATIONS.md#delivery-outcomes) explains reconciliation.
+Refresh and subscription repair run in the background. **Refresh connection** exercises refresh explicitly. **Disconnect** (after a confirmation) clears local authority and attempts provider revocation; check its result and revoke in Kick as well if necessary. Reauthorize after an invalid/revoked grant. Changing app credentials invalidates the saved grant. Do not repeatedly retry uncertain outbound sends; [operations](OPERATIONS.md#delivery-outcomes) explains reconciliation.
 
 A successful reauthorization supersedes any refresh already in flight for the old grant. An old refresh cannot overwrite the new tokens/scopes or mark the new grant broken. A concurrent superseded operation returns `kick_connection_changed_retry`; reload connection status before deciding whether another action is needed.
 
