@@ -65,7 +65,8 @@ test("owner setup, command editor, CSRF denial and read-only permissions work in
   await page.getByLabel("Name", { exact: true }).fill("Private source");
   await page.getByRole("button", { name: "Save widget" }).click();
   await page.getByRole("button", { name: "Create OBS source URL" }).click();
-  await expect(page.getByRole("status")).toContainText("Copy this private OBS");
+  await expect(page.getByLabel("OBS source URL", { exact: true })).toHaveValue(/\/widgets\/[^?]+\?token=/);
+  await expect(page.getByTitle("Live preview of Private source")).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
   await expect(page.locator("body")).not.toContainText("token=");
