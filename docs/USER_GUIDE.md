@@ -60,19 +60,37 @@ Use **Edit** to change a card and save the form. Use **Delete** only after revie
 
 Templates support `{user}`, `{args}`, `{channel}`, `{counter}`, `{points}` as plain text. Turn on **Counter** for a persisted command counter. Custom commands cannot override reserved built-ins. Runtime edits apply without a restart.
 
-| Built-in | Use |
-| --- | --- |
-| `!kekbot`, `!commands` | Proof response / available command listing |
-| `!uptime`, `!rules`, `!discord`, `!socials` | Observed stream uptime / configured utility text |
-| `!so <channel>` | Moderator shoutout |
-| `!goal` | Goal information |
-| `!points`, `!watchtime`, `!top` | Balance, estimated activity watchtime, leaderboard |
-| `!redeem <reward>` | Redeem a configured reward |
-| `!vote <number>`, `!enter` | Vote in an open poll / enter an open raffle |
-| `!sr <URL or video ID>`, `!queue`, `!nowplaying` | Enabled media requests and queue information |
-| `!skip` | Moderator media skip |
+| Built-in | Use | Example reply |
+| --- | --- | --- |
+| `!kekbot` | Foundation proof response | `KekBot foundation proof: verified event, durable receipt, real reply.` |
+| `!commands` | Grouped list of commands for enabled modules | `Commands — Info: !uptime !rules !watchtime \| Points: !points !top \| Music: !sr !queue !nowplaying · Details: !commands <group>` |
+| `!commands <group>` | One group with short usage, e.g. `!commands music` | `Music: !sr <YouTube link> — request a song · !queue — next songs · !nowplaying — current song` |
+| `!uptime` | Observed stream uptime | `The stream has been live for 1 hour 5 minutes.` |
+| `!rules`, `!discord`, `!socials` | Configured utility text | The configured text, or `No chat rules have been set up yet.` |
+| `!so <username>` | Moderator shoutout | `Go check out SomeStreamer at https://kick.com/SomeStreamer and show them some love!` |
+| `!goal` | Progress of enabled goals | `Goals: Follower goal 50/200 (25%) · Sub goal 10/10 (complete)` |
+| `!points` | The sender's balance | `@viewer, you have 1,250 points.` |
+| `!watchtime` | The sender's **estimated** watchtime | `@viewer, your estimated watchtime is about 2 hours 5 minutes. It is based on chat activity while the stream is live, so it isn't exact.` |
+| `!top` | Top five balances | `Top points: 1. viewer 1,250 · 2. another 900` |
+| `!redeem <reward>` | Redeem a configured reward by name or ID | `@viewer, you redeemed "Choose a topic" for 100 points. New balance: 50 points. A moderator will take care of it soon.` |
+| `!vote` | List the open poll's options | `Poll "Next game": vote with !vote <number>. 1) Racing · 2) Puzzle` |
+| `!vote <number>` | Vote in the open poll | `@viewer, your vote for 2) "Puzzle" is in.` |
+| `!enter` | Enter the open raffle | `@viewer, you're entered in the "Game key" raffle. Good luck!` |
+| `!sr <URL or video ID>` | Request a song (media enabled) | `@viewer, got it! Checking request #12 now.` |
+| `!queue`, `!nowplaying` | Next five approved songs / current song | `Up next: #12 "Song title" (viewer) · #13 "Other song" (another).` |
+| `!skip` | Moderator media skip | `Skipped #12 "Song title". Next: #13 "Other song".` |
 
 Utility text comes from **Maintenance → Edit settings**. Missing configuration or unobserved uptime produces an explanation rather than invented data. Built-ins also have cooldowns; a suppressed command is not proof that intake is broken.
+
+### What viewers see in chat
+
+All built-in reply wording lives in one place (`src/server/domain/replies.ts`). Replies are written for viewers:
+
+- Chat refers to song requests by their public request number, `#N` (the item's position number), and Discord accepts the same number. Internal item IDs, versions and receipts never appear in chat. Numbers are unique, but a moderator reorder can renumber requests still waiting in the queue: the reordered items swap their existing numbers among themselves.
+- When a request finishes validation, KekBot sends one follow-up naming the title and whether it is queued (with its place in line) or waiting for a moderator. A rejection explains why in plain words, for example `That video is too long. The limit is 10 minutes.`
+- Replies that concern one viewer start with `@username` when the sender's Kick username is a plain username (letters, digits and underscores, up to 50 characters). Other display names are not mentioned. Queue and leaderboard lists show plain usernames without `@`. In `!top`, erased viewers and names that are not plain usernames appear as `a viewer`; elsewhere the name is simply left out.
+- Errors are explained, not shown as codes. Examples: `you can request another song in 48 seconds`, `that video is already in the queue`, `"Choose a topic" costs 100 points and you have 50 points`, `only moderators can use that command`. YouTube key, quota or availability problems all read `Song requests are unavailable right now. Please try again later.` The owner sees the precise reason in **Media**.
+- `!commands` shows only groups for enabled modules: Points when points are on, Music when media is on, Polls while a poll or raffle is open, `!rules`/`!discord`/`!socials` only when configured, and Mods (`!so`, `!skip`) only to moderators and the broadcaster. Custom commands are listed under their configured **Group**; a custom group named "Mods" stays separate from the built-in moderator group and is shown to everyone. Long lists are shortened with `+N` so the reply stays within Kick's 500-character limit. `!commands <group>` lists that group with short usage, cut off at 500 characters. An unknown group name gets the list of valid groups; KekBot never repeats the viewer's text.
 
 ### Command behavior and common surprises
 
@@ -80,7 +98,7 @@ An enabled custom command selects one response randomly. Aliases use the same re
 
 `{channel}` is the configured instance name; `{user}` is the sender display name. `{args}` is text after the trigger, bounded to 200 characters. Unknown variables show an unavailable marker. Turn Counter on before relying on `{counter}`. Preview substitutes a sample viewer and does not establish real delivery. Custom trigger/alias names must be unique and cannot replace built-ins.
 
-Most built-ins have a five-second per-viewer cooldown; `!kekbot` additionally has a ten-second installation-wide proof cooldown. `!so`/`!skip` need an observed Kick moderator/broadcaster. `!redeem` accepts a reward ID or full name. `!vote`/`!enter` use the latest open activity of that type; keep only one open poll and raffle at a time to avoid ambiguity. `!commands` lists enabled commands, not a guarantee that the caller meets their restrictions. Its output is capped at 500 characters.
+Most built-ins have a five-second per-viewer cooldown; `!kekbot` additionally has a ten-second installation-wide proof cooldown. `!so`/`!skip` need an observed Kick moderator/broadcaster. `!redeem` accepts a reward ID or full name. `!vote`/`!enter` use the latest open activity of that type; keep only one open poll and raffle at a time to avoid ambiguity. `!vote` without a number lists the options instead of recording a vote. `!commands` lists enabled commands, not a guarantee that the caller meets their restrictions. Every reply is capped at 500 characters.
 
 The five-second guard applies per viewer and command, including error replies for invalid input or missing permission. Rapid repeated invalid `!sr` or forbidden `!skip` requests produce one explanation rather than a reply for every message. The guard survives restart; wait five seconds before trying again. Custom command cooldown settings remain separate.
 

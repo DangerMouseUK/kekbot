@@ -57,7 +57,7 @@ it("validation commits one final chat status with metadata and exposes only the 
   const item = bot.media.request("abcdefghijk", "456");
   await bot.media.validate(item.id, false); await bot.media.validate(item.id, false);
   const result = repo.store.sqlite.prepare("SELECT payload FROM jobs WHERE id=?").get(`media-result:${item.id}`) as { payload: string };
-  expect(JSON.parse(result.payload).text).toContain("awaiting moderator approval");
+  expect(JSON.parse(result.payload).text).toBe('Request #1 "Fixture video abcdefghijk" is waiting for a moderator to approve it.');
   bot.media.decide(owner, item.id, bot.media.item(item.id)!.version, "approve");
   bot.media.control(owner, "resume", bot.media.player.version);
   bot.state.save(owner, "widget", "playing", { name: "Now playing", type: "nowplaying" });
@@ -74,7 +74,7 @@ it("failed validation reports the reason once and moderator additions do not spa
   bot.state.save(owner, "settings", "instance", { mediaEnabled: true, maxDuration: 60, requestCooldown: 0 });
   const item = bot.media.request("abcdefghijk", "456");
   await bot.media.validate(item.id, false); await bot.media.validate(item.id, false);
-  expect(JSON.parse((repo.store.sqlite.prepare("SELECT payload FROM jobs WHERE id=?").get(`media-result:${item.id}`) as { payload: string }).payload).text).toContain("video_duration_rejected");
+  expect(JSON.parse((repo.store.sqlite.prepare("SELECT payload FROM jobs WHERE id=?").get(`media-result:${item.id}`) as { payload: string }).payload).text).toBe("Request #1 wasn't added. That video is too long. The limit is 1 minute.");
   const manual = bot.media.request("lmnopqrstuv", owner.id, "manual", true);
   await bot.media.validate(manual.id, true);
   expect(repo.store.sqlite.prepare("SELECT 1 FROM jobs WHERE id='media-result:manual'").get()).toBeUndefined();
