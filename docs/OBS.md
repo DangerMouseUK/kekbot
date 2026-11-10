@@ -35,7 +35,7 @@ To revoke a leaked source, open **Maintenance → Source and API tokens**, revok
 | Type | Displays | Target/configuration |
 | --- | --- | --- |
 | `alerts` | Active queued alert with image/sound | Enabled alert configurations and uploaded asset IDs |
-| `chat` | Retained recent chat | Limit; empty when chat history is disabled |
+| `chat` | Retained recent chat after moderation inspection; messages that matched a rule or were removed by a moderator are never shown | Limit; empty when chat history is disabled |
 | `player` | Visible YouTube player | Media enabled, approved queue, separate player token |
 | `nowplaying` | Current item/title/requester | Media state |
 | `queue` | Waiting approved items | Limit |

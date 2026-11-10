@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Always subscribe to Kick new/renewal/gift subscription events. Previously they were requested only while a matching alert was enabled, so subscription goals, event feeds, supporter labels and analytics silently missed them.
+- Keep the OBS chat source to messages that moderation has already inspected; rule matches and messages removed by a moderator (delete, or timeout/ban with a message ID) are never shown.
+- Warnings in Kick chat mention the viewer's username instead of their numeric account ID. Discord moderation and raffle-winner notices include the observed name beside the ID, and winner notices are associated with the winner for erasure.
+- Estimate watchtime whether or not points are enabled, using the same live state, cadence and activity window. Record it as the `watchtime.estimated_minutes` analytics metric.
+- No schema, backup/configuration format or dependency change. Fixture/SQLite regressions cover each fix; live Kick, Discord and OBS behaviour remains unverified.
+
 ## 0.1.0-beta.4 — 2026-10-10
 
 - Publish beta 4 as an evaluation prerelease from the retained reviewed bundle, with the immutable tag at its frozen source and latest-stable promotion disabled. All six actual uploaded/downloaded hashes match; anonymous release discovery and Linux published-source/image install/update-failure/rollback/uninstall rehearsals passed. Beta 1/2/3 releases remain unchanged. Update public entry, setup/update and release evidence together. Schema 3, backup/configuration format 1 and exact dependency pins are unchanged; all 33 live/stable acceptance gates remain pending.

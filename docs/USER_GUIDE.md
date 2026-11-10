@@ -142,7 +142,7 @@ Create a note with the viewer's numeric ID, a short internal name and bounded te
 
 ## Points and rewards
 
-Enable points in Maintenance and configure award amount/cadence/recent-chat activity window. Accrual runs while the observed stream state is live and follows recent chat activity; silent viewers cannot be measured. Watchtime is explicitly estimated and accrues with the enabled points activity loop.
+Enable points in Maintenance and configure award amount/cadence/recent-chat activity window. Accrual runs while the observed stream state is live and follows recent chat activity; silent viewers cannot be measured. Watchtime is explicitly estimated; it uses the same live state, cadence and activity window but accrues whether or not points are enabled.
 
 Add rewards in **Points & rewards** with cost, description and manual/alert fulfillment. A redemption debits atomically. Moderators complete a fulfilled redemption or reject it for a single refund. Point adjustments need a reason. Balances/decisions survive restart; neither privacy erasure nor retention silently rewrites economic history.
 
@@ -150,7 +150,7 @@ For a first reward, configure Name `Choose a topic`, Cost `100`, Fulfillment `ma
 
 Pending redemptions are independent of **Recent redemptions**, which shows the latest 100 decisions/requests. The pending queue shows 50 waiting items per page; use **Older waiting items** until you reach the request, **Newest waiting items** to return, or **Refresh this page** to reload an older page. Fulfillment/refund refreshes that page. Older pending requests remain actionable even after hundreds of newer completed rewards. Read-only users can browse but cannot fulfill or refund.
 
-To correct a balance, enter the numeric viewer ID, signed Amount and Reason in **Adjust points**. A negative adjustment cannot make the balance negative. Accrual awards once per eligible cadence bucket while observed live; it does not backfill downtime or prove silent viewing. Watchtime advances in whole estimated minutes with that same enabled loop. [Point settings](CONFIGURATION_FIELDS.md#settings).
+To correct a balance, enter the numeric viewer ID, signed Amount and Reason in **Adjust points**. A negative adjustment cannot make the balance negative. Accrual awards once per eligible cadence bucket while observed live; it does not backfill downtime or prove silent viewing. Watchtime advances in whole estimated minutes once per cadence bucket, even with points disabled. [Point settings](CONFIGURATION_FIELDS.md#settings).
 
 ## Polls and raffles
 

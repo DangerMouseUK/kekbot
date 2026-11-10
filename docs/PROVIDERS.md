@@ -43,7 +43,7 @@ Select the scopes the current dashboard authorization requests:
 | `user:read` | Verify the authorized account |
 | `channel:read` | Read channel state |
 | `chat:write` | Send replies |
-| `events:subscribe` | Subscribe to chat/follow/stream and configured subscription events |
+| `events:subscribe` | Subscribe to chat, follow, stream-status and new/renewal/gift subscription events (needed by goals, event feeds and analytics as well as alerts) |
 | `moderation:ban` | Permitted timeout/ban actions |
 | `moderation:chat_message:manage` | Permitted chat deletion |
 

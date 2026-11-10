@@ -150,7 +150,8 @@ export class PresentationService {
     const limit = config.limit;
     let data: unknown = null;
     if (config.type === "alerts") data = JSON.parse(this.state.repository.setting("active_alert") ?? "null");
-    else if (config.type === "chat") data = (this.state.db.prepare("SELECT payload FROM receipts WHERE event_type='chat.message.sent' AND payload IS NOT NULL ORDER BY received_at DESC LIMIT ?").all(limit) as { payload: string }[]).reverse().map(row => { const m = JSON.parse(row.payload); return { name: m.sender.username ?? "Viewer", text: m.content }; });
+    // Show chat only after moderation has inspected it; rule matches and moderator removals stay off stream.
+    else if (config.type === "chat") data = (this.state.db.prepare("SELECT r.payload FROM receipts r WHERE r.event_type='chat.message.sent' AND r.payload IS NOT NULL AND NOT EXISTS(SELECT 1 FROM jobs j WHERE j.id='event:'||r.id AND j.status IN ('pending','running')) AND NOT EXISTS(SELECT 1 FROM incidents i WHERE i.id='moderation:'||r.id) AND NOT EXISTS(SELECT 1 FROM settings s WHERE s.key='hidden_chat:'||json_extract(r.payload,'$.message_id')) ORDER BY r.received_at DESC LIMIT ?").all(limit) as { payload: string }[]).reverse().map(row => { const m = JSON.parse(row.payload); return { name: m.sender.username ?? "Viewer", text: m.content }; });
     else if (["player", "nowplaying", "queue"].includes(config.type)) {
       const player = JSON.parse(this.state.repository.setting("player") ?? '{"state":"paused","current":null,"volume":50,"version":0}');
       const current = player.current ? this.state.db.prepare("SELECT m.id,m.video_id,m.title,m.duration,coalesce(v.name,a.username,'Requester unavailable') AS requesterName FROM media m LEFT JOIN viewers v ON v.id=m.requester LEFT JOIN accounts a ON a.id=m.requester WHERE m.id=?").get(player.current) : null;

@@ -250,8 +250,8 @@ Owner-only singleton, ID `instance`. Open **Maintenance → Edit settings**. [JS
 | `timersPaused` | `false` | Pause all timers; prefer pause/resume controls for schedule reset |
 | `pointsEnabled` | `false` | Enable activity accrual and redemptions |
 | `pointsAmount` | `10` | Award per eligible cadence bucket, 1–1000 |
-| `pointsInterval` | `300` | Accrual cadence seconds, 60–3600 |
-| `activeWindow` | `300` | Recent-chat eligibility seconds, 60–3600 |
+| `pointsInterval` | `300` | Points and estimated-watchtime cadence seconds, 60–3600 |
+| `activeWindow` | `300` | Recent-chat eligibility seconds for points and watchtime, 60–3600 |
 | `chatDays` | `7` | Chat-body retention days, 0–30; 0 removes bodies after processing |
 | `receiptDays` | `30` | Receipt/deduplication retention days, 2–90; unfinished work preserved |
 | `summaryDays` | `90` | Observation retention days, 1–3650 |

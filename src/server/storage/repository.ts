@@ -52,6 +52,8 @@ export class Repository {
     if (key.startsWith("utility:")) return Number(value) + 5000;
     if (key.startsWith("request:")) return Number(value) + 3600000;
     if (key.startsWith("sent:")) return Number(value) + receiptDays * 86400000;
+    // Outlives the longest chat-body retention (30 days).
+    if (key.startsWith("hidden_chat:")) return Number(value) + 31 * 86400000;
     if (key.startsWith("discord_result:")) return Date.now() + receiptDays * 86400000;
     if (key.startsWith("chat_window:")) {
       const history = JSON.parse(value) as { at: number }[];

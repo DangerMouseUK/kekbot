@@ -28,6 +28,15 @@ describe("Kick contract", () => {
     await expect(context.service.moderate({ action: "delete", userId: 456, messageId: "fixture-message", reason: "fixture" })).resolves.toBeUndefined();
     expect(context.request.mock.calls[0][0]).toBe("https://api.kick.com/public/v1/chat/fixture-message");
   });
+  it("mentions a warned viewer by username and never by numeric account ID", async () => {
+    const context = setup(); saveExpired(context, Date.now() + 3600000);
+    context.request.mockImplementation(async () => Response.json({ data: { message_id: "sent", is_sent: true } }));
+    await context.service.moderate({ action: "warn", userId: 456, reason: "Link rule", username: "viewer_one" });
+    await context.service.moderate({ action: "warn", userId: 456, reason: "Link rule", username: "Erased viewer" });
+    await context.service.moderate({ action: "warn", userId: 456, reason: "Link rule" });
+    const sent = context.request.mock.calls.map(call => JSON.parse(String(call[1]!.body)).content);
+    expect(sent).toEqual(["@viewer_one, moderator warning: Link rule", "Moderator warning: Link rule", "Moderator warning: Link rule"]);
+  });
   it("uses PKCE and consumes browser-bound state once, storing only encrypted tokens", async () => {
     const { config, repo, request, service } = setup();
     const url = new URL(service.authorize("browser-binding"));

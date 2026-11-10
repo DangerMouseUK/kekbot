@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { Actor } from "../auth.ts";
 import { AppError } from "../errors.ts";
 import { configSchemas, type Kind } from "./catalog.ts";
-import { State } from "./state.ts";
+import { ERASED_VIEWER, State } from "./state.ts";
 import { APP_VERSION } from "../version.ts";
 import { PresentationService, inspectAsset } from "./presentation.ts";
 import { KickService } from "../providers/kick.ts";
@@ -315,8 +315,8 @@ export class OperationsService {
       .transaction(() => {
         this.state.repository.scrubViewer(viewer);
         this.state.db
-          .prepare("UPDATE viewers SET name='Erased viewer',messages=0,watch_minutes=0 WHERE id=?")
-          .run(viewer);
+          .prepare("UPDATE viewers SET name=?,messages=0,watch_minutes=0 WHERE id=?")
+          .run(ERASED_VIEWER, viewer);
         this.state.db
           .prepare("DELETE FROM settings WHERE key=? OR key=? OR key LIKE ? OR key LIKE ?")
           .run(
