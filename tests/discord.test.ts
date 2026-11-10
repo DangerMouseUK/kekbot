@@ -354,7 +354,8 @@ describe("slash commands act on what the member submitted", () => {
     expect(approve.reply.embeds![0].title).toBe("This changed"); expect(media(bot, "song-a").status).toBe("rejected");
     for (const [index, id] of ["one", "two", "three"].entries()) addMedia(bot, id, 30 + index, "approved");
     const move = await deferred(discord, bot, command(["media", "move"], { request: "#32", position: 1 }), () => bot.media.reorder(owner, ["two", "three", "one"]));
-    expect(move.reply.embeds![0].title).toBe("This changed"); expect(media(bot, "three").position).toBe(2);
+    // Reorder swaps the items' existing numbers (#30–#32), so "three" is second in line as #31.
+    expect(move.reply.embeds![0].title).toBe("This changed"); expect(media(bot, "three").position).toBe(31);
     bot.media.control(owner, "resume", bot.media.player.version);
     const pause = await deferred(discord, bot, command(["media", "pause"]), () => bot.media.control(owner, "volume", bot.media.player.version, 20));
     expect(pause.reply.embeds![0].title).toBe("This changed"); expect(bot.media.player.state).toBe("playing");

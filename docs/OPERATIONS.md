@@ -124,7 +124,7 @@ Erasure is logical: it does not promise physical overwriting of SQLite pages or 
 
 ## Exports and configuration portability
 
-Analytics filters observed events by date or observed stream ID and exports JSON/CSV. Stream history retains up to 1000 observed sessions; a query returns up to 100 overlapping summaries. Viewer samples are averages/count/min/max, not a total formed by adding concurrent viewers. Worker gaps do not prove provider coverage.
+Analytics filters observed events by date range or observed stream and exports exactly that selection as JSON/CSV (see the [user guide](USER_GUIDE.md#analytics-and-private-data)). Stream history retains up to 1000 observed sessions; a query compares up to the 60 newest overlapping streams and lists up to 500 coverage gaps. Viewer samples are averages/count/min/max, not a total formed by adding concurrent viewers. Worker gaps do not prove provider coverage.
 
 In **Maintenance → Configuration portability**, export the native configuration bundle. It contains portable commands/timers/alerts/widgets/rules/goals/rewards/settings and referenced local assets. It excludes credentials, accounts, sessions, invitations, source/API tokens, guild mappings, paths and private history. Asset names/configured response text may still contain information you entered; review before sharing.
 

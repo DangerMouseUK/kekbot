@@ -114,7 +114,7 @@ Temporary incident mode uses `moderation.incident.start` with `preset` (`links`,
 | --- | --- |
 | `GET/POST /api/auth` | Setup/login/invite acceptance; session logout/password change. Bounded request/rate limits. |
 | `GET/POST /api/control` | Local session snapshot / action dispatch; owner additions for account/token/asset administration. |
-| `GET /api/control?view=analytics` | Local session; `from`/`to` Unix milliseconds and optional observed `stream` ID; `format=csv` for download, otherwise JSON. |
+| `GET /api/control?view=analytics` | Local session; read-only. `from`/`to` Unix milliseconds (at most 3660 days apart), or an observed `stream` ID / `stream=latest`, which uses that stream's own window. Optional `tz` is an IANA time-zone name (for example `Europe/London`, as `Intl.DateTimeFormat().resolvedOptions().timeZone`; default `UTC`). Daily rows and daily/weekly chart buckets run between that zone's real local midnights, including 23- and 25-hour days at daylight-saving changes. `from`/`to` must fall within years 1970–9999. `format=csv` or `format=json` downloads exactly that selection; otherwise JSON. Unknown streams return 404 `stream_not_observed`; invalid ranges return 400 `invalid_analytics_range` and unknown zones 400 `invalid_time_zone`. |
 | `POST /api/connections/kick` | Owner + CSRF; creates browser-bound OAuth authorization URL; optional `moderation=1`. |
 | `GET /api/providers/kick/callback` | Owner session, one-use state and binding cookie; encrypted matching-creator grant. |
 | `POST /api/providers/kick/events` | Original-byte RSA verification with trusted provider key, configured creator, bounded timestamp/body, transactional receipt/job intake. |

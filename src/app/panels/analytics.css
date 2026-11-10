@@ -1,0 +1,67 @@
+/* Analytics panel. Colours follow the page's color-scheme through light-dark(), so the charts
+   stay readable if the dashboard gains a light theme; the dashboard is dark by default. */
+.analytics {
+  --an-series: light-dark(#2e7d4b, #83db9d);
+  --an-series-active: light-dark(#1b5232, #c3f3d0);
+  --an-grid: light-dark(#dfe5e1, #2a372f);
+  --an-axis: light-dark(#56655c, #7f9086);
+  --an-text-muted: light-dark(#4b5a51, #a2b5a9);
+  --an-nodata: light-dark(#8a958f, #6d7d73);
+  --an-crosshair: light-dark(#0000000f, #ffffff12);
+  --an-tooltip-bg: light-dark(#ffffff, #0d130f);
+  --an-tooltip-border: light-dark(#8a958f, #617268);
+}
+.analytics h3 { margin: 24px 0 8px; font-size: 16px; }
+.an-sub { margin: 4px 0 16px; color: var(--an-text-muted); }
+.an-controls .actions { align-items: center; }
+.an-controls .actions .button { margin: 0; }
+.an-inline { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+.an-inline select { width: auto; margin-top: 0; }
+
+.an-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 12px; }
+.an-card { margin: 0; padding: 14px 16px; }
+.an-card h4 { margin: 0; font-size: 13px; font-weight: 500; color: var(--an-text-muted); }
+.an-card .an-value { margin: 6px 0 0; line-height: 1.3; }
+.an-card .an-value strong { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.an-card .an-value span { color: var(--an-text-muted); font-size: 13px; }
+.an-unknown .an-value strong { font-size: 20px; color: var(--an-text-muted); }
+.an-detail { margin: 6px 0 0; font-size: 12px; line-height: 1.45; color: var(--an-text-muted); }
+
+.an-coverage { margin: 8px 0 4px; padding: 12px 16px; border-left: 3px solid var(--an-axis); }
+.an-coverage h3 { margin-top: 0; }
+.an-coverage ul { margin: 0 0 8px; padding-left: 20px; line-height: 1.6; }
+
+.analytics figure { margin: 12px 0; }
+.analytics figcaption { font-size: 13px; color: var(--an-text-muted); margin-bottom: 8px; }
+.an-legend { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; }
+.an-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 2px; }
+.an-swatch-nodata { background: repeating-linear-gradient(45deg, var(--an-nodata) 0 1px, transparent 1px 5px); outline: 1px solid var(--an-grid); }
+
+.an-chart { position: relative; width: 100%; min-height: 40px; border-radius: 6px; }
+.an-chart svg { display: block; overflow: visible; }
+.an-chart:focus-visible { outline-offset: 2px; }
+.an-grid { stroke: var(--an-grid); stroke-width: 1; }
+.an-axis { stroke: var(--an-axis); stroke-width: 1; }
+.an-tick, .an-label, .an-value { fill: var(--an-text-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.an-bars .an-label { fill: currentColor; }
+.an-mark { fill: var(--an-series); }
+.an-mark-active { fill: var(--an-series-active); }
+.an-line { fill: none; stroke: var(--an-series); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.an-dot { fill: var(--an-series); stroke: var(--an-tooltip-bg); stroke-width: 2; }
+.an-hatch { stroke: var(--an-nodata); stroke-width: 1.5; }
+.an-nodata { opacity: .55; }
+.an-crosshair { fill: var(--an-crosshair); }
+.an-hit { fill: transparent; }
+.an-tooltip {
+  position: absolute; top: 0; transform: translate(-50%, -100%); z-index: 2; pointer-events: none;
+  display: grid; gap: 2px; min-width: 150px; max-width: 260px; padding: 8px 10px; font-size: 12px; line-height: 1.4;
+  background: var(--an-tooltip-bg); border: 1px solid var(--an-tooltip-border); border-radius: 6px;
+}
+.an-tooltip[hidden] { display: none; }
+.analytics th { text-transform: none; overflow-wrap: normal; }
+.an-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (forced-colors: active) {
+  .an-mark, .an-dot { fill: CanvasText; }
+  .an-line { stroke: CanvasText; }
+  .an-hatch { stroke: GrayText; }
+}
