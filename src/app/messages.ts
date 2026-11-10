@@ -399,6 +399,14 @@ const messages: Record<string, [string, string?]> = {
     "Reload the page and try again.",
   ],
   stream_not_observed: ["KekBot has no record of that stream.", "Choose a stream from the list."],
+  invalid_analytics_range: [
+    "That date range is not valid.",
+    "Choose an end date on or after the start date, within ten years.",
+  ],
+  invalid_time_zone: [
+    "This browser's time zone was not recognised.",
+    "Check the device's time zone setting, then reload the page.",
+  ],
 };
 
 /**

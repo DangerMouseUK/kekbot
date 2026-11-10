@@ -8,6 +8,7 @@ import { ERASED_VIEWER, State } from "./state.ts";
 import { APP_VERSION } from "../version.ts";
 import { PresentationService, inspectAsset } from "./presentation.ts";
 import { KickService } from "../providers/kick.ts";
+import { readAnalytics } from "./analytics.ts";
 
 const portableKinds = [
   "command",
@@ -48,8 +49,7 @@ const bundleSchema = z
       .default([]),
   })
   .strict();
-export function csv(rows: Record<string, unknown>[]) {
-  const columns = Object.keys(rows[0] ?? {});
+export function csv(rows: Record<string, unknown>[], columns = Object.keys(rows[0] ?? {})) {
   const escape = (value: unknown) => {
     let str = String(value ?? "");
     if (/^[=+\-@\t\r\n]/.test(str)) str = `'${str}`;
@@ -250,60 +250,14 @@ export class OperationsService {
     return { ...preview, applied: true };
   }
 
-  analytics(from: number, to: number, stream?: string) {
-    z.number().int().nonnegative().parse(from);
-    z.number().int().min(from).parse(to);
-    const history = JSON.parse(this.state.repository.setting("stream_history") ?? "[]") as {
-      id: string;
-      start: number;
-      end: number | null;
-    }[];
-    const selected = stream ? history.find((item) => item.id === stream) : undefined;
-    if (stream && !selected) throw new AppError("stream_not_observed", 404);
-    const start = selected ? Math.max(from, selected.start) : from;
-    const end = selected ? Math.min(to, selected.end ?? Date.now()) : to;
-    const rows = this.state.db
-      .prepare(
-        "SELECT strftime('%Y-%m-%d',at/1000,'unixepoch') AS day,metric,CASE WHEN metric='viewers.sample' THEN avg(value) ELSE sum(value) END AS value,count(*) AS samples,min(value) AS minimum,max(value) AS maximum FROM observations WHERE at>=? AND at<=? AND metric!='worker.minute' GROUP BY day,metric ORDER BY day,metric",
-      )
-      .all(start, end);
-    const coverage = this.state.db
-      .prepare(
-        "SELECT min(at) AS firstObserved,max(at) AS lastObserved,count(*) AS workerMinutes FROM observations WHERE metric='worker.minute' AND at>=? AND at<=?",
-      )
-      .get(start, end);
-    const minutes = this.state.db
-      .prepare(
-        "SELECT at FROM observations WHERE metric='worker.minute' AND at>=? AND at<=? ORDER BY at",
-      )
-      .all(start, end) as { at: number }[];
-    const gaps: { from: number; to: number }[] = [];
-    let previous = start;
-    for (const minute of minutes) {
-      if (minute.at - previous > 120000) gaps.push({ from: previous, to: minute.at });
-      previous = minute.at;
-    }
-    if (end - previous > 120000) gaps.push({ from: previous, to: end });
-    const summaries = history
-      .filter((item) => item.start <= end && (item.end ?? Date.now()) >= start)
-      .slice(-100)
-      .map((item) => ({
-        ...item,
-        metrics: this.state.db
-          .prepare(
-            "SELECT metric,CASE WHEN metric='viewers.sample' THEN avg(value) ELSE sum(value) END AS value FROM observations WHERE at>=? AND at<=? AND metric!='worker.minute' GROUP BY metric",
-          )
-          .all(Math.max(start, item.start), Math.min(end, item.end ?? Date.now())),
-      }));
-    return {
-      from: start,
-      to: end,
-      streams: history,
-      summaries,
-      rows,
-      coverage: { ...Object(coverage), gaps },
-      note: "Observed events only. Viewer samples report a mean with sample count/minimum/maximum. Gaps mark missing worker observations; worker presence does not prove complete provider delivery. Estimated watchtime uses recent chat activity.",
-    };
+  /** Read-only observed history; see `readAnalytics` for the bounded result shape. */
+  analytics(from: number, to: number, stream?: string, options: { timeZone?: string } = {}) {
+    return readAnalytics(
+      this.state.db,
+      this.state.repository.setting("stream_history"),
+      { from, to, stream, timeZone: options.timeZone },
+      { now: Date.now(), summaryDays: this.state.settings.summaryDays },
+    );
   }
 
   eraseViewer(actor: Actor, viewer: string) {
