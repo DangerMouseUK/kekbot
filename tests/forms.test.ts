@@ -41,6 +41,12 @@ describe("date-time conversion", () => {
       expect(localInputToMs(value)).toBeNull();
   });
 
+  it("ignores the partial years Chromium reports while a year is typed digit by digit", () => {
+    for (const year of ["0002", "0020", "0203", "1969"])
+      expect(localInputToMs(`${year}-06-15T10:30`)).toBeNull();
+    expect(localInputToMs("2031-06-15T10:30")).toBe(new Date(2031, 5, 15, 10, 30).getTime());
+  });
+
   it("produces values the poll and rule schemas accept", () => {
     const endsAt = localInputToMs(msToLocalInput(Date.now() + 3600000))!;
     expect(configSchemas.poll.shape.endsAt.safeParse(endsAt).success).toBe(true);
@@ -118,10 +124,36 @@ describe("Discord grant rows", () => {
     ).toMatch(/1–24 digits/);
   });
 
-  it("keeps unknown permissions visible as an editable row instead of losing them", () => {
-    expect(grantsToRows([{ id: 7, permission: "nope" }], key)).toEqual([
-      { key: expect.any(String), id: "7", permission: "operate" },
+  it("keeps unknown permissions exactly as stored instead of converting them", () => {
+    const stored = [
+      { id: "300", permission: "admin" },
+      { id: "", permission: 5 },
+      { id: "301", permission: "media" },
+    ];
+    const rows = grantsToRows(stored, key);
+    expect(rows.map((row) => row.permission)).toEqual(["admin", 5, "media"]);
+    // Editing another row never rewrites the unknown ones, and blank-ID unknown rows are kept.
+    const edited = rows.map((row) =>
+      row.id === "301" ? { ...row, permission: "engage" as const } : row,
+    );
+    expect(rowsToGrants(edited)).toEqual([
+      { id: "300", permission: "admin" },
+      { id: "", permission: 5 },
+      { id: "301", permission: "engage" },
     ]);
+    const errors = grantRowErrors(rows, "role");
+    expect(errors[rows[0]!.key]).toMatch(/does not recognise \(“admin”\)/);
+    expect(errors[rows[1]!.key]).toMatch(/\(5\)/);
+    expect(errors[rows[2]!.key]).toBeUndefined();
+    // Saving stays blocked by the schema until the person removes the row.
+    expect(
+      validate("guild", {
+        ...examples.guild,
+        guildId: "1",
+        channelId: "2",
+        roles: rowsToGrants(rows),
+      }).roles,
+    ).toMatch(/does not recognise/);
   });
 });
 
@@ -212,7 +244,8 @@ describe("schema-driven validation", () => {
 
   it("normalises triggers and website names as people type them", () => {
     expect(normalizeTrigger(" Welcome Back")).toBe("!welcome_back");
-    expect(normalizeTrigger("welcome ")).toBe("!welcome_");
+    expect(normalizeTrigger("welcome ")).toBe("!welcome");
+    expect(normalizeTrigger("  ")).toBe("");
     expect(normalizeTrigger("!hi")).toBe("!hi");
     expect(normalizeDomain("https://www.YouTube.com/watch?v=x")).toBe("youtube.com");
   });

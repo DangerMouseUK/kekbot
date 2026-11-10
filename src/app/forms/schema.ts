@@ -119,7 +119,9 @@ export function explainIssue(kind: Kind, issue: Issue, data: Data): string {
         : "";
   const b = bounds(kind, key);
   if (control?.type === "grants" && issue.path.length > 1)
-    return "Check the highlighted rows: Discord IDs are 1–24 digits only.";
+    return issue.path[2] === "permission"
+      ? "A row has a permission KekBot does not recognise. Remove that row to save."
+      : "Check the highlighted rows: Discord IDs are 1–24 digits only.";
   switch (issue.code) {
     case "too_small": {
       const minimum = Number(issue.minimum);
@@ -160,6 +162,20 @@ export function explainIssue(kind: Kind, issue: Issue, data: Data): string {
     default:
       return issue.message;
   }
+}
+
+/** Applies each text field's normaliser (e.g. trigger → `!lowercase`) without touching others. */
+export function normalizeFields(kind: Kind, data: Data): Data {
+  let next = data;
+  for (const section of layouts[kind])
+    for (const field of section.fields) {
+      const control = field.control;
+      const value = data[field.key];
+      if (control.type !== "text" || !control.normalize || typeof value !== "string") continue;
+      const normalized = control.normalize(value);
+      if (normalized !== value) next = { ...next, [field.key]: normalized };
+    }
+  return next;
 }
 
 /** Every problem the schema finds, keyed by top-level field (first problem wins). */

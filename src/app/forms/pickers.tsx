@@ -5,10 +5,12 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import type { ConfigDocument } from "../../server/domain/catalog.ts";
 import type { Row, Snapshot } from "../ui";
-import { insertAt, VariableButtons, type Described } from "./fields.tsx";
+import { insertAt, LiveError, VariableButtons, type Described } from "./fields.tsx";
 import {
+  describeRaw,
   grantPermissions,
   grantRowErrors,
+  isPermission,
   grantsToRows,
   maxGrants,
   permissionLabels,
@@ -70,13 +72,20 @@ async function upload(file: File): Promise<Row> {
     reader.onerror = () => reject(new Error("The file could not be read."));
     reader.readAsDataURL(file);
   });
-  const session = await (await fetch("/api/auth", { cache: "no-store" })).json();
+  const expired = "Your session has ended. Sign in again, then retry the upload.";
+  const auth = await fetch("/api/auth", { cache: "no-store" });
+  const session = auth.ok ? await auth.json() : null;
+  // Never send an upload without a current session; the dashboard shows sign-in on its next refresh.
+  if (!session?.actor || !session.csrf) throw new Error(expired);
   const response = await fetch("/api/control", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "X-CSRF-Token": session.csrf ?? "" },
+    headers: { "Content-Type": "application/json", "X-CSRF-Token": session.csrf },
     body: JSON.stringify({ action: "asset.upload", input: { name: file.name, base64 } }),
   });
+  if (response.status === 401) throw new Error(expired);
   const result = await response.json();
+  // The server audits the upload, which emits a change event; the dashboard snapshot (and so
+  // this picker's list) refreshes from that. The returned asset is also selected immediately.
   if (!response.ok)
     throw new Error(
       result.error === "permission_denied"
@@ -335,7 +344,7 @@ export function GrantRows({
 }: {
   d: Described;
   value: unknown;
-  set: (value: { id: string; permission: GrantPermission }[]) => void;
+  set: (value: { id: string; permission: unknown }[]) => void;
   noun: "role" | "user";
 }) {
   const [rows, setRows] = useState<GrantRow[]>(() => grantsToRows(value, nextKey));
@@ -353,7 +362,8 @@ export function GrantRows({
         {rows.map((row, index) => {
           const idInput = `${d.id}-${row.key}-id`,
             permission = `${d.id}-${row.key}-permission`,
-            error = errors[row.key];
+            error = errors[row.key],
+            known = isPermission(row.permission);
           return (
             <li key={row.key} className="kf-grant">
               <div>
@@ -370,6 +380,7 @@ export function GrantRows({
                   autoComplete="off"
                   placeholder={noun === "role" ? "Role ID" : "User ID"}
                   value={row.id}
+                  readOnly={!known}
                   aria-invalid={Boolean(error) || undefined}
                   aria-describedby={error ? `${idInput}-error` : undefined}
                   onChange={(event) =>
@@ -385,29 +396,41 @@ export function GrantRows({
                 <label className="kf-row-label" htmlFor={permission}>
                   Permission {index + 1}
                 </label>
-                <select
-                  id={permission}
-                  value={row.permission}
-                  aria-describedby={`${permission}-help`}
-                  onChange={(event) =>
-                    update(
-                      rows.map((item) =>
-                        item.key === row.key
-                          ? { ...item, permission: event.target.value as GrantPermission }
-                          : item,
-                      ),
-                    )
-                  }
-                >
-                  {grantPermissions.map((option) => (
-                    <option key={option} value={option}>
-                      {permissionLabels[option].label}
-                    </option>
-                  ))}
-                </select>
-                <span className="kf-count" id={`${permission}-help`}>
-                  {permissionLabels[row.permission].help}
-                </span>
+                {!known ? (
+                  <input
+                    id={permission}
+                    className="kf-mono"
+                    readOnly
+                    value={`Unrecognised: ${describeRaw(row.permission)}`}
+                    aria-describedby={error ? `${idInput}-error` : undefined}
+                  />
+                ) : (
+                  <>
+                    <select
+                      id={permission}
+                      value={String(row.permission)}
+                      aria-describedby={`${permission}-help`}
+                      onChange={(event) =>
+                        update(
+                          rows.map((item) =>
+                            item.key === row.key
+                              ? { ...item, permission: event.target.value as GrantPermission }
+                              : item,
+                          ),
+                        )
+                      }
+                    >
+                      {grantPermissions.map((option) => (
+                        <option key={option} value={option}>
+                          {permissionLabels[option].label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="kf-count" id={`${permission}-help`}>
+                      {permissionLabels[row.permission as GrantPermission].help}
+                    </span>
+                  </>
+                )}
               </div>
               <button
                 type="button"
@@ -417,11 +440,12 @@ export function GrantRows({
               >
                 Remove
               </button>
-              {error && (
-                <p className="kf-error kf-grant-error" id={`${idInput}-error`}>
-                  {error}
-                </p>
-              )}
+              <LiveError
+                id={`${idInput}-error`}
+                message={error}
+                className="kf-grant-error"
+                icon={false}
+              />
             </li>
           );
         })}

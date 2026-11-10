@@ -53,10 +53,10 @@ export const labelOf = (spec: FieldSpec, data: Data) =>
 export const helpOf = (spec: FieldSpec, data: Data) =>
   typeof spec.help === "function" ? spec.help(data) : spec.help;
 
-// Normalizers applied when a person finishes typing, so "Welcome" becomes "!welcome".
+// Normalizers applied when a person leaves the field and again on save, so "Welcome back "
+// becomes "!welcome_back". They never run per keystroke.
 export const normalizeTrigger = (value: string) => {
-  // Runs on every keystroke: keep a typed space as "_" so "welcome back" stays readable.
-  const cleaned = value.replace(/^\s+/, "").toLowerCase().replace(/\s+/g, "_");
+  const cleaned = value.trim().toLowerCase().replace(/\s+/g, "_");
   return cleaned === "" || cleaned.startsWith("!") ? cleaned : `!${cleaned}`;
 };
 export const normalizeDomain = (value: string) =>

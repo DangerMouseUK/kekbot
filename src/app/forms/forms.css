@@ -386,3 +386,10 @@
 .kf-field > button {
   justify-self: start;
 }
+.kf-live:empty {
+  margin-top: -6px;
+}
+.kf-grant > .kf-live:empty {
+  display: block;
+  margin-top: -8px;
+}

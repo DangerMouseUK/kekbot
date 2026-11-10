@@ -38,6 +38,7 @@ import {
   crossChecks,
   explainIssue,
   itemSchema,
+  normalizeFields,
   specFor,
   validate,
 } from "./forms/schema.ts";
@@ -112,10 +113,12 @@ export default function ConfigEditor({
   const extras = Object.keys(data).filter((key) => !covered.has(key));
   const documentId = base?.id ?? (kind === "settings" ? "instance" : undefined);
 
-  const schemaErrors = useMemo(() => validate(kind, data), [kind, data]);
+  // Validate what would be saved: text normalisers (trigger "welcome" → "!welcome") run on save.
+  const ready = useMemo(() => normalizeFields(kind, data), [kind, data]);
+  const schemaErrors = useMemo(() => validate(kind, ready), [kind, ready]);
   const cross = useMemo(
-    () => crossChecks(kind, data, snapshot?.documents, documentId),
-    [kind, data, snapshot?.documents, documentId],
+    () => crossChecks(kind, ready, snapshot?.documents, documentId),
+    [kind, ready, snapshot?.documents, documentId],
   );
   const errors: Record<string, string> = { ...cross.errors, ...schemaErrors };
   const visibleSpec = (spec: FieldSpec) => !spec.visible || spec.visible(data);
@@ -407,6 +410,7 @@ export default function ConfigEditor({
         event.preventDefault();
         setSubmitted(true);
         setNotice("");
+        if (ready !== data) setData(ready);
         if (errorKeys.length) {
           requestAnimationFrame(() => summary.current?.focus());
           return;
@@ -414,7 +418,7 @@ export default function ConfigEditor({
         setBusy(true);
         setProblem(undefined);
         try {
-          await save(data, { version: base?.version });
+          await save(ready, { version: base?.version });
         } catch (e) {
           setProblem(describeServerError(e instanceof Error ? e.message : "", kind));
           requestAnimationFrame(() => summary.current?.focus());

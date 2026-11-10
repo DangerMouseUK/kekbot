@@ -23,7 +23,9 @@ test("owner setup, command editor, CSRF denial and read-only permissions work in
   await page.getByRole("button", { name: "Commands", exact: true }).click(); await page.getByRole("button", { name: "Add command" }).click();
   await page.getByLabel("Name", { exact: true }).fill("Browser greeting");
   // Client-side checks mirror the server: built-in triggers are refused next to the field.
-  await page.getByLabel("Trigger", { exact: true }).fill("points"); await expect(page.getByLabel("Trigger", { exact: true })).toHaveValue("!points");
+  // Normalised when the field is left: "Points " becomes "!points".
+  await page.getByLabel("Trigger", { exact: true }).fill("Points "); await page.getByLabel("Trigger", { exact: true }).blur();
+  await expect(page.getByLabel("Trigger", { exact: true })).toHaveValue("!points");
   await page.getByRole("button", { name: "Save command" }).click();
   await expect(page.locator(".editor").getByRole("alert")).toContainText("!points is a built-in command");
   await page.getByLabel("Trigger", { exact: true }).fill("!greeting");
@@ -243,4 +245,40 @@ test("older unresolved deliveries and rewards stay actionable through bounded pa
     db.prepare("DELETE FROM jobs WHERE id LIKE 'browser-waiting-job-%' OR id LIKE 'browser-terminal-job-%'").run();
     db.prepare("DELETE FROM redemptions WHERE id LIKE 'browser-waiting-reward-%' OR id LIKE 'browser-terminal-reward-%'").run(); db.close();
   }
+});
+
+test("editor date-times accept a year typed digit by digit and a version conflict offers a reload", async ({ request, browser }) => {
+  const csrf = await login(request);
+  const context = await browser.newContext({ baseURL: origin, locale: "en-GB" });
+  try {
+    expect((await context.request.post("/api/auth", { headers: { Origin: origin }, data: { action: "login", username: "owner", password } })).ok()).toBe(true);
+    const page = await context.newPage(); await page.goto("/");
+    await page.getByRole("button", { name: "Polls & raffles", exact: true }).click(); await page.getByRole("button", { name: "Add poll" }).click();
+    await page.getByLabel("Name", { exact: true }).fill("Typed deadline poll");
+    // Real key presses into Chromium's segmented field: day, month, then each year digit.
+    // Intermediate years (0002, 0020, 0203) must not clear the field.
+    const closes = page.getByLabel("Voting closes", { exact: true }); await closes.focus();
+    for (const key of ["1", "5", "0", "6"]) await page.keyboard.press(key);
+    for (const key of ["2", "0", "3", "1"]) { await page.keyboard.press(key); await expect(closes).not.toHaveValue(""); }
+    await expect(closes).toHaveValue(/^2031-06-15T\d\d:\d\d$/);
+    await page.keyboard.press("Tab"); await expect(closes).toHaveValue(/^2031-06-15T/);
+    await page.getByRole("button", { name: "Save poll" }).click();
+    await expect(page.getByRole("heading", { name: "Typed deadline poll" })).toBeVisible();
+    const poll = (await (await request.get("/api/control")).json()).documents.find((doc: { data: { name: string } }) => doc.data.name === "Typed deadline poll");
+    expect(await page.evaluate((ms) => { const d = new Date(ms); return [d.getFullYear(), d.getMonth() + 1, d.getDate()]; }, poll.data.endsAt)).toEqual([2031, 6, 15]);
+
+    // Someone else saves while the form is open: the form explains it and reloads on request.
+    const command = await operation(request, csrf, "config.save", { kind: "command", data: { name: "Conflict check", trigger: "!conflict_check", responses: ["Synthetic response"] } });
+    await page.getByRole("button", { name: "Commands", exact: true }).click();
+    await page.locator("article").filter({ has: page.getByRole("heading", { name: "Conflict check" }) }).getByRole("button", { name: "Edit" }).click();
+    await operation(request, csrf, "config.save", { kind: "command", id: command.id, version: command.version, data: { ...command.data, name: "Changed elsewhere" } });
+    await page.getByRole("button", { name: "Save command" }).click();
+    await expect(page.locator(".editor").getByRole("alert")).toContainText("Someone else changed this command");
+    await page.getByRole("button", { name: "Reload latest values" }).click();
+    await expect(page.getByLabel("Name", { exact: true })).toHaveValue("Changed elsewhere");
+    await page.getByRole("button", { name: "Save command" }).click();
+    await expect(page.locator(".editor")).toHaveCount(0);
+    const saved = (await (await request.get("/api/control")).json()).documents.find((doc: { id: string }) => doc.id === command.id);
+    expect(saved.version).toBe(3); expect(saved.data.name).toBe("Changed elsewhere");
+  } finally { await context.close(); }
 });
