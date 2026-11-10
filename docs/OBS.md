@@ -59,12 +59,12 @@ Use IDs shown on configuration cards, not their display names. All widgets use b
 
 Start with 800 × 400 for an alert or compact list, then adjust the widget and OBS source together. Width/height are source pixels, not a promise that every type fits every layout. Review long names/titles and all three themes at your actual scene scale. Use **Reduced motion** for presentation that should minimize animation.
 
-A counter needs a command ID with Counter enabled. A selected poll/raffle/goal needs that document's ID; leaving Target blank follows the type's default selection. A countdown needs a future Ends at value in milliseconds and optional Text. A chat source needs retained chat bodies. A supporter/activity source needs observed support events. A blank source can be an expected empty state rather than a connection failure. [All widget fields](CONFIGURATION_FIELDS.md#widget).
+A counter needs a command with **Count uses** enabled, chosen in the widget's **Command** list. A poll/raffle/goal widget can select one from its list; **Automatic** follows the type's default selection. A countdown needs a future **Count down to** date and time and an optional **Countdown label**. API callers send document IDs and Unix milliseconds instead. A chat source needs retained chat bodies. A supporter/activity source needs observed support events. A blank source can be an expected empty state rather than a connection failure. [All widget fields](CONFIGURATION_FIELDS.md#widget).
 
 ## Follow alert walkthrough
 
-1. In **Alerts**, upload a supported image/sound if wanted. Copy the returned asset IDs.
-2. Select **Add alert**, choose `channel.followed`, set text such as `Thanks for following, {user}!`, and enter the optional image/sound IDs. Save.
+1. In **Alerts**, upload a supported image/sound if wanted, or upload later from the alert form.
+2. Select **Add alert**, set **Show this alert for** to **New follower**, set text such as `Thanks for following, {user}!`, and optionally pick the image/sound from the **Image**/**Sound** lists. Save.
 3. Select that preview event and **Preview without delivery**. The preview creates no live provider history; use its audio controls to test the asset.
 4. Create an `alerts` widget/source as above. Use **Send manual alert** with a separate `manual` alert configuration to verify the source path deliberately, then verify a genuine follow event when available.
 5. Check volume/muting in OBS and the operating system. If using **Control audio via OBS** in Browser Source properties, configure its mixer/monitoring/output intentionally. Test the actual recorded/stream output, not only local monitoring.

@@ -45,7 +45,7 @@ The complete [account guide](ACCOUNTS.md) covers claim, invitation acceptance, t
 
 Configuration cards display an **ID** and **Version**. Use IDs when another control asks for a target. A version conflict means someone changed that record; refresh and review it before retrying. Most edits take effect without restarting.
 
-The configuration editor uses one value per line for ordinary lists. Guild role/user mappings use JSON. Fields ending in `At` use Unix milliseconds; use the [source/container deadline example](CONFIGURATION_FIELDS.md#conventions) to obtain a future value. Blank optional timestamps disable that bound. Field constraints/defaults are in the [field reference](CONFIGURATION_FIELDS.md).
+The configuration editor groups each kind into short sections with help text, and only shows fields that apply to your choices (for example, a countdown widget shows **Count down to**; a link rule shows **Allowed websites**). Hidden fields keep their saved values. Dates use a date-time picker in your browser's timezone; durations have a unit selector; lists use numbered rows or tags (type a value and press Enter); Discord grants are ID/permission rows. Problems appear next to the field and in a summary at the top of the form when you save; select a summary entry to jump to the field. Field constraints/defaults are in the [field reference](CONFIGURATION_FIELDS.md).
 
 Use **Edit** to change a card and save the form. Use **Delete** only after reviewing dependencies: deleting a target can leave a counter/activity widget empty. Disabling a configuration is a reversible way to stop new use while preserving its ID. The dashboard shows current state; it is not required to stay open for jobs/timers to work.
 
@@ -53,8 +53,8 @@ Use **Edit** to change a card and save the form. Use **Delete** only after revie
 
 1. Open **Commands → Add command**.
 2. Give it a name and lowercase trigger such as `!welcome`.
-3. Enter responses, one per line: `Welcome, {user}!` is a simple first example.
-4. Set aliases, group, permitted roles, channel/user cooldowns and live/offline conditions. An empty role list allows viewers generally.
+3. Enter a response in **Response 1**: `Welcome, {user}!` is a simple first example. **Add response** adds more; one is picked at random. The **Insert** buttons add variables, and the preview under the list shows the reply with sample values.
+4. Add aliases (type one and press Enter), a group, **Allowed roles**, **Cooldown for everyone**/**Cooldown per viewer** and **When it works**. Leaving every role unticked allows viewers generally. Built-in or already-used triggers are flagged before you save.
 5. Save, then select **Preview responses**. Preview sends no chat and changes no counter/cooldown.
 6. Send the trigger in the configured creator's Kick chat and check its actual reply/delivery outcome.
 
@@ -104,17 +104,17 @@ The five-second guard applies per viewer and command, including error replies fo
 
 ## Timers
 
-In **Timers → Add timer**, enter rotating messages and an interval of at least 60 seconds. Configure minimum intervening chat messages, stream-only behavior, timezone and optional quiet-hour start/end (0–23). Save and preview the responses.
+In **Timers → Add timer**, enter rotating messages and **Post every** (at least 1 minute). Configure **Chat messages needed in between**, **Only while live**, **Timezone** and optional **Quiet from**/**Quiet until** hours. The form previews the messages as you type; save, then preview again from the card.
 
 Use **Pause all timers** before disruptive work; **Resume timers** when ready. Offline, paused and restarted timers reschedule without sending missed reminders. Queued sends recheck current eligibility/version/schedule; superseded work is recorded as `timer_no_longer_eligible`. A send already accepted by Kick cannot be recalled.
 
-For a ten-minute reminder, use Interval `600`, Min messages `5`, Stream only on. A quiet window `22` → `7` suppresses 22:00 through 06:59 in the selected timezone. Both endpoints are needed; equal endpoints suppress all hours. Leave both blank for no quiet window. If not enough messages arrive by the due time, the timer waits another interval. A pure preview does not schedule a send. See [timer fields](CONFIGURATION_FIELDS.md#timer).
+For a ten-minute reminder, use **Post every** `10` minutes, **Chat messages needed in between** `5`, **Only while live** on. A quiet window from `22:00` until `07:00` suppresses 22:00 through 06:59 in the selected timezone. Both endpoints are needed (the form warns when only one is set); equal endpoints suppress all hours. Leave both **Not set** for no quiet window. If not enough messages arrive by the due time, the timer waits another interval. A pure preview does not schedule a send. See [timer fields](CONFIGURATION_FIELDS.md#timer).
 
 ## Alerts, goals and presentation
 
 Configure event/manual alerts in **Alerts** and test **Preview without delivery** before sending a live manual alert. Use [OBS setup](OBS.md) for assets, sound and private Browser Sources.
 
-Create goals in **Goals** with metric, current value and target. Event goals update from observed events; manual changes/reset require the current version. Completion can create alerts/notifications if configured. Widgets have mint, midnight and paper themes plus reduced-motion settings. Goal/counter/activity targets use document IDs.
+Create goals in **Goals** with metric, current value and target. Event goals update from observed events; manual changes/reset require the current version. Completion can create alerts/notifications if configured. Widgets have mint, midnight and paper themes plus reduced-motion settings. For goal, poll, raffle and counter widgets the editor lists your goals, polls, raffles or counting commands to choose from; the API stores the chosen document ID.
 
 To make a manual goal, choose `manual`, set Target to `100` and Value to `0`, then save. Copy its card ID/version into **Adjust or reset goal**. Value is the **new absolute amount**, not an increment; use `25` to display 25/100 and `0` to reset. Reset below the target clears completion. Automatic follow/subscription/points/media goals start from observed events after configuration; they do not import historic provider totals. Completed automatic goals stop incrementing until reset. Configure an alert with Event `goal` and template `{name}: {value}/{target}` for completion presentation.
 
@@ -137,7 +137,7 @@ Optional escalation is scoped to the matching rule and uses previous incident co
 ### Build and test a rule
 
 1. With `configure`, add a rule and leave it disabled. Choose a descriptive name and `warn` action first.
-2. Configure the relevant fields below; most fields apply only to selected rule types.
+2. Configure the relevant fields below; the form shows only the fields for the selected type (**What to look for**), and **Timeout length** only when an action is a timeout.
 3. Save, edit to enable, then use **Safe rule test → Evaluate without effects** with both matching and permitted messages. The test respects Enabled, role and schedule, so a disabled rule always reports no match. Pause automatic moderation while evaluating an enabled rule if necessary.
 4. Test a trusted-role exception and an allowed domain. A test has no prior-message history; repetition/burst behavior needs a controlled fixture/live sequence as well.
 5. Enable normal processing only after reviewing results, current provider scopes and intended channel. Inspect incidents and actual provider outcomes.
@@ -146,9 +146,9 @@ Optional escalation is scoped to the matching rule and uses previous incident co
 | --- | --- | --- |
 | Phrase | Case-insensitive literal substring, not a regular expression or word boundary | Patterns: `synthetic spoiler phrase` |
 | Link | Recognized domain links except allowed exact hosts/subdomains | Allowed domains: `example.com`, without protocol/path |
-| Repetition | Same viewer's equal text within the window, including current message | Threshold 3, Window seconds 30 |
-| Burst | Same viewer's message count within the window, including current message | Threshold 5, Window seconds 10 |
-| Caps | Uppercase percentage with at least ten alphabetic characters | Threshold 80 |
+| Repetition | Same viewer's equal text within the window, including current message | Repeats before acting 3, Within 30 seconds |
+| Burst | Same viewer's message count within the window, including current message | Messages before acting 5, Within 10 seconds |
+| Caps | Uppercase percentage with at least ten alphabetic characters | Capital letters 80 |
 
 Only the first matching saved rule acts; temporary presets follow saved rules. Escalation counts previous incidents for that viewer and rule, not confirmed successful sanctions. `Escalation after = 2` escalates the next matching incident when two previous incidents exist in the selected window. Actions already accepted by Kick cannot be undone by disabling the rule.
 
@@ -178,11 +178,11 @@ Close before drawing a raffle. **Draw winner** and **Reroll** are audited; rerol
 
 ### Run a poll
 
-Create an enabled poll, enter 2–10 options one per line and a future Ends at value in milliseconds ([calculate one](CONFIGURATION_FIELDS.md#conventions)). Leave Status `open`. Announce option numbers starting at 1; viewers send `!vote 1`, for example. Enable Allow change only if replacing a vote should be allowed. **Close** ends voting early; otherwise the deadline closes it. Repeating the same vote does not add another participant. A poll widget can target its card ID so a later poll does not replace it on stream.
+Create an enabled poll, enter 2–10 **Choices** (one per row; **Add choice** adds another) and a future **Voting closes** date and time. Leave Status **Open for votes**. Announce option numbers starting at 1; viewers send `!vote 1`, for example. Enable **Let viewers change their vote** only if replacing a vote should be allowed. **Close** ends voting early; otherwise the deadline closes it. Repeating the same vote does not add another participant. A poll widget can select that poll so a later poll does not replace it on stream.
 
 ### Run a raffle
 
-Create an enabled raffle with a future deadline and an empty Winners field. Empty Roles permits all observed chat roles; Min points is checked when entering and does not spend points. Viewers send `!enter`. Close or wait for expiry, then **Draw winner**. An empty eligible set produces an explicit error. **Reroll** records another winner excluding previous winners; it does not erase the original draw. Use a new raffle for a new round rather than editing winners by hand. Entry eligibility is based on observed verified identity and conditions when entering, not a complete provider follower roster.
+Create an enabled raffle with a future **Entries close** time. Winners are shown read-only in the form and change only through Draw/Reroll. Leaving every **Allowed roles** box unticked permits all observed chat roles; **Minimum points balance** is checked when entering and does not spend points. Viewers send `!enter`. Close or wait for expiry, then **Draw winner**. An empty eligible set produces an explicit error. **Reroll** records another winner excluding previous winners; it does not erase the original draw. Use a new raffle for a new round rather than editing winners by hand. Entry eligibility is based on observed verified identity and conditions when entering, not a complete provider follower roster.
 
 ## Analytics and private data
 
