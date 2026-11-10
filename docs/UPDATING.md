@@ -68,6 +68,8 @@ On interruption, check status before restarting. `updating`, `update-failed`, `r
 
 ## Schema 3 and release maintenance
 
+After updating past beta 4, configuration exports that contain the new widget presentation fields or themes do not import into beta 4, and downgrading to beta 4 after saving a widget with a new theme or option is unsupported; restore the pre-update backup instead.
+
 This candidate adds schema 3. Use the current reviewed host tool for schema-3 bundles; a copied older tool may reject them and is never replaced implicitly. Schemas 1 and 2 upgrade through checked-in SQL during stopped-host initialization. Back up first and retain a compatible prior image. Recovery restores the pre-upgrade checkpoint into a new root; never start schema-2 code against upgraded storage.
 
 Dependencies are maintained through [deliberate release reviews](DEPENDENCY_MAINTENANCE.md), with exact candidate source/image sign-off. No dependency automation installs upgrades on your host. Strict latest-stable selection fails closed until an actual accepted stable release exists. Recommended setup may separately offer a published beta only after a confirmed absence of stable; it always defaults to stopping that offer.

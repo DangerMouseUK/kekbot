@@ -51,6 +51,22 @@ export const examples: Record<Kind, Record<string, unknown>> = {
     text: "",
     endsAt: null,
     reducedMotion: false,
+    accent: "theme",
+    fontScale: 1,
+    align: "auto",
+    backdrop: "theme",
+    layout: "card",
+    title: "",
+    showTitle: true,
+    showDetails: true,
+    // New widgets start with a visible placeholder and an expiring shoutout card; the schema
+    // defaults (false / 0) keep sources saved before these options existed unchanged.
+    showEmpty: true,
+    showUptime: true,
+    showViewers: true,
+    endText: "",
+    shoutoutSeconds: 20,
+    chatFadeSeconds: 0,
   },
   rule: {
     name: "Link rule",

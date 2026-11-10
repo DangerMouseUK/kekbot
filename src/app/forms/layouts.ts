@@ -1,7 +1,7 @@
 // Per-kind form layouts: grouped sections, plain-English labels, help text and which
 // fields matter for the chosen type. Bounds and validity come from catalog.ts (see schema.ts);
 // this file only describes presentation. Hidden fields keep their stored values.
-import type { Kind } from "../../server/domain/catalog.ts";
+import { widgetAccents, widgetThemes, type Kind } from "../../server/domain/catalog.ts";
 import type { DurationUnit } from "./time.ts";
 
 export type Data = Record<string, unknown>;
@@ -133,6 +133,78 @@ export const widgetTypes: Option[] = [
 ];
 const limitTypes = ["chat", "queue", "eventfeed", "goal", "multigoal", "leaderboard", "activity"];
 export const targetTypes = ["goal", "multigoal", "poll", "raffle", "counter"];
+// Which widget types use each presentation option; other types keep the stored value unused.
+export const headingTypes = [
+  "alerts",
+  "player",
+  "nowplaying",
+  "queue",
+  "eventfeed",
+  "supporter",
+  "activity",
+  "multigoal",
+  "counter",
+  "leaderboard",
+  "countdown",
+  "shoutout",
+];
+export const titleTypes = headingTypes.filter((type) => type !== "player");
+export const detailTypes = [
+  "chat",
+  "player",
+  "nowplaying",
+  "queue",
+  "eventfeed",
+  "supporter",
+  "activity",
+  "goal",
+  "multigoal",
+  "poll",
+  "raffle",
+  "shoutout",
+  "socials",
+];
+export const emptyTypes = [
+  "chat",
+  "nowplaying",
+  "queue",
+  "eventfeed",
+  "supporter",
+  "activity",
+  "goal",
+  "multigoal",
+  "leaderboard",
+  "poll",
+  "raffle",
+  "countdown",
+  "socials",
+];
+const themeLabels: Record<(typeof widgetThemes)[number], Option> = {
+  mint: { value: "mint", label: "Mint (green)", help: "Dark green panels, rounded corners." },
+  midnight: { value: "midnight", label: "Midnight (dark blue)", help: "Deep navy panels." },
+  paper: { value: "paper", label: "Paper (light)", help: "Light cream panels with dark text." },
+  neon: { value: "neon", label: "Neon (glowing)", help: "Black panels with a glowing cyan edge." },
+  ember: { value: "ember", label: "Ember (warm)", help: "Warm charcoal panels, orange accent." },
+  glass: { value: "glass", label: "Glass (frosted)", help: "See-through dark panels, soft edges." },
+  contrast: {
+    value: "contrast",
+    label: "High contrast",
+    help: "Solid black panels, white text, yellow border.",
+  },
+};
+export const widgetThemeOptions: Option[] = widgetThemes.map((theme) => themeLabels[theme]);
+const accentLabels: Record<(typeof widgetAccents)[number], string> = {
+  theme: "Theme colour",
+  mint: "Mint",
+  sky: "Sky blue",
+  violet: "Violet",
+  pink: "Pink",
+  red: "Red",
+  orange: "Orange",
+  gold: "Gold",
+  white: "White",
+};
+const isType = (types: string[]) => (data: Data) => types.includes(String(data.type));
 
 const ruleThreshold: Record<string, { label: string; help: string; suffix: string }> = {
   repetition: {
@@ -494,6 +566,75 @@ export const layouts: Record<Kind, Section[]> = {
           control: { type: "number", suffix: "items" },
           visible: (data) => limitTypes.includes(String(data.type)),
         },
+        {
+          key: "endText",
+          label: "Message when it ends",
+          help: "Shown once the countdown reaches zero. Leave blank for “Time's up!”.",
+          control: { type: "text", placeholder: "Time's up!" },
+          visible: isType(["countdown"]),
+        },
+        {
+          key: "shoutoutSeconds",
+          label: "Show each shoutout for",
+          help: "How long the shoutout card stays on screen. 0 keeps it until the next shoutout.",
+          control: { type: "number", suffix: "seconds" },
+          visible: isType(["shoutout"]),
+        },
+        {
+          key: "chatFadeSeconds",
+          label: "Fade messages after",
+          help: "Older chat messages fade out after this long. 0 keeps them until newer messages push them off.",
+          control: { type: "number", suffix: "seconds" },
+          visible: isType(["chat"]),
+        },
+      ],
+    },
+    {
+      title: "What to show",
+      visible: isType([...new Set([...headingTypes, ...detailTypes, ...emptyTypes, "status"])]),
+      fields: [
+        {
+          key: "showTitle",
+          label: "Show heading",
+          help: "The small heading above the content, such as “Up next” or “New follower”.",
+          control: { type: "toggle" },
+          visible: isType(headingTypes),
+        },
+        {
+          key: "title",
+          label: "Heading text",
+          help: "Replace the standard heading with your own words. Leave blank to keep it.",
+          control: { type: "text" },
+          visible: (data) => titleTypes.includes(String(data.type)) && data.showTitle !== false,
+        },
+        {
+          key: "showDetails",
+          label: "Show details",
+          help: "Extra lines such as requester, duration, vote counts, chat role badges and how long ago something happened.",
+          control: { type: "toggle" },
+          visible: isType(detailTypes),
+        },
+        {
+          key: "showUptime",
+          label: "Show uptime",
+          help: "How long the stream has been live.",
+          control: { type: "toggle" },
+          visible: isType(["status"]),
+        },
+        {
+          key: "showViewers",
+          label: "Show viewer count",
+          help: "Shows “Viewers unavailable” when no recent count is known.",
+          control: { type: "toggle" },
+          visible: isType(["status"]),
+        },
+        {
+          key: "showEmpty",
+          label: "Show a placeholder when empty",
+          help: "Shows a short note such as “Queue is empty” while there is nothing to display. Turn off to keep the source invisible until something happens.",
+          control: { type: "toggle" },
+          visible: isType(emptyTypes),
+        },
       ],
     },
     {
@@ -502,12 +643,62 @@ export const layouts: Record<Kind, Section[]> = {
         {
           key: "theme",
           label: "Theme",
+          help: (data) => themeLabels[data.theme as keyof typeof themeLabels]?.help ?? "",
+          control: { type: "select", options: widgetThemeOptions },
+        },
+        {
+          key: "accent",
+          label: "Accent colour",
+          help: "Highlight colour for bars, badges and names. Theme colour keeps the theme's own.",
+          control: {
+            type: "select",
+            options: widgetAccents.map((accent) => ({
+              value: accent,
+              label: accentLabels[accent],
+            })),
+          },
+        },
+        {
+          key: "fontScale",
+          label: "Text size",
+          help: "1 is the standard size; 1.5 is half as large again. Between 0.5 and 3.",
+          control: { type: "number", suffix: "×", step: 0.1 },
+        },
+        {
+          key: "align",
+          label: "Alignment",
+          help: "Automatic centres alerts, shoutouts, countdowns and counters and starts everything else on the left.",
           control: {
             type: "select",
             options: [
-              { value: "mint", label: "Mint (green)" },
-              { value: "midnight", label: "Midnight (dark blue)" },
-              { value: "paper", label: "Paper (light)" },
+              { value: "auto", label: "Automatic" },
+              { value: "start", label: "Left" },
+              { value: "center", label: "Centre" },
+              { value: "end", label: "Right" },
+            ],
+          },
+        },
+        {
+          key: "backdrop",
+          label: "Background",
+          help: "No panel shows only text with an outline, for busy scenes where a panel would cover too much.",
+          control: {
+            type: "select",
+            options: [
+              { value: "theme", label: "Theme panel (see-through)" },
+              { value: "solid", label: "Solid panel" },
+              { value: "none", label: "No panel" },
+            ],
+          },
+        },
+        {
+          key: "layout",
+          label: "Spacing",
+          control: {
+            type: "select",
+            options: [
+              { value: "card", label: "Roomy cards" },
+              { value: "compact", label: "Compact" },
             ],
           },
         },
@@ -526,7 +717,7 @@ export const layouts: Record<Kind, Section[]> = {
         {
           key: "reducedMotion",
           label: "Reduce motion",
-          help: "Minimise animation on stream.",
+          help: "Turn off entrance and exit animation on stream. Viewers' reduced-motion settings do the same.",
           control: { type: "toggle" },
         },
       ],
