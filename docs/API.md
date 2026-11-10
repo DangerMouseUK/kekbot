@@ -120,7 +120,7 @@ Temporary incident mode uses `moderation.incident.start` with `preset` (`links`,
 | `POST /api/providers/kick/events` | Original-byte RSA verification with trusted provider key, configured creator, bounded timestamp/body, transactional receipt/job intake. |
 | `POST /api/providers/discord/interactions` | Original-byte Ed25519 signature, timestamp/application/guild/channel checks; PING or durable deferred interaction. |
 | `GET /api/events` | Local session SSE; session rechecked continuously. |
-| `GET /api/widgets/:id?token=…` | Exact widget read token; minimal snapshot. `stream=1` selects SSE. |
+| `GET /api/widgets/:id?token=…` | Exact widget read token; minimal snapshot `{ config, data, now }`, where `now` is the server clock in Unix milliseconds used to time alerts, shoutouts, countdowns and uptime. `stream=1` selects SSE. |
 | `GET /widgets/:id?token=…` | Browser Source HTML entry; player pages also use their separate credential fragment. |
 | `POST /api/player/:id` | Separate exact player bearer token; `lease` and bound completion/error acknowledgements. |
 | `GET /api/assets/:id` | Local session or alerts-widget read token; recognized safe file types, nosniff. |

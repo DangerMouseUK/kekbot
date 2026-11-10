@@ -6,9 +6,10 @@ import type { Actor } from "../auth.ts";
 import { digest, randomToken } from "../crypto.ts";
 import { AppError } from "../errors.ts";
 import { configSchemas } from "./catalog.ts";
+import { chatRole, type ChatMessage } from "./moderation.ts";
 import { State } from "./state.ts";
 
-type Alert = { id: string; text: string; duration: number; priority: number; image: string | null; sound: string | null; volume: number; animation: string; startsAt: number; endsAt: number };
+type Alert = { id: string; event?: string; highlight?: string | null; text: string; duration: number; priority: number; image: string | null; sound: string | null; volume: number; animation: string; startsAt: number; endsAt: number };
 export function inspectAsset(encoded: string) {
   const bytes = Buffer.from(encoded, "base64");
   if (bytes.length < 12 || bytes.length > 8 * 1024 * 1024 || bytes.toString("base64") !== encoded) throw new AppError("invalid_asset_size_or_encoding", 400);
@@ -32,7 +33,10 @@ export class PresentationService {
   constructor(state: State) { this.state = state; }
   alert(event: string, variables: Record<string, string | number>, delivery: string, preview = false) {
     const configs = this.state.list("alert").filter(doc => doc.data.enabled && doc.data.event === event);
-    const rendered = configs.map(doc => ({ ...doc.data, id: `${delivery}:${doc.id}`, text: renderTemplate(doc.data.template, variables), startsAt: 0, endsAt: 0 }));
+    // `highlight` lets a source emphasise the supporter/goal name inside the rendered text without accepting markup.
+    // Only `name` is used: `user` can carry an account ID for manual alerts and must never reach widget data.
+    const highlight = String(variables.name ?? "").slice(0, 100) || null;
+    const rendered = configs.map(doc => ({ ...doc.data, id: `${delivery}:${doc.id}`, text: renderTemplate(doc.data.template, variables), highlight, startsAt: 0, endsAt: 0 }));
     if (preview) return { preview: true, alerts: rendered };
     const queue = JSON.parse(this.state.repository.setting("alert_queue") ?? "[]") as Alert[];
     for (const alert of rendered) if (!queue.some(item => item.id === alert.id)) queue.push(alert);
@@ -142,16 +146,18 @@ export class PresentationService {
     this.state.audit(actor.id, "token.revoke", id);
   }
 
-  widget(id: string) {
+  // `now` is the server clock at projection time. Sources time alerts, shoutouts, countdowns and uptime against it
+  // instead of the OBS machine's clock, so a skewed host clock cannot hide or extend timed content.
+  widget(id: string, now = Date.now()) {
     const doc = this.state.document(id);
     if (!doc || doc.kind !== "widget") throw new AppError("widget_not_found", 404);
     const config = configSchemas.widget.parse(doc.data);
-    if (!config.enabled) return { config, data: null };
+    if (!config.enabled) return { config, data: null, now };
     const limit = config.limit;
     let data: unknown = null;
     if (config.type === "alerts") data = JSON.parse(this.state.repository.setting("active_alert") ?? "null");
     // Show chat only after moderation has inspected it; rule matches and moderator removals stay off stream.
-    else if (config.type === "chat") data = (this.state.db.prepare("SELECT r.payload FROM receipts r WHERE r.event_type='chat.message.sent' AND r.payload IS NOT NULL AND NOT EXISTS(SELECT 1 FROM jobs j WHERE j.id='event:'||r.id AND j.status IN ('pending','running')) AND NOT EXISTS(SELECT 1 FROM incidents i WHERE i.id='moderation:'||r.id) AND NOT EXISTS(SELECT 1 FROM settings s WHERE s.key='hidden_chat:'||json_extract(r.payload,'$.message_id')) ORDER BY r.received_at DESC LIMIT ?").all(limit) as { payload: string }[]).reverse().map(row => { const m = JSON.parse(row.payload); return { name: m.sender.username ?? "Viewer", text: m.content }; });
+    else if (config.type === "chat") data = (this.state.db.prepare("SELECT r.payload,r.received_at FROM receipts r WHERE r.event_type='chat.message.sent' AND r.payload IS NOT NULL AND NOT EXISTS(SELECT 1 FROM jobs j WHERE j.id='event:'||r.id AND j.status IN ('pending','running')) AND NOT EXISTS(SELECT 1 FROM incidents i WHERE i.id='moderation:'||r.id) AND NOT EXISTS(SELECT 1 FROM settings s WHERE s.key='hidden_chat:'||json_extract(r.payload,'$.message_id')) ORDER BY r.received_at DESC LIMIT ?").all(limit) as { payload: string; received_at: number }[]).reverse().map(row => { const m = JSON.parse(row.payload) as ChatMessage; return { name: m.sender.username ?? "Viewer", text: m.content, role: chatRole(m), at: row.received_at }; });
     else if (["player", "nowplaying", "queue"].includes(config.type)) {
       const player = JSON.parse(this.state.repository.setting("player") ?? '{"state":"paused","current":null,"volume":50,"version":0}');
       const current = player.current ? this.state.db.prepare("SELECT m.id,m.video_id,m.title,m.duration,coalesce(v.name,a.username,'Requester unavailable') AS requesterName FROM media m LEFT JOIN viewers v ON v.id=m.requester LEFT JOIN accounts a ON a.id=m.requester WHERE m.id=?").get(player.current) : null;
@@ -161,13 +167,18 @@ export class PresentationService {
     else if (["poll", "raffle"].includes(config.type)) data = this.state.list(config.type as "poll" | "raffle").filter(d => !config.target || d.id === config.target).slice(-1).map(d => ({ name: d.data.name, status: d.data.status, options: "options" in d.data ? d.data.options : undefined, endsAt: d.data.endsAt, results: this.state.db.prepare("SELECT choice,count(*) AS count FROM participation WHERE activity=? GROUP BY choice").all(d.id), winners: "winners" in d.data ? d.data.winners.map(viewer => (this.state.db.prepare("SELECT name FROM viewers WHERE id=?").get(viewer) as { name: string } | undefined)?.name ?? "Viewer name unavailable") : undefined }));
     else if (config.type === "status") {
       const sample = JSON.parse(this.state.repository.setting("stream_sample") ?? "null") as { viewers: number; at: number } | null;
-      data = { live: this.state.repository.setting("stream_is_live") ?? "unavailable", startedAt: this.state.repository.setting("stream_started_at") ?? null, viewers: sample && Date.now() - sample.at < 120000 && !this.state.repository.setting("stream_sample_error") ? sample.viewers : null, sampledAt: sample?.at ?? null };
+      data = { live: this.state.repository.setting("stream_is_live") ?? "unavailable", startedAt: this.state.repository.setting("stream_started_at") ?? null, viewers: sample && now - sample.at < 120000 && !this.state.repository.setting("stream_sample_error") ? sample.viewers : null, sampledAt: sample?.at ?? null };
     }
-    else if (["eventfeed", "supporter", "activity"].includes(config.type)) data = (this.state.db.prepare("SELECT event_type,payload,received_at FROM receipts WHERE event_type IN ('channel.followed','channel.subscription.new','channel.subscription.renewal','channel.subscription.gifts') ORDER BY received_at DESC LIMIT ?").all(config.type === "supporter" ? 1 : limit) as { event_type: string; payload: string; received_at: number }[]).map(row => { const value = row.payload ? JSON.parse(row.payload) : {}; return { event: row.event_type, name: value.follower?.username ?? value.subscriber?.username ?? value.gifter?.username ?? "Supporter", at: row.received_at }; });
+    else if (["eventfeed", "supporter", "activity"].includes(config.type)) data = (this.state.db.prepare("SELECT event_type,payload,received_at FROM receipts WHERE event_type IN ('channel.followed','channel.subscription.new','channel.subscription.renewal','channel.subscription.gifts') ORDER BY received_at DESC LIMIT ?").all(config.type === "supporter" ? 1 : limit) as { event_type: string; payload: string; received_at: number }[]).map(row => { const value = row.payload ? JSON.parse(row.payload) : {}; const gift = row.event_type === "channel.subscription.gifts"; return { event: row.event_type, name: value.follower?.username ?? value.subscriber?.username ?? value.gifter?.username ?? (gift ? "Anonymous" : "Supporter"), months: Number.isInteger(value.duration) ? value.duration : null, gifts: Array.isArray(value.giftees) ? value.giftees.length : null, at: row.received_at }; });
     else if (config.type === "counter") data = { value: Number(this.state.repository.setting(`counter:${config.target}`) ?? 0) };
-    else if (config.type === "shoutout") data = JSON.parse(this.state.repository.setting("last_shoutout") ?? "null");
+    else if (config.type === "shoutout") {
+      // A shoutout card expires after the source's configured duration (0 keeps it until the next shoutout).
+      const last = JSON.parse(this.state.repository.setting("last_shoutout") ?? "null") as { name: string; url: string; at: number } | null;
+      const expiresAt = last && config.shoutoutSeconds > 0 ? Number(last.at) + config.shoutoutSeconds * 1000 : null;
+      data = last && (expiresAt === null || expiresAt > now) ? { name: last.name, url: last.url, at: last.at, expiresAt } : null;
+    }
     else if (config.type === "socials") data = { text: this.state.settings.socials };
     else if (config.type === "countdown") data = { endsAt: config.endsAt, text: config.text };
-    return { config, data };
+    return { config, data, now };
   }
 }
