@@ -9,6 +9,8 @@ import type { Repository, JobKind } from "../storage/repository.ts";
 import { configSchemas, defaults, type ConfigDocument, type Kind } from "./catalog.ts";
 import { APP_VERSION } from "../version.ts";
 
+export const ERASED_VIEWER = "Erased viewer";
+
 export class State {
   readonly repository: Repository;
   readonly config: Config;
@@ -40,6 +42,13 @@ export class State {
       ...row,
       data: configSchemas[kind].parse(JSON.parse(row.data)) as z.infer<(typeof configSchemas)[K]>,
     }));
+  }
+
+  /** Last observed display name; undefined when unknown or erased. */
+  viewerName(id: string): string | undefined {
+    const row = this.db.prepare("SELECT name FROM viewers WHERE id=?").get(id) as
+      { name: string | null } | undefined;
+    return row?.name && row.name !== ERASED_VIEWER ? row.name : undefined;
   }
 
   audit(actor: string, action: string, target: string, outcome = "confirmed") {

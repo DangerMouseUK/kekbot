@@ -21,6 +21,18 @@ describe("bounded background runtime", () => {
       expect(runtime.healthy()).toBe(true);
     } finally { complete?.(); await runtime.stop(); vi.useRealTimers(); }
   });
+  it("subscribes to supporter events without alerts and resolves warned viewer names at delivery", async () => {
+    const { config } = environment(), runtime = new Runtime(config);
+    try {
+      expect(runtime.desiredEvents()).toEqual(expect.arrayContaining(["channel.subscription.new", "channel.subscription.renewal", "channel.subscription.gifts"]));
+      Object.assign(runtime.config, { mode: "live" });
+      const moderate = vi.spyOn(runtime.kick, "moderate").mockResolvedValue(undefined as never);
+      runtime.repository.store.sqlite.prepare("INSERT INTO viewers(id,name,role,last_seen) VALUES('456','viewer_one','viewer',0)").run();
+      runtime.repository.enqueue("action:fixture", "kick.action", { action: "warn", userId: 456, reason: "Link rule" }, 0);
+      await runtime.execute(runtime.repository.claim()!);
+      expect(moderate).toHaveBeenCalledWith(expect.objectContaining({ userId: 456, username: "viewer_one" }));
+    } finally { await runtime.stop(); }
+  });
   it("processes persisted work without a dashboard and resumes after restart", async () => {
     const { config } = environment();
     const repo = repository(config);

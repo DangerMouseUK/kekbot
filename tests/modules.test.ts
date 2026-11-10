@@ -8,6 +8,7 @@ import { evaluateRule } from "../src/server/domain/moderation.ts";
 import { videoId } from "../src/server/domain/media.ts";
 import { csv } from "../src/server/domain/operations.ts";
 import { DiscordService } from "../src/server/providers/discord.ts";
+import { ERASED_VIEWER } from "../src/server/domain/state.ts";
 import { environment, repository } from "./helpers.ts";
 
 const cleanup: (() => void)[] = [];
@@ -115,6 +116,42 @@ describe("shared module services with real SQLite", () => {
     bot.engagement.close(owner, raffle.id); expect(bot.engagement.draw(owner, raffle.id).winner).toBe("456");
     expect(() => bot.engagement.draw(owner, raffle.id)).toThrow("close_raffle_before_draw");
     expect(repo.store.sqlite.prepare("SELECT count(*) AS n FROM participation WHERE activity=?").get(raffle.id)).toEqual({ n: 1 });
+  });
+  it("estimates watchtime from observed activity while points are disabled", async () => {
+    const { bot, repo } = await setup();
+    repo.set("stream_is_live", "true"); repo.store.sqlite.prepare("INSERT INTO viewers(id,name,role,last_seen) VALUES('456','Viewer','viewer',?)").run(Date.now());
+    const now = Math.floor(Date.now() / 300000) * 300000 + 1000;
+    bot.engagement.accrue(now); bot.engagement.accrue(now + 1);
+    expect(repo.store.sqlite.prepare("SELECT watch_minutes FROM viewers WHERE id='456'").get()).toEqual({ watch_minutes: 5 });
+    expect(bot.engagement.balance("456")).toBe(0);
+    repo.set("stream_is_live", "false"); bot.engagement.accrue(now + 300000);
+    expect(repo.store.sqlite.prepare("SELECT watch_minutes FROM viewers WHERE id='456'").get()).toEqual({ watch_minutes: 5 });
+  });
+  it("names raffle winners in Discord notices, ties them to the winner and hides erased names", async () => {
+    const { bot, owner, repo } = await setup();
+    bot.state.save(owner, "guild", undefined, { name: "Guild", guildId: "100", channelId: "200", events: ["engagement"] });
+    repo.store.sqlite.prepare("INSERT INTO viewers(id,name,role,last_seen) VALUES('456','viewer_one','viewer',?)").run(Date.now());
+    const raffle = bot.state.save(owner, "raffle", undefined, { name: "Raffle", endsAt: Date.now() + 60000 });
+    bot.engagement.enter(raffle.id, "456", "viewer"); bot.engagement.close(owner, raffle.id);
+    expect(bot.engagement.draw(owner, raffle.id)).toEqual({ winner: "456", winnerName: "viewer_one" });
+    const notice = repo.store.sqlite.prepare("SELECT payload,viewer_ids FROM jobs WHERE id LIKE 'discord:draw:%'").get() as { payload: string; viewer_ids: string };
+    expect(JSON.parse(notice.payload).text).toBe("Raffle: winner viewer_one (456)");
+    expect(JSON.parse(notice.viewer_ids)).toContain("456");
+    repo.store.sqlite.prepare("UPDATE viewers SET name=? WHERE id='456'").run(ERASED_VIEWER);
+    expect(bot.state.viewerName("456")).toBeUndefined();
+  });
+  it("keeps unprocessed, rule-matched and moderator-removed chat off OBS chat sources", async () => {
+    const { bot, owner, repo } = await setup();
+    bot.state.save(owner, "widget", "chat", { name: "Chat", type: "chat" });
+    bot.state.save(owner, "rule", undefined, { name: "Spam", type: "phrase", patterns: ["cheap followers"], action: "delete" });
+    const chat = (id: string, content: string, process = true) => { repo.acceptReceipt(id, "chat.message.sent", { content, message_id: `message-${id}`, sender: { user_id: 456, username: "viewer_one" }, broadcaster: { user_id: 123 } }); if (process) bot.event(repo.claim()!); };
+    const visible = () => (bot.presentation.widget("chat").data as { text: string }[]).map(row => row.text).sort();
+    chat("one", "hello"); chat("two", "cheap followers here");
+    repo.finish(repo.claim()!, "succeeded"); // the automatic deletion
+    chat("three", "keep me"); chat("four", "not inspected yet", false);
+    expect(visible()).toEqual(["hello", "keep me"]);
+    bot.moderation.manual(owner, { action: "delete", userId: 456, messageId: "message-one", reason: "fixture", acknowledge: true });
+    expect(visible()).toEqual(["keep me"]);
   });
   it("separates widget/player credentials, revokes immediately and protects assets in use", async () => {
     const { bot, owner } = await setup();

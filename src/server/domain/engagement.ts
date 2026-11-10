@@ -26,20 +26,25 @@ export class EngagementService {
 
   accrue(now = Date.now()) {
     const settings = this.state.settings;
-    if (!settings.pointsEnabled || this.state.repository.setting("stream_is_live") !== "true") return;
+    if (this.state.repository.setting("stream_is_live") !== "true") return;
     const interval = settings.pointsInterval * 1000;
-    const bucket = Math.floor(now / interval);
+    const bucket = Math.floor(now / interval), minutes = Math.floor(settings.pointsInterval / 60);
     const active = this.state.db.prepare("SELECT id FROM viewers WHERE last_seen>? AND role!='bot'").all(now - settings.activeWindow * 1000) as { id: string }[];
     this.state.db.transaction(() => {
+      let changed = false;
       for (const viewer of active) {
+        // Watchtime is an estimate of its own; it does not depend on points being enabled.
+        const watched = this.state.db.prepare("INSERT OR IGNORE INTO observations(id,metric,value,at) VALUES(?,'watchtime.estimated_minutes',?,?)").run(`watch:${viewer.id}:${bucket}`, minutes, now);
+        if (watched.changes) { changed = true; this.state.db.prepare("UPDATE viewers SET watch_minutes=watch_minutes+? WHERE id=?").run(minutes, viewer.id); }
+        if (!settings.pointsEnabled) continue;
         const added = this.state.db.prepare("INSERT OR IGNORE INTO ledger(id,viewer,amount,reason,at) VALUES(?,?,?,'observed_activity',?)").run(`activity:${viewer.id}:${bucket}`, viewer.id, settings.pointsAmount, now);
         if (added.changes) {
-          this.state.db.prepare("UPDATE viewers SET watch_minutes=watch_minutes+? WHERE id=?").run(Math.floor(settings.pointsInterval / 60), viewer.id);
+          changed = true;
           this.state.observe(`activity:${viewer.id}:${bucket}`, "points.accrued", settings.pointsAmount);
           new PresentationService(this.state).goal("points", settings.pointsAmount, `activity:${viewer.id}:${bucket}`);
         }
       }
-      if (active.length) this.state.emit("points", {});
+      if (changed) this.state.emit("points", {});
     }).immediate();
   }
 
@@ -131,8 +136,10 @@ export class EngagementService {
       this.state.db.prepare("UPDATE documents SET data=?,version=version+1,updated_at=? WHERE id=?").run(JSON.stringify({ ...raffle, status: "drawn", winners: [...raffle.winners, winner] }), Date.now(), id);
       this.state.audit(actor.id, reroll ? "raffle.reroll" : "raffle.draw", `${id}:${winner}`);
       this.state.observe(`draw:${id}:${winner}`, "raffles.draws");
-      this.state.notify("engagement", `${raffle.name}: winner ${winner}`, `draw:${id}:${winner}`);
-      return { winner };
+      const winnerName = this.state.viewerName(winner) ?? "Viewer name unavailable";
+      // Associate the notice with the winner so viewer erasure scrubs it.
+      this.state.repository.withViewers([winner], () => this.state.notify("engagement", `${raffle.name}: winner ${winnerName} (${winner})`, `draw:${id}:${winner}`));
+      return { winner, winnerName };
     }).immediate();
   }
 

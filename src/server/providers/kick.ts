@@ -12,6 +12,8 @@ const API = "https://api.kick.com/public/v1";
 const ID = "https://id.kick.com";
 export const KICK_SCOPES = ["user:read", "channel:read", "chat:write", "events:subscribe"];
 export const KICK_EVENTS = ["chat.message.sent", "channel.followed", "livestream.status.updated"];
+// Goals, event feeds, supporter labels and analytics use these independently of alerts.
+export const KICK_SUPPORT_EVENTS = ["channel.subscription.new", "channel.subscription.renewal", "channel.subscription.gifts"];
 
 const tokenSchema = z.object({
   access_token: z.string().min(1), refresh_token: z.string().min(1),
@@ -222,9 +224,13 @@ export class KickService {
     this.repository.set(`sent:${result.data.data.message_id}`, String(Date.now()));
   }
 
-  async moderate(input: { action: string; userId: number; messageId?: string; reason: string; duration?: number }) {
+  async moderate(input: { action: string; userId: number; messageId?: string; reason: string; duration?: number; username?: string }) {
     requireKick(this.config);
-    if (input.action === "warn") return this.reply(`Warning for user ${input.userId}: ${input.reason}`.slice(0, 500));
+    if (input.action === "warn") {
+      // Mention only a plain Kick username; never expose the numeric account ID in chat.
+      const mention = input.username && /^[A-Za-z0-9_]{1,50}$/.test(input.username) ? `@${input.username}, moderator warning` : "Moderator warning";
+      return this.reply(`${mention}: ${input.reason}`.slice(0, 500));
+    }
     const required = input.action === "delete" ? "moderation:chat_message:manage" : "moderation:ban";
     if (!this.load().scope.split(" ").includes(required)) throw new AppError("kick_moderation_scope_missing_reauthorize", 403);
     const token = await this.accessToken();

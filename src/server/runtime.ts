@@ -3,7 +3,7 @@ import { readConfig, type Config } from "./config.ts";
 import { AppError, DeliveryError } from "./errors.ts";
 import { openStore } from "./storage/database.ts";
 import { Repository, type Job } from "./storage/repository.ts";
-import { KickService } from "./providers/kick.ts";
+import { KickService, KICK_EVENTS, KICK_SUPPORT_EVENTS } from "./providers/kick.ts";
 import { ProofCapture } from "./proof-capture.ts";
 import { setTimeout as delay } from "node:timers/promises";
 import { AuthService } from "./auth.ts";
@@ -202,7 +202,11 @@ export class Runtime {
             })
             .immediate();
           return;
-        } else await this.kick.moderate(input);
+        } else
+          await this.kick.moderate({
+            ...input,
+            username: this.bot.state.viewerName(String(input.userId)),
+          });
       } else if (job.kind === "media.validate") {
         const input = JSON.parse(job.payload);
         await this.bot.media.validate(input.id, Boolean(input.moderator));
@@ -238,17 +242,7 @@ export class Runtime {
   }
 
   desiredEvents() {
-    return [
-      ...new Set([
-        "chat.message.sent",
-        "channel.followed",
-        "livestream.status.updated",
-        ...this.bot.state
-          .list("alert")
-          .filter((a) => a.data.enabled && a.data.event.startsWith("channel.subscription."))
-          .map((a) => a.data.event),
-      ]),
-    ];
+    return [...KICK_EVENTS, ...KICK_SUPPORT_EVENTS];
   }
 
   healthy() {

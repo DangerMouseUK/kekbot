@@ -66,7 +66,8 @@ export class ModerationService {
     const id = `moderation:${receiptId}`, jobId = `action:${id}`;
     this.state.db.prepare("INSERT OR IGNORE INTO incidents(id,viewer,rule,action,reason,job_id,at) VALUES(?,?,?,?,?,?,?)").run(id, viewer, matched.id, action, matched.data.name, jobId, now);
     this.state.effect(jobId, "kick.action", { action, userId: message.sender.user_id, messageId: message.message_id, reason: matched.data.name, duration: matched.data.duration });
-    this.state.notify("moderation", `Rule ${matched.data.name}: ${action} requested for ${viewer}`, id);
+    // Keep the numeric ID: Discord moderation actions take it as their target.
+    this.state.notify("moderation", `Rule ${matched.data.name}: ${action} requested for ${message.sender.username ?? "viewer"} (${viewer})`, id);
     this.state.observe(id, "moderation.incidents");
     return true;
   }
@@ -78,6 +79,8 @@ export class ModerationService {
     this.state.db.transaction(() => {
       this.state.db.prepare("INSERT OR IGNORE INTO incidents(id,viewer,rule,action,reason,job_id,at) VALUES(?,?,'manual',?,?,?,?)").run(id, String(action.userId), action.action, action.reason, `action:${id}`, Date.now());
       this.state.effect(`action:${id}`, "kick.action", action, actor, "moderate");
+      // A removed message must also leave OBS chat sources, even before Kick confirms.
+      if (action.action !== "warn" && action.messageId) this.state.repository.set(`hidden_chat:${action.messageId}`, String(Date.now()));
       this.state.audit(actor.id, `moderation.${action.action}`, id, "pending");
     }).immediate();
     return { id, status: "pending" };
