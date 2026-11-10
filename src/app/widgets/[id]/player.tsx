@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { WidgetConfig } from "./widget";
 import { formatDuration, humanCode } from "../format.ts";
 type PlayerState = { state: string; version: number; generation?: number; volume: number; error?: string };
-type Item = { id: string; video_id: string; title: string; position?: number; duration?: number | null; requesterName?: string };
+type Item = { id: string; video_id: string; title: string; duration?: number | null; requesterName?: string };
 type YouTubePlayer = { destroy: () => void; pauseVideo: () => void; playVideo: () => void; setVolume: (value: number) => void; getVideoData: () => { video_id: string } };
 type YouTubeApi = { Player: new (element: HTMLElement, options: Record<string, unknown>) => YouTubePlayer };
 const youtubeWindow = () => window as typeof window & { YT?: YouTubeApi; onYouTubeIframeAPIReady?: () => void };
@@ -66,7 +66,7 @@ export default function Player({ widget, config, item, state, fixture }: { widge
     {fixture && <div className="w-player-screen" aria-hidden="true"><span className={`w-eq${state.state === "playing" ? " is-playing" : ""}`}><i /><i /><i /><i /></span><span>Simulated playback</span></div>}
     <div className="w-panel w-media w-player-bar">
       <div className="w-media-body">
-        {config.showTitle && <p className="w-kicker">{item ? "Now playing" : "Media player"}{item?.position ? <span className="w-pos">#{item.position}</span> : null}</p>}
+        {config.showTitle && <p className="w-kicker">{item ? "Now playing" : "Media player"}</p>}
         <h2 className="w-media-title">{item?.title ?? "Queue idle"}</h2>
         {config.showDetails && item && <p className="w-meta">Requested by {item.requesterName ?? "Requester unavailable"}{duration ? ` · ${duration}` : ""}</p>}
       </div>

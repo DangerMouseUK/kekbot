@@ -100,7 +100,9 @@ async function setup() {
 describe("widget projection with real SQLite", () => {
   it("keeps existing widget documents valid by defaulting every new presentation option", () => {
     const legacy = configSchemas.widget.parse({ name: "Old alerts", type: "alerts", theme: "midnight", width: 800, height: 400, limit: 10, target: "", text: "", endsAt: null, reducedMotion: false });
-    expect(legacy).toMatchObject({ accent: "theme", fontScale: 1, align: "auto", backdrop: "theme", layout: "card", title: "", showTitle: true, showDetails: true, showEmpty: true, showUptime: true, showViewers: true, endText: "", shoutoutSeconds: 20, chatFadeSeconds: 0 });
+    // Defaults preserve beta 4 behaviour for sources saved before these options existed:
+    // empty sources render nothing and a shoutout stays until the next one.
+    expect(legacy).toMatchObject({ accent: "theme", fontScale: 1, align: "auto", backdrop: "theme", layout: "card", title: "", showTitle: true, showDetails: true, showEmpty: false, showUptime: true, showViewers: true, endText: "", shoutoutSeconds: 0, chatFadeSeconds: 0 });
     expect(widgetThemes).toEqual(expect.arrayContaining(["mint", "midnight", "paper"]));
     expect(configSchemas.widget.safeParse({ name: "Bad", type: "chat", accent: "#ff0000" }).success).toBe(false);
     expect(configSchemas.widget.safeParse({ name: "Bad", type: "chat", fontScale: 10 }).success).toBe(false);
@@ -135,8 +137,11 @@ describe("widget projection with real SQLite", () => {
   it("passes the supporter name to alerts as a literal highlight", async () => {
     const { bot, owner } = await setup();
     bot.state.save(owner, "alert", "follow", { name: "Follow", event: "channel.followed", template: "Thanks for following, {user}!" });
-    const preview = bot.presentation.alert("channel.followed", { user: "<img src=x>", name: "<img src=x>" }, "preview", true) as { alerts: { text: string; highlight: string }[] };
+    const preview = bot.presentation.alert("channel.followed", { user: "<img src=x>", name: "<img src=x>" }, "preview", true) as { alerts: { text: string; highlight: string | null }[] };
     expect(preview.alerts[0]).toMatchObject({ text: "Thanks for following, <img src=x>!", highlight: "<img src=x>" });
     expect(splitHighlight(preview.alerts[0].text, preview.alerts[0].highlight)[1]).toBe("<img src=x>");
+    // `user` alone (an account ID for manual alerts) never becomes widget data.
+    const userOnly = bot.presentation.alert("channel.followed", { user: "account-id-123" }, "preview-user", true) as { alerts: { highlight: string | null }[] };
+    expect(userOnly.alerts[0].highlight).toBeNull();
   });
 });

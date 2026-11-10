@@ -132,11 +132,11 @@ Requires `configure`; generating access URLs is owner-only. [All 18 types and ta
 | `title` | Empty | Heading/kicker override, ≤80 characters, literal text; blank uses the type's heading such as "Up next" |
 | `showTitle` | `true` | Boolean; show headings and kickers |
 | `showDetails` | `true` | Boolean; show secondary lines such as requester, durations, vote counts, chat role badges and relative times |
-| `showEmpty` | `true` | Boolean; show a quiet placeholder when there is nothing to display. Off keeps an empty source fully transparent. Alerts and shoutouts never show a placeholder |
-| `showUptime` | `true` | Boolean; `status` shows uptime while live and the start time is known |
-| `showViewers` | `true` | Boolean; `status` shows the viewer count only while live with a fresh sample |
+| `showEmpty` | `false` in schema | Dashboard starts a new widget with it on. Boolean; show a quiet placeholder such as `Queue is empty` when there is nothing to display. Off (and every source saved before this field existed) keeps an empty source fully transparent. Alerts and shoutouts never show a placeholder |
+| `showUptime` | `true` | Boolean; `status` shows uptime while live, or `Uptime unavailable` when the start time is unknown |
+| `showViewers` | `true` | Boolean; `status` shows the fresh viewer count, or `Viewers unavailable` when no recent sample exists. Counts are never guessed |
 | `endText` | Empty | Countdown end message, ≤120 characters; blank shows `Time's up!` |
-| `shoutoutSeconds` | `20` | Seconds 0–3600 a `shoutout` card stays visible; `0` keeps it until the next shoutout |
+| `shoutoutSeconds` | `0` in schema | Dashboard starts a new widget at `20`. Seconds 0–3600 a `shoutout` card stays visible; `0` (and every source saved before this field existed) keeps it until the next shoutout |
 | `chatFadeSeconds` | `0` | Seconds 0–3600 before a `chat` message fades out; `0` never fades |
 
 ## rule

@@ -37,20 +37,20 @@ To revoke a leaked source, open **Maintenance → Source and API tokens**, revok
 | --- | --- | --- |
 | `alerts` | The active queued alert, one at a time: optional image, an event kicker ("New follower", "Gifted subs"), the rendered text with the supporter name emphasised, and optional sound. It enters and leaves with the alert's `fade`/`slide`/`none` animation | Enabled alert configurations and uploaded asset IDs |
 | `chat` | Retained recent chat after moderation inspection, newest at the bottom, names coloured by role with Host/Mod/VIP/Sub badges and optional fade-out; messages that matched a rule or were removed by a moderator are never shown | Limit and Chat fade seconds; empty when chat history is disabled |
-| `player` | Visible YouTube player with a now-playing bar (#position, title, requester, duration and playback state) | Media enabled, approved queue, separate player token |
-| `nowplaying` | Current item card: #position, title, "Requested by …", duration and a playing indicator | Media state |
-| `queue` | "Up next" rows with #position, title, requester and duration | Limit |
+| `player` | Visible YouTube player with a now-playing bar (title, requester, duration and playback state) | Media enabled, approved queue, separate player token |
+| `nowplaying` | Current item card: title, "Requested by …", duration and a playing indicator | Media state |
+| `queue` | "Up next" rows numbered by place in the queue (1, 2, 3…), with title, requester and duration. The number is the play order, not the request number used in chat and Discord | Limit |
 | `eventfeed` | Recent supporters with human labels ("followed", "subscribed for 3 months", "gifted 5 subs") and relative times | Observed events and limit |
 | `supporter` | Latest observed supporter card | Observed follow/subscription event |
 | `goal` | One card per goal with a progress bar, value/target, percentage and a "Goal reached!" completion state | Goal ID in Target, or blank for enabled goals up to Limit |
 | `multigoal` | Several goal bars in one panel | Optional goal ID filter and limit |
-| `status` | Live/Offline badge, uptime and viewer count. Unknown or stale parts are hidden instead of shown as unavailable | Show uptime and Show viewers |
+| `status` | Live/Offline badge, uptime and viewer count. An unknown state, start time or stale viewer sample shows as unavailable, never guessed | Show uptime and Show viewer count |
 | `counter` | A custom command's counter as a large number | Command document ID in Target |
 | `leaderboard` | Ranked point balances with gold/silver/bronze markers for the top three | Limit |
 | `poll` | Latest or selected poll: numbered options, bars with whole-number percentages that total 100, vote counts, time remaining and the `!vote` hint | Poll ID in Target, or blank for latest |
 | `raffle` | Entry count and `!enter` hint while open, then an animated winner reveal once drawn | Raffle ID in Target, or blank for latest |
 | `countdown` | Time to the deadline as `hh:mm:ss`, or `Nd hh:mm:ss` with a day or more left, then the end message | Ends at (Unix milliseconds), Text and End text |
-| `shoutout` | Latest permitted shoutout card, hidden after the configured duration | Moderator `!so` action and Shoutout seconds |
+| `shoutout` | Latest permitted shoutout card, hidden after the configured duration | Moderator `!so` action and Show each shoutout for |
 | `socials` | Configured social lines, rotating every 8 seconds with a recognised platform label | Maintenance Socials setting |
 | `activity` | Rotating observed supporter activity, one card at a time | Observed events and limit |
 
@@ -78,12 +78,12 @@ Every theme is a built-in pack of typography, spacing, corner radius, panel tran
 | `glass` | Frosted dark translucent panels, thin light border, large radius | Soft float |
 | `contrast` | Opaque black panels, white text, thick yellow border, square corners | Short fade |
 
-Themes use fonts already installed on the streaming computer (for example Segoe UI, Bahnschrift, Trebuchet MS, Verdana or Georgia) and fall back to the system font; nothing is downloaded. Other presentation options are optional, and their defaults keep existing sources unchanged ([exact bounds](CONFIGURATION_FIELDS.md#widget)):
+Themes use fonts already installed on the streaming computer (for example Segoe UI, Bahnschrift, Trebuchet MS, Verdana or Georgia) and fall back to the system font; nothing is downloaded. Other presentation options are optional. A source saved before they existed keeps its content behaviour: empty sources stay blank and a shoutout stays until the next one. The dashboard starts new widgets with a placeholder and a 20-second shoutout ([exact bounds](CONFIGURATION_FIELDS.md#widget)):
 
-- **Accent** replaces the pack accent with a colour from a fixed palette. There is no free-form colour, CSS, HTML or script input.
-- **Font scale** multiplies the text size (0.5–3). **Align** places cards and text; `auto` centres alerts, shoutouts, countdowns and counters. **Backdrop** chooses the pack's translucent panel, an opaque panel, or no panel with outlined text. **Layout** `compact` tightens spacing.
-- **Title** overrides a heading such as "Up next". **Show title**, **Show details**, **Show uptime** and **Show viewers** hide parts. Turn off **Show empty** to keep a source fully transparent until it has something to display.
-- **End text** is the countdown's end message. **Shoutout seconds** (default 20; `0` keeps the card until the next shoutout) controls how long a shoutout card stays. **Chat fade seconds** (default `0`, never) fades older chat messages.
+- **Accent colour** replaces the pack accent with a colour from a fixed palette. There is no free-form colour, CSS, HTML or script input.
+- **Text size** multiplies the text size (0.5–3). **Alignment** places cards and text; Automatic centres alerts, shoutouts, countdowns and counters. **Background** chooses the pack's see-through panel, a solid panel, or no panel with outlined text. **Spacing** Compact tightens spacing.
+- **Heading text** overrides a heading such as "Up next". **Show heading**, **Show details**, **Show uptime** and **Show viewer count** hide parts; a hidden viewer count is your choice, while an unknown one shows `Viewers unavailable`. Turn off **Show a placeholder when empty** to keep a source fully transparent until it has something to display.
+- **Message when it ends** is the countdown's end message. **Show each shoutout for** controls how long a shoutout card stays (`0` keeps it until the next shoutout). **Fade messages after** fades older chat messages (`0`, never).
 
 **Reduced motion** on the source, or the operating system's reduced-motion preference, removes entrance/exit animation and transitions; content still appears and disappears on time.
 

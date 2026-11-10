@@ -61,8 +61,6 @@ export function Source({ widget, config, data, now, asset }: Props) {
 
 function AlertCard({ alert, config, now, asset }: { alert: Row; config: WidgetConfig; now: number; asset: (name: string) => string }) {
   const phase = timedPhase(alert, now);
-  // Sound starts only when the alert is fresh, so a reconnect or reload part-way through does not replay it.
-  const [fresh] = useState(() => now - Number(alert.startsAt) < 1500);
   if (phase === "hidden") return null;
   const animation = ["fade", "slide", "none"].includes(str(alert.animation)) ? str(alert.animation) : "fade";
   const [before, name, after] = splitHighlight(str(alert.text), alert.highlight);
@@ -73,7 +71,7 @@ function AlertCard({ alert, config, now, asset }: { alert: Row; config: WidgetCo
         {config.showTitle && <p className="w-kicker">{config.title || alertKicker(alert.event)}</p>}
         <h2 className="w-alert-text">{before}{name !== undefined && <mark>{name}</mark>}{after}</h2>
       </div>
-      {Boolean(alert.sound) && fresh && <AlertSound src={asset(str(alert.sound))} volume={Number(alert.volume)} />}
+      {Boolean(alert.sound) && <AlertSound src={asset(str(alert.sound))} volume={Number(alert.volume)} />}
     </div>
   </div>;
 }
@@ -109,7 +107,7 @@ function NowPlaying({ value, config }: { value: Row | null; config: WidgetConfig
   return <div className="w-panel w-media w-enter" key={str(current.id)}>
     <Equalizer playing={state === "playing"} />
     <div className="w-media-body">
-      {config.showTitle && <p className="w-kicker">{config.title || (state === "playing" ? "Now playing" : "Paused")}{Number(current.position) > 0 && <span className="w-pos">#{str(current.position)}</span>}</p>}
+      {config.showTitle && <p className="w-kicker">{config.title || (state === "playing" ? "Now playing" : "Paused")}</p>}
       <h2 className="w-media-title">{str(current.title, "Title unavailable")}</h2>
       {config.showDetails && <p className="w-meta">Requested by {str(current.requesterName, "Requester unavailable")}</p>}
     </div>
@@ -119,10 +117,10 @@ function NowPlaying({ value, config }: { value: Row | null; config: WidgetConfig
 
 function Queue({ rows, config }: { rows: Row[]; config: WidgetConfig }) {
   if (!rows.length) return <Empty config={config}>Queue is empty</Empty>;
-  return <div className="w-panel w-list w-enter"><Title config={config}>Up next</Title><ol className="w-rows">{rows.map(row => {
+  return <div className="w-panel w-list w-enter"><Title config={config}>Up next</Title><ol className="w-rows">{rows.map((row, index) => {
     const duration = formatDuration(row.duration);
     return <li key={str(row.id)} className="w-row w-enter">
-      <span className="w-pos">#{str(row.position)}</span>
+      <span className="w-pos" aria-label={`Up next, number ${index + 1}`}>{index + 1}</span>
       <span className="w-row-main"><span className="w-row-title">{str(row.title, "Title unavailable")}</span>{config.showDetails && <span className="w-row-sub">{str(row.requesterName, "Requester unavailable")}</span>}</span>
       {config.showDetails && duration && <span className="w-row-end">{duration}</span>}
     </li>;
@@ -171,11 +169,11 @@ function Goals({ rows, config }: { rows: Row[]; config: WidgetConfig }) {
 function Status({ value, config, now }: { value: Row | null; config: WidgetConfig; now: number }) {
   const live = str(value?.live), started = Date.parse(str(value?.startedAt));
   const viewers = value?.viewers === null || value?.viewers === undefined ? null : Number(value.viewers);
-  if (live !== "true" && live !== "false") return <Empty config={config}>Stream status unavailable</Empty>;
-  return <div className="w-panel w-status w-enter" data-live={live}>
-    <span className="w-live"><i className="w-dot" aria-hidden="true" />{live === "true" ? "Live" : "Offline"}</span>
-    {config.showUptime && live === "true" && Number.isFinite(started) && <span className="w-stat"><Icon name="clock" /><span className="w-sr">Uptime </span>{formatElapsed(now - started)}</span>}
-    {config.showViewers && live === "true" && viewers !== null && Number.isFinite(viewers) && <span className="w-stat"><Icon name="eye" />{formatNumber(viewers)}<span className="w-sr"> viewers</span></span>}
+  const known = live === "true" || live === "false", counted = viewers !== null && Number.isFinite(viewers);
+  return <div className="w-panel w-status w-enter" data-live={known ? live : "unknown"}>
+    <span className="w-live"><i className="w-dot" aria-hidden="true" />{live === "true" ? "Live" : live === "false" ? "Offline" : "Status unavailable"}</span>
+    {config.showUptime && live === "true" && (Number.isFinite(started) ? <span className="w-stat"><Icon name="clock" /><span className="w-sr">Uptime </span>{formatElapsed(now - started)}</span> : <span className="w-stat is-unavailable"><Icon name="clock" />Uptime unavailable</span>)}
+    {config.showViewers && (counted ? <span className="w-stat"><Icon name="eye" />{formatNumber(viewers)}<span className="w-sr"> viewers</span></span> : <span className="w-stat is-unavailable"><Icon name="eye" />Viewers unavailable</span>)}
   </div>;
 }
 

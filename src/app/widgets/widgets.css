@@ -291,6 +291,8 @@ html:has(.widget-source), html:has(.widget-source) body { background: transparen
 .widget-root .w-status[data-live=true] .w-dot { animation: w-pulse 1.6s ease-in-out infinite; }
 .widget-root .w-stat { display: inline-flex; align-items: center; gap: 0.3em; font-weight: 700; font-variant-numeric: tabular-nums; }
 .widget-root .w-stat .w-icon { width: 1em; height: 1em; }
+.widget-root .w-stat.is-unavailable { color: var(--w-muted); font-weight: 600; font-style: italic; font-size: 0.85em; }
+.widget-root .w-status[data-live=unknown] .w-live { background: var(--w-track); color: var(--w-muted); }
 
 /* counter and countdown */
 .widget-root .w-counter, .widget-root .w-countdown { display: flex; flex-direction: column; align-items: var(--w-justify); gap: 0.15em; padding: 0.6em 1em; }
@@ -374,6 +376,8 @@ html:has(.widget-source), html:has(.widget-source) body { background: transparen
 
 /* Reduced motion: the source option and the operating-system preference both remove animation and transitions. */
 .widget-root[data-motion=true] *, .widget-root[data-motion=true] { animation: none !important; transition: none !important; }
+.widget-root[data-motion=true] .w-chat-line.is-fading { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .widget-root *, .widget-root { animation: none !important; transition: none !important; }
+  .widget-root .w-chat-line.is-fading { opacity: 1; transform: none; }
 }
