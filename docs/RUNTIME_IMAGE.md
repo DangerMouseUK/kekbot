@@ -6,7 +6,7 @@ This guide explains the candidate image's contents, compatibility and maintenanc
 
 ## What is shipped
 
-The Dockerfile uses official Node `24.21.0-alpine3.24` stages pinned to one manifest digest. A separate empty root receives musl 1.2.6, libgcc and libstdc++ 15.2.0 from signed Alpine repositories, followed by Node and standalone application output. The original apk package database remains in `/lib/apk/db/installed`; it is not removed or rewritten to suppress findings. Exact package revisions and build commits are copied into the runtime notice inventory.
+The Dockerfile uses official Node `24.22.1-alpine3.24` stages pinned to one manifest digest. A separate empty root receives musl 1.2.6, libgcc and libstdc++ 15.2.0 from signed Alpine repositories, followed by Node and standalone application output. The original apk package database remains in `/lib/apk/db/installed`; it is not removed or rewritten to suppress findings. Exact package revisions and build commits are copied into the runtime notice inventory.
 
 The final image starts from `scratch`, runs as UID/GID `1000:1000` and contains no shell, apk, compiler, npm, Corepack or Yarn. Docker provides its normal `/dev`, hosts and DNS mounts. Node supplies the bundled certificate store. `/data` is persistent, and the normal read-only deployment allows only its data volume and bounded `/tmp` mount to write.
 
@@ -22,7 +22,7 @@ Use the documented Node CLI commands instead of opening a shell. For example, fr
 docker compose exec kekbot node -p "JSON.stringify({node:process.version,uid:process.getuid(),gid:process.getgid()})"
 ```
 
-Expected identity is UID/GID 1000 and Node v24.21.0. For database diagnostics, use [the CLI reference](CLI.md); commands that require a stopped application still require it to be stopped. Do not install tools into a running image. Rebuild/review a new candidate through [dependency maintenance](DEPENDENCY_MAINTENANCE.md) when changing the runtime.
+Expected identity is UID/GID 1000 and Node v24.22.1. For database diagnostics, use [the CLI reference](CLI.md); commands that require a stopped application still require it to be stopped. Do not install tools into a running image. Rebuild/review a new candidate through [dependency maintenance](DEPENDENCY_MAINTENANCE.md) when changing the runtime.
 
 Linux CI verifies initialization, native SQLite, non-root/read-only operation, signed fixtures, TLS/SSE through Caddy, process termination/restart, backup/assets/separate-root restoration, exported-image round trip and both guided installer formats. Browser checks cover existing asset/widget flows. Only exact recorded results can be called passed; see [testing](TESTING.md).
 
