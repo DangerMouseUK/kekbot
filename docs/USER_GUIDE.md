@@ -168,9 +168,29 @@ Create an enabled raffle with a future deadline and an empty Winners field. Empt
 
 ## Analytics and private data
 
-In **Analytics**, choose From/To dates, optionally an observed Stream receipt ID, then **Load history**. The dates include the selected To day. **Download last 30 days CSV** always exports that rolling window; it does not use the form's selected filters. Filtered JSON/CSV is available through the [session analytics route](API.md#route-inventory).
+**Analytics** opens on your most recent observed stream. Use **Show** to switch between:
 
-Values describe observed events; viewer samples are averages/min/max, not a sum of concurrent viewers. Worker gaps and missing provider data remain visible. Worker presence does not prove complete provider delivery. Estimated watchtime is not a provider-certified count. No pre-installation history is imported, and retention limits available rows.
+- **Last stream**: the newest stream KekBot saw go live. A stream that is still live shows its time so far.
+- **A specific stream**: pick from every retained stream, listed by date, start time and duration (for example `Sun, 1 Nov 2026, 18:00 · 2 h`). Streams appear once KekBot observes Kick's live/offline status events. If none has been observed yet, **Last stream** shows the last 30 days instead and says so.
+- **Last 7 days** / **Last 30 days**: whole days in this browser's time zone, up to now.
+- **Custom dates**: choose From and To, then **Show these dates**. The To day is included in full.
+
+The summary cards group what KekBot observed in that period: chat messages, distinct chatters, commands answered, follows, subscriptions (with new, renewed and gifted counts), sampled viewers (average and peak), estimated watchtime, points awarded, redemptions, media requests and completions, moderation incidents, poll votes, raffle entries, alerts and goal progress. Each card shows a plain label and unit:
+
+- **0** means nothing was observed while the worker was running.
+- **Unknown** means the worker was not running, so KekBot could not observe anything. It is never shown as zero.
+- **Not sampled** means no viewer-count samples exist. Viewer samples come from Kick roughly once a minute while live; they are an average and peak, not a total.
+- **Estimated watchtime** is estimated from recent chat activity, not a provider-certified count.
+- Distinct chatters are counted once per stream, so a range covering several streams adds each stream's chatters together.
+- A metric KekBot records but has no label for yet appears under its raw ID instead of being hidden.
+
+**Coverage** explains in words how long the worker was running in the period and lists each gap of more than two minutes, for example *Worker offline 19:01–19:20 (19 min)*. Gaps are also labelled when they fall before KekBot started recording or are older than the analytics retention period. A running worker does not prove that Kick or Discord delivered every event.
+
+**Over time** charts one metric at a time; choose it with **Metric**. Counts are columns and viewer samples are a line. Hatched bands mark periods with no data. Hover over or tap a period, or focus the chart and use the arrow keys, Home and End, to read its value and worker coverage. **Show as a table** gives the same values as text. **Streams in this period** compares each stream's duration, coverage, messages, chatters, follows, subscriptions and viewers; with two or more streams it also charts the selected metric per stream.
+
+**Download this selection (CSV)** and **Download this selection (JSON)** export exactly the period or stream on screen. The CSV has one row per day and metric with `day`, `metric`, `label`, `unit`, `value`, `samples`, `minimum` and `maximum` columns, using this browser's time zone for day boundaries; a viewer-sample `value` is the day's average. Cells starting with `=`, `+`, `-`, `@` or a control character are prefixed with `'` so spreadsheets do not run them as formulas. The JSON contains the full analytics result, including coverage gaps and per-stream summaries. The same exports are available through the [session analytics route](API.md#route-inventory).
+
+No pre-installation history is imported, and retention limits available rows. Real-session accuracy has not been live-verified yet; it is acceptance gate L17 in [live acceptance](LIVE_ACCEPTANCE.md).
 
 Owners manage retention, viewer exports/erasure, redacted support data and native configuration imports in Maintenance. Read [privacy and retention](OPERATIONS.md#privacy-and-retention) before exporting or deleting data. Configuration exports are useful for reusable setups; use a [full backup](BACKUP_RECOVERY.md) for disaster recovery.
 

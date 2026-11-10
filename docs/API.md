@@ -114,7 +114,7 @@ Temporary incident mode uses `moderation.incident.start` with `preset` (`links`,
 | --- | --- |
 | `GET/POST /api/auth` | Setup/login/invite acceptance; session logout/password change. Bounded request/rate limits. |
 | `GET/POST /api/control` | Local session snapshot / action dispatch; owner additions for account/token/asset administration. |
-| `GET /api/control?view=analytics` | Local session; `from`/`to` Unix milliseconds and optional observed `stream` ID; `format=csv` for download, otherwise JSON. |
+| `GET /api/control?view=analytics` | Local session; read-only. `from`/`to` Unix milliseconds (at most 3660 days apart), or an observed `stream` ID / `stream=latest`, which uses that stream's own window. Optional `tz` (browser UTC offset in minutes, as `Date.getTimezoneOffset()`) sets daily-row boundaries. `format=csv` or `format=json` downloads exactly that selection; otherwise JSON. Unknown streams return 404 `stream_not_observed`; invalid ranges return 400 `invalid_analytics_range`. |
 | `POST /api/connections/kick` | Owner + CSRF; creates browser-bound OAuth authorization URL; optional `moderation=1`. |
 | `GET /api/providers/kick/callback` | Owner session, one-use state and binding cookie; encrypted matching-creator grant. |
 | `POST /api/providers/kick/events` | Original-byte RSA verification with trusted provider key, configured creator, bounded timestamp/body, transactional receipt/job intake. |

@@ -11,8 +11,17 @@ export function GET(request: Request) {
     if (view === "uncertain-jobs" || view === "pending-redemptions") return json(app.bot.state.workQueue(view, { cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }));
     if (params.get("view") === "media-history") return json(app.bot.media.history({ cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }));
     if (params.get("view") === "analytics") {
-      const result = app.bot.operations.analytics(Number(params.get("from") ?? Date.now() - 30 * 86400000), Number(params.get("to") ?? Date.now()), params.get("stream") ?? undefined);
-      if (params.get("format") === "csv") return new Response(csv(result.rows as Record<string, unknown>[]), { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": "attachment; filename=kekbot-analytics.csv", "Cache-Control": "no-store" } });
+      const now = Date.now(), number = (key: string, fallback: number) => params.has(key) ? Number(params.get(key)) : fallback;
+      const result = app.bot.operations.analytics(number("from", now - 30 * 86400000), number("to", now), params.get("stream") || undefined, { tzOffset: number("tz", 0) });
+      const format = params.get("format");
+      if (format === "csv" || format === "json") {
+        // The download covers exactly the loaded selection: the stream window or the requested range.
+        const day = (at: number) => new Date(at - result.selection.tzOffset * 60000).toISOString().slice(0, 10);
+        const name = `kekbot-analytics-${result.selection.kind === "stream" ? `stream-${day(result.from)}` : `${day(result.from)}-to-${day(result.to)}`}.${format}`;
+        const headers = { "Content-Disposition": `attachment; filename=${name}`, "Cache-Control": "no-store" };
+        if (format === "csv") return new Response(csv(result.rows as Record<string, unknown>[], ["day", "metric", "label", "unit", "value", "samples", "minimum", "maximum"]), { headers: { ...headers, "Content-Type": "text/csv; charset=utf-8" } });
+        return new Response(JSON.stringify(result, null, 2), { headers: { ...headers, "Content-Type": "application/json; charset=utf-8" } });
+      }
       return json(result);
     }
     const state = app.bot.state;
