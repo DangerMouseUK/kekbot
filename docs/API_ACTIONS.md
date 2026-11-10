@@ -26,7 +26,7 @@ Dashboard mutations use `POST /api/control` with a local session, Origin and CSR
 
 Dashboard results are returned directly; integration API results are wrapped as `{"version":1,"result":…}`. GET `/api/v1/control` similarly wraps the snapshot in `state`. A successful queueing response is not a confirmed provider effect. Inspect current state and jobs before repeating a mutation after a lost response; caller POSTs do not have a general idempotency-key contract.
 
-The tables list **capability**, not a role name. Owner has all capabilities; admins need explicit grants. “API” means the integration endpoint allows the operation subject to scopes and domain authorization. “Discord” means it is offered by registered `/kekbot action:…` choices in the configured channel. Local configuration and owner powers are unavailable through Discord.
+The tables list **capability**, not a role name. Owner has all capabilities; admins need explicit grants. “API” means the integration endpoint allows the operation subject to scopes and domain authorization. “Discord” names the registered `/kekbot` subcommand or notification button that reaches it in the configured channel; Discord resolves request numbers, names and current versions for the member, then calls the same action ([Discord controls](USER_GUIDE.md#discord-controls)). Local configuration and owner powers are unavailable through Discord.
 
 ## Configuration and previews
 
@@ -45,16 +45,17 @@ Previews/tests do not enqueue effects or change cooldowns/counters. Configuratio
 
 | Action | `input` | Capability | API / Discord |
 | --- | --- | --- | --- |
-| `status` | None | API `operate`; Discord requires at least one mapped grant | Yes / Yes |
-| `timers.pause`, `timers.resume` | None | `operate` | Yes / Yes |
-| `alert.manual` | `reason`: nonempty text ≤500 characters | `operate` | Yes / Yes |
-| `goal.adjust` | `target`: goal ID, `version`, `value`: absolute amount 0–1000000000 | `operate` | Yes / Yes |
-| `moderation.pause`, `moderation.resume` | None | `moderate` | Yes / Yes |
-| `moderation.warn`, `moderation.timeout`, `moderation.ban` | `target`: numeric viewer ID string, `reason`: 1–100 characters; timeout `value`: minutes 1–10080 (default 10); ban `acknowledge:true` | `moderate` | Yes / Yes |
-| `moderation.delete` | Same viewer/reason plus `message`: exact message ID ≤128 characters, `acknowledge:true` | `moderate` | Yes / Yes |
+| `status` | None. The result also reports `timersPaused`, `moderationPaused`, `incidentMode`, `mediaEnabled`, player `volume` and each request's `position` | API `operate`; Discord requires at least one mapped grant | Yes / `status` |
+| `timers.pause`, `timers.resume` | None | `operate` | Yes / `timers pause`, `timers resume` |
+| `alert.manual` | `reason`: nonempty text ≤500 characters | `operate` | Yes / `alert send` |
+| `goal.adjust` | `target`: goal ID, `version`, `value`: absolute amount 0–1000000000 | `operate` | Yes / `goal set`, `goal add` (adds to the current value), `goal reset` |
+| `goal.list` | None; returns up to 25 goals with ID, version and progress | `operate` | No / `goal list` |
+| `moderation.pause`, `moderation.resume` | None | `moderate` | Yes / `mod pause`, `mod resume` |
+| `moderation.warn`, `moderation.timeout`, `moderation.ban` | `target`: numeric viewer ID string, `reason`: 1–100 characters; timeout `value`: minutes 1–10080 (default 10); ban `acknowledge:true` | `moderate` | Yes / `mod warn`, `mod timeout`, `mod ban` (viewer by name or ID; `confirm:True` sends `acknowledge`) |
+| `moderation.delete` | Same viewer/reason plus `message`: exact message ID ≤128 characters, `acknowledge:true` | `moderate` | Yes / `mod delete` |
 | `moderation.bulk` | `targets`: 1–20 unique positive numeric viewer IDs, `operation`: warn/timeout/ban, `reason`, optional `duration` in minutes, `acknowledge:true` | `moderate` | Yes / No |
-| `moderation.incident.start` | `preset`: links/burst/combined, `minutes`: 1–120, `acknowledge:true` | `moderate` | Yes / No |
-| `moderation.incident.stop` | None | `moderate` | Yes / No |
+| `moderation.incident.start` | `preset`: links/burst/combined, `minutes`: 1–120, `acknowledge:true` | `moderate` | Yes / `mod incident-start` |
+| `moderation.incident.stop` | None | `moderate` | Yes / `mod incident-stop` |
 
 Emergency pause stops automated rules/presets, not explicit manual actions. A goal adjustment sets the value; it does not add a delta. Reset with `value:0` and the current version. Temporary presets warn and expire without changing saved rules.
 
@@ -63,27 +64,37 @@ Emergency pause stops automated rules/presets, not explicit manual actions. A go
 | Action | `input` | Capability | API / Discord |
 | --- | --- | --- | --- |
 | `media.request` | `url`: supported YouTube URL or video ID | `media` | Yes / No |
-| `media.approve`, `media.reject`, `media.remove` | `target`: item ID, `version`: current positive item version | `media` | Yes / Yes when media enabled |
+| `media.approve`, `media.reject`, `media.remove` | `target`: item ID, `version`: current positive item version | `media` | Yes / `media approve`, `media reject`, `media remove` and the Approve/Reject buttons, when media is enabled |
+| `media.queue` | None; returns the player and up to 25 active items with `position`, `version` and requester name, plus `total` | `media` | Yes / `media queue` |
+| `media.move` | `target`: approved item ID, `position`: 1–500 (1 = next); optional `version` rejects a changed item. Renumbers approved items | `media` | Yes / `media move` |
 | `media.reorder` | `ids`: exact ordered set of all approved waiting item IDs, at most 500 | `media` | Yes / No |
-| `media.clear` | None | `media` | Yes / No |
-| `player.pause`, `player.resume`, `player.skip` | `version`: current nonnegative player version | `media` | Yes / Yes when media enabled |
-| `player.volume` | `version`, `value`: 0–100 | `media` | Yes / Yes when media enabled |
+| `media.clear` | None from the dashboard/API. Discord sends `acknowledge:true` from `confirm:True` and receives the removed count | `media` | Yes / `media clear` |
+| `player.pause`, `player.resume`, `player.skip` | `version`: current nonnegative player version | `media` | Yes / `media pause`, `media resume`, `media skip` (current version read for the member) |
+| `player.volume` | `version`, `value`: 0–100 | `media` | Yes / `media volume` |
 | `points.adjust` | `viewer`: numeric ID string, `amount`: integer -1000000–1000000, `reason`: 1–200 characters | `engage` | Yes / No |
-| `reward.complete`, `reward.reject` | `target`: pending redemption ID | `engage` | Yes / Yes |
-| `activity.close` | `target`: open poll/raffle ID | `engage` | Yes / Yes |
-| `raffle.draw`, `raffle.reroll` | `target`: closed/drawn raffle ID | `engage` | Yes / Yes |
+| `points.lookup` | `viewer`: numeric ID string; returns name, balance, estimated watch minutes and last seen | `engage` | No / `points` (viewer by name or ID), when points are enabled |
+| `reward.complete`, `reward.reject` | `target`: pending redemption ID | `engage` | Yes / `reward complete`, `reward refund` and the Complete/Refund buttons, when points are enabled |
+| `reward.pending` | None; returns up to 25 oldest pending redemptions with reward and viewer names, plus `total` | `engage` | Yes / `reward pending` |
+| `poll.create` | `name`: 1–80 characters, `options`: 2–10 names, optional `minutes` 1–1440 (default 5), optional `allowChange` | `engage` | No / `poll create` |
+| `raffle.create` | `name`, optional `minutes` 1–1440 (default 5), optional `minPoints` ≥0 | `engage` | Yes / `raffle create` |
+| `poll.results` | `target`: poll ID; returns votes per option | `engage` | No / `poll results`, and `poll close` after closing |
+| `activity.close` | `target`: open poll/raffle ID | `engage` | Yes / `poll close`, `raffle close` |
+| `raffle.draw`, `raffle.reroll` | `target`: closed/drawn raffle ID; optional `version` rejects a changed raffle with `raffle_changed_reload` | `engage` | Yes / `raffle draw`, `raffle reroll` and the Draw winner button (which sends its rendered version) |
 
 Item and player versions are different values. Obtain them from a fresh snapshot/status. Approval only accepts pending items; playing items use player controls. Clearing removes validating/pending/approved items and preserves the current item. Moderator/API-added requests auto-approve only after validation. Raffle rerolls exclude previous winners. Repeated redemption decisions fail rather than debit/refund twice.
 
-Discord's command exposes only scalar `action`, `target`, `version`, `value`, `reason`, `message`, `acknowledge` options. It does not expose every HTTP action or arbitrary JSON input. For example:
+`poll.create` and `raffle.create` need only `engage`; they do not go through `config.save`, which needs `configure`. `poll.create`, `poll.results`, `goal.list` and `points.lookup` have no integration API scope mapping; API callers can read the same data from the snapshot.
+
+Discord does not expose every HTTP action or arbitrary JSON input. Its subcommands have typed options, and members pick targets from suggestions or type a request number. For example:
 
 ```text
-/kekbot action:status
-/kekbot action:timers.pause
-/kekbot action:alert.manual reason:Presentation check
+/kekbot status
+/kekbot timers pause
+/kekbot alert send text:Presentation check
+/kekbot media approve request:#12
 ```
 
-Use actual private IDs/versions for approval or moderation. Register commands again after changing allowed guilds/media enablement. See [Discord setup](PROVIDERS.md#discord).
+Discord button custom IDs use `kb1:<op>:<version>:<id>` (at most 100 characters), where `op` is `ma`/`mr` (media approve/reject), `rc`/`rf` (reward complete/refund) or `rd` (raffle draw). Redemptions have no version column and use `0`; their one-way pending → decided transition is the guard. Register commands again after changing allowed guilds, media or points enablement. See [Discord setup](PROVIDERS.md#discord).
 
 ## Local administration
 

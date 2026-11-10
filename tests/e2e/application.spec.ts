@@ -73,9 +73,9 @@ test("signed Discord approval reaches a fixture player and a duplicate completio
   const eventId = "01J00000000000000000000009", timestamp = new Date().toISOString();
   const signed = sign("RSA-SHA256", Buffer.from(`${eventId}.${timestamp}.${body}`), readFileSync(join(root(), "fixture/secrets/fixture-private.pem"))).toString("base64");
   expect((await request.post("/api/providers/kick/events", { headers: { "Content-Type": "application/json", "Kick-Event-Message-Id": eventId, "Kick-Event-Message-Timestamp": timestamp, "Kick-Event-Signature": signed, "Kick-Event-Type": "chat.message.sent", "Kick-Event-Version": "1" }, data: body })).ok()).toBe(true);
-  let pending: { id: string; version: number };
+  let pending: { id: string; version: number; position: number };
   await expect.poll(async () => { const state = await (await request.get("/api/control")).json(); pending = state.media.find((row: { status: string }) => row.status === "pending"); return Boolean(pending); }).toBe(true);
-  const interaction = Buffer.from(JSON.stringify({ id: "500", application_id: "900", type: 2, token: "fixture-interaction", guild_id: "100", channel_id: "200", member: { user: { id: "400" }, roles: ["300"] }, data: { name: "kekbot", options: [{ name: "action", value: "media.approve" }, { name: "target", value: pending!.id }, { name: "version", value: pending!.version }] } }));
+  const interaction = Buffer.from(JSON.stringify({ id: "500", application_id: "900", type: 2, token: "fixture-interaction", guild_id: "100", channel_id: "200", member: { user: { id: "400" }, roles: ["300"] }, data: { name: "kekbot", options: [{ type: 2, name: "media", options: [{ type: 1, name: "approve", options: [{ type: 3, name: "request", value: `#${pending!.position}` }] }] }] } }));
   const stamp = String(Math.floor(Date.now() / 1000));
   const headers = { "Content-Type": "application/json", "X-Signature-Timestamp": stamp, "X-Signature-Ed25519": sign(null, Buffer.concat([Buffer.from(stamp), interaction]), readFileSync(join(root(), "fixture/secrets/fixture-discord-private.pem"))).toString("hex") };
   expect((await (await request.post("/api/providers/discord/interactions", { headers, data: interaction })).json()).type).toBe(5);

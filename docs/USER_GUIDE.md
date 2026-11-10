@@ -166,6 +166,43 @@ Create an enabled poll, enter 2–10 options one per line and a future Ends at v
 
 Create an enabled raffle with a future deadline and an empty Winners field. Empty Roles permits all observed chat roles; Min points is checked when entering and does not spend points. Viewers send `!enter`. Close or wait for expiry, then **Draw winner**. An empty eligible set produces an explicit error. **Reroll** records another winner excluding previous winners; it does not erase the original draw. Use a new raffle for a new round rather than editing winners by hand. Entry eligibility is based on observed verified identity and conditions when entering, not a complete provider follower roster.
 
+## Discord controls
+
+After the owner [connects Discord](PROVIDERS.md#discord), grants your role or user a permission and registers commands, type `/kekbot` in the configured channel. Replies are private to you. Options that name something offer suggestions as you type; pick one rather than typing IDs. A song request's number is its queue position, `#12`; you can type `#12` or `12`. You never type versions: if someone changed the item first, KekBot replies **This changed**, shows the current state and does nothing.
+
+| Command | What it does | Grant |
+| --- | --- | --- |
+| `/kekbot status` | Stream, player, timers, auto-moderation, incident mode and waiting work | Any KekBot grant |
+| `/kekbot media queue` | The active queue by number, with Approve/Reject buttons for the first five waiting requests | `media` |
+| `/kekbot media approve request:` / `reject request:` | Decide a waiting request | `media` |
+| `/kekbot media remove request:` | Remove a waiting or queued request (use skip for the current song) | `media` |
+| `/kekbot media move request: position:` | Move an approved request; `position:1` plays it next. The approved queue is renumbered | `media` |
+| `/kekbot media clear confirm:True` | Remove every waiting and queued request; the current song keeps playing | `media` |
+| `/kekbot media skip` / `pause` / `resume` / `volume level:` | Player controls; volume is 0–100 | `media` |
+| `/kekbot goal list` | Goals with progress bars | `operate` |
+| `/kekbot goal add goal: amount:` | Add to a goal; a negative amount subtracts (never below 0) | `operate` |
+| `/kekbot goal set goal: value:` / `reset goal:` | Set the current value, or set it to 0 | `operate` |
+| `/kekbot poll create question: options: [minutes:] [allow_change:]` | Start a poll with 2–10 answers separated by commas or `\|`; it stays open 5 minutes unless you set 1–1440. Viewers use `!vote <number>` | `engage` |
+| `/kekbot poll close poll:` / `results poll:` | Close a poll and show final results, or show current results | `engage` |
+| `/kekbot raffle create name: [minutes:] [min_points:]` | Start a raffle; viewers use `!enter` | `engage` |
+| `/kekbot raffle close raffle:` | Stop entries; the reply has a Draw winner button | `engage` |
+| `/kekbot raffle draw raffle:` / `reroll raffle:` | Draw a winner; reroll excludes earlier winners | `engage` |
+| `/kekbot reward pending` | Waiting redemptions with Complete/Refund buttons for the first five | `engage` |
+| `/kekbot reward complete redemption:` / `refund redemption:` | Mark fulfilled, or refund the points once | `engage` |
+| `/kekbot points viewer:` | A viewer's points, estimated watchtime and when they were last seen | `engage` |
+| `/kekbot mod warn viewer: reason:` | Warn in Kick chat | `moderate` |
+| `/kekbot mod timeout viewer: reason: [minutes:]` | Time out; 10 minutes unless you set 1–10080 | `moderate` |
+| `/kekbot mod ban viewer: reason: confirm:True` | Ban on Kick | `moderate` |
+| `/kekbot mod delete viewer: message: reason: confirm:True` | Delete one chat message; `message:` suggests the viewer's recent retained messages | `moderate` |
+| `/kekbot mod pause` / `resume` | Pause or resume automatic moderation rules; manual actions still work | `moderate` |
+| `/kekbot mod incident-start preset: minutes: confirm:True` / `incident-stop` | Temporary link and/or burst warnings for 1–120 minutes | `moderate` |
+| `/kekbot timers pause` / `resume` | Pause or resume chat timers without catch-up messages | `operate` |
+| `/kekbot alert send text:` | Show a manual alert in OBS | `operate` |
+
+The `media` group appears only when media is enabled, and `reward`/`points` only when points are enabled. Ask the owner to register commands again after changing either setting. Viewer suggestions list recently seen viewers by name; you can also type a name or a numeric Kick ID. Moderation replies mean the request was sent to Kick; Kick confirms separately, so check incidents and jobs in the dashboard if something did not happen.
+
+Notification buttons work the same way: **Approve**/**Reject** on song requests, **Complete**/**Refund** on reward redemptions and **Draw winner** on raffle-close notices. After someone uses a button, the notice shows a disabled label such as **Approved**. An older button replies **This changed** instead of acting. Every error reply explains what went wrong in plain English and ends with a code, such as `Code: discord_permission_denied`, to share with the owner.
+
 ## Analytics and private data
 
 In **Analytics**, choose From/To dates, optionally an observed Stream receipt ID, then **Load history**. The dates include the selected To day. **Download last 30 days CSV** always exports that rolling window; it does not use the form's selected filters. Filtered JSON/CSV is available through the [session analytics route](API.md#route-inventory).

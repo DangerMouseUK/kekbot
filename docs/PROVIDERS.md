@@ -120,7 +120,7 @@ Discord is optional. It uses signed HTTP interactions, with no Gateway connectio
 1. Open the [Discord Developer Portal](https://discord.com/developers/applications) and create your own application. Under **General Information**, copy **Application ID** and **Public Key**. Under **Bot**, generate/reset a bot token and store it privately. See [Discord's setup guide](https://docs.discord.com/developers/quick-start/getting-started) for portal controls.
 2. In KekBot **Connections**, save `applicationId`, `publicKey` and `botToken` **before** setting the endpoint, so KekBot can verify Discord's test request.
 3. In Discord's app settings, save the Interactions Endpoint URL from the table above. It must pass Discord's signed PING validation with trusted HTTPS.
-4. Configure a **Guild Install** with `bot` and `applications.commands` scopes. Give the bot **View Channel** and **Send Messages** in each intended normal text channel. Install it using your app's install link. Administrator permission is unnecessary. Thread-only channels need additional provider permissions and their own testing.
+4. Configure a **Guild Install** with the `bot` and `applications.commands` scopes. Give the bot **View Channel**, **Send Messages** and **Embed Links** in each intended normal text channel (permission integer `19456` if your install link asks for one). Embed Links lets notifications show request details; without it Discord hides the details and only the one-line headline remains. Install it using your app's install link. Administrator permission is unnecessary. Thread-only channels need additional provider permissions and their own testing.
 5. In Discord user settings, enable **Advanced → Developer Mode**. Copy the server, text-channel and relevant role/user IDs via their context menus.
 6. In KekBot **Connections**, select **Add guild**. Enter the guild/channel IDs and selected events (`live`, `offline`, `alert`, `media`, `goal`, `moderation`, `engagement`). Create additional routes deliberately; only selected events go to each configured channel.
 7. Add role/user permission mappings. Lists are JSON in these two fields. For example, replacing the synthetic ID with your moderator role ID:
@@ -131,16 +131,29 @@ Discord is optional. It uses signed HTTP interactions, with no Gateway connectio
 
 Supported permissions are `operate`, `moderate`, `media`, `engage`; repeat a mapping with another permission when needed. Empty mappings grant no controls. Local dashboard roles do not grant Discord authority.
 
-8. Select **Register Discord commands in allowed guilds** after saving routes. Repeat after changing the guild set or enabling media.
-9. In the configured channel use `/kekbot action:status`. Test with both a mapped moderator and an unmapped member; the latter must be denied. Verify a deliberately triggered notification reaches only its configured route.
+8. Select **Register Discord commands in allowed guilds** after saving routes. Repeat after changing the guild set, enabling or disabling media, or enabling or disabling points, because the registered command list only includes enabled modules. Registering replaces the earlier single `/kekbot action:…` command.
+9. In the configured channel run `/kekbot status`. Test with both a mapped moderator and an unmapped member; the latter must get a private "Not allowed" reply. Verify a deliberately triggered notification reaches only its configured route.
 
-Media controls appear when media is enabled. An approval notification provides item ID/version; use `/kekbot action:media.approve target:<ITEM_ID> version:<VERSION>`. Player actions use the current player version from status. Stale decisions require refreshing status. Timer, alert, moderation, goal, reward and activity actions use the same domain permissions as the dashboard; see [API actions](API.md).
+### Using Discord controls
 
-Discord requires the initial response within three seconds; KekBot verifies/commits the interaction, defers the response, and runs effects in the worker. Repeated interaction IDs do not repeat actions. Routing/mappings are rechecked before deferred work executes. Notification sends disable mentions. See the [interaction contract](https://docs.discord.com/developers/interactions/receiving-and-responding).
+Every command is a grouped subcommand of `/kekbot`, for example `/kekbot media approve`. Discord shows each option with a short explanation, marks required options and checks number ranges before sending. Replies are private to the person who ran the command. The [full command list](USER_GUIDE.md#discord-controls) explains each command and the grant it needs.
+
+- **Pick from suggestions.** Options that name something — a request, goal, poll, raffle, redemption, viewer or chat message — offer suggestions as you type, such as `#12 · Song title · awaiting approval`. Suggestions only come from this installation's SQLite data, and a member without the command's grant sees none.
+- **Request numbers.** A song request's public number is its queue position, shown as `#12`. You can type `#12` or `12` instead of picking. Moving a request renumbers the approved queue, so the reply always repeats the title that was acted on.
+- **No versions to type.** KekBot still checks that an item did not change while you acted (an optimistic version check), but it reads the current version for you. If someone else changed it first, the reply says **This changed** and shows the current state; nothing is changed.
+- **Confirmations.** Ban, message deletion, clearing the queue and incident mode need `confirm: True`.
+
+Media controls appear only when media is enabled; `reward` and `points` appear only when points are enabled. Timer, alert, moderation, goal, reward and activity commands use the same domain permissions as the dashboard; see [API actions](API_ACTIONS.md).
+
+### Notification buttons
+
+Media approval notices have **Approve** and **Reject** buttons, reward redemption notices have **Complete** and **Refund**, and raffle-close notices have **Draw winner**. `/kekbot media queue` and `/kekbot reward pending` add the same buttons for the first five waiting items. Each button carries the item ID and the version it was rendered with. A click on an older version replies **This changed** with the current state and never acts on newer state. After a decision, the notice's buttons are replaced by a disabled label such as **Approved** so other moderators can see it was handled. Clicks need the same grant as the matching command (`media` or `engage`), and that grant is rechecked when the click runs.
+
+Discord requires the initial response within three seconds. For commands and button clicks KekBot verifies the signature, commits the interaction, answers with a private "thinking…" reply and runs the action in the worker, which then edits that reply. Suggestions (autocomplete) are answered immediately from bounded SQLite queries and never change anything. Repeated interaction IDs do not repeat actions, and a retried reply never reruns the action. Routing/mappings are rechecked before deferred work executes. Notifications and replies disable mentions. Every failure has a plain-English reply with its error code in the footer for troubleshooting. See the [interaction contract](https://docs.discord.com/developers/interactions/receiving-and-responding).
 
 ### Discord grant examples
 
-For a media team, grant `media` to its role in the **Roles** JSON field. For a user who can pause timers/send alerts but cannot moderate, grant only `operate` in **Users**. Repeat an ID with a different permission to grant additional capabilities. Keep IDs quoted as strings. A member with no mappings must be denied even if Discord itself permits slash-command use. Discord Administrator permission does not bypass KekBot's grant checks.
+For a media team, grant `media` to its role in the **Roles** JSON field. For a user who can pause timers/send alerts but cannot moderate, grant only `operate` in **Users**. Repeat an ID with a different permission to grant additional capabilities. Keep IDs quoted as strings. A member with no mappings must be denied even if Discord itself permits slash-command use. Discord Administrator permission does not bypass KekBot's grant checks. Everyone in the channel can see `/kekbot` unless a server admin also restricts it under **Server Settings → Integrations**; that Discord setting only hides commands and is not a substitute for KekBot grants.
 
 Use one deliberate route for each intended guild/channel combination. Routing determines both notifications and the channel where controls are allowed; a command in another channel is denied. Avoid overlapping contradictory routes. Selecting Events does not grant control permissions. After editing routes, register commands and test both allowed and denied identities again. The [action table](API_ACTIONS.md) lists precisely which operations are available through slash commands.
 
@@ -166,7 +179,7 @@ Rotate compromised credentials in the provider portal and replace the encrypted 
 | Boundary | Configuration alone proves | Verify before relying on it |
 | --- | --- | --- |
 | Kick app | IDs/secret and callbacks were entered | Correct creator/scopes, signed event receipt, actual reply identity, refresh and subscription repair |
-| Discord app | Application/key/token were stored | Signed endpoint PING, registered guild command, mapped/denied users, bot channel send and correct routing |
+| Discord app | Application/key/token were stored | Signed endpoint PING, registered guild commands and suggestions, mapped/denied users, a notification button click, bot channel send and correct routing |
 | YouTube key | Metadata credential was stored | Valid/invalid request outcomes, quota handling, actual visible OBS video/audio and advancement |
 | Disabled integration | Optional module is not configured | Unrelated commands/accounts/storage still operate; no fabricated connected status |
 

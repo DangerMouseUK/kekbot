@@ -85,8 +85,11 @@ Record the first failing boundary and time. Avoid changing several unrelated set
 | Authorized but no events | Enable webhooks on the app, match the events URL, run subscription reconciliation and check publicly trusted ingress and system time |
 | Refresh needs consent | Reauthorize the intended creator after revocation/invalid grant; do not loop on the same invalid refresh |
 | Discord endpoint rejected | Save matching application ID/public key first, verify exact HTTPS path and signed PING; check proxy preserves request bytes |
-| Discord command missing | Install to the intended guild, save enabled guild routing, then register commands; repeat registration after enabling media |
-| Discord command denied | Check exact guild/channel and current role/user mapping; local account roles do not transfer |
+| Discord command missing | Install to the intended guild, save enabled guild routing, then register commands; repeat registration after enabling or disabling media or points |
+| Discord command denied (`Code: discord_permission_denied`) | Check exact guild/channel and current role/user mapping for the grant the [command needs](USER_GUIDE.md#discord-controls); local account roles do not transfer |
+| Discord suggestions are empty | The member lacks the command's grant, the channel is not a configured route, or nothing matches (for example no pending requests). Chat-message suggestions need retained chat (chat retention above 0 days) |
+| Discord reply says **This changed** | Someone else acted first, or the button was rendered for an older version. Nothing was changed; read the current state in the reply and act again if still needed |
+| Discord notification shows only a headline, or no buttons | Give the bot **Embed Links** in the channel. Buttons appear only while a request or redemption is still waiting when the notice is sent, and only for IDs short enough for Discord's 100-character button limit |
 | Discord notification missing | Check selected event route, bot membership/channel permissions and delivery result |
 
 `pending` means queued; `failed` means a known failure; `uncertain` needs provider inspection before owner reconciliation. Reconciliation records an observed result and never resends. See [delivery outcomes](OPERATIONS.md#delivery-outcomes).
