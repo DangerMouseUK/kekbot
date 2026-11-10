@@ -37,10 +37,10 @@
   "dependencies": {
     "better-sqlite3": "13.0.3",
     "drizzle-orm": "0.45.3",
-    "next": "16.3.8",
+    "next": "16.4.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
@@ -51,14 +51,16 @@
     "@types/react-dom": "19.3.0",
     "drizzle-kit": "0.31.11",
     "eslint": "9.39.1",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.5",
     "prettier": "3.9.9",
     "typescript": "6.0.3",
+    "vite": "8.3.6",
     "vitest": "5.0.3"
   },
   "pnpm": {
     "overrides": {
-      "@esbuild-kit/core-utils@3.3.2>esbuild": "0.25.12"
+      "@esbuild-kit/core-utils@3.3.2>esbuild": "0.25.12",
+      "@typescript-eslint/typescript-estree@8.71.0>minimatch": "11.0.5"
     },
     "onlyBuiltDependencies": [
       "better-sqlite3",

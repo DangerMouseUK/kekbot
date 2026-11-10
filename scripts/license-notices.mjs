@@ -36,7 +36,7 @@ export function writeNotices() {
           for (const name of ["README.md", "versions.json"]) { cpSync(join(directory, name), join(target, name)); notices.push(name); }
         }
         let fallback;
-        if ((pkg.name === "@next/env" || pkg.name.startsWith("@next/swc-")) && pkg.version === "16.3.8" && pkg.license === "MIT" || pkg.name === "client-only" && pkg.version === "0.0.1" && pkg.license === "MIT") fallback = join(root, "node_modules/next/license.md");
+        if ((pkg.name === "@next/env" || pkg.name.startsWith("@next/swc-")) && pkg.version === "16.4.5" && pkg.license === "MIT" || pkg.name === "client-only" && pkg.version === "0.0.1" && pkg.license === "MIT") fallback = join(root, "node_modules/next/license.md");
         if (pkg.name === "drizzle-orm" && pkg.version === "0.45.3" && pkg.license === "Apache-2.0") fallback = join(root, "licenses/drizzle-orm-0.45.3/LICENSE");
         if (!fallback && !notices.length) throw new Error(`Production license notice missing: ${pkg.name}@${pkg.version}`);
         if (fallback) { mkdirSync(target, { recursive: true }); cpSync(fallback, join(target, "LICENSE")); notices.push("LICENSE"); }

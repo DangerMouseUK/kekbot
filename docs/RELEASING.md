@@ -83,7 +83,7 @@ The [interactive installer](INSTALLER.md) supports repository branches, PR heads
 | Component | Supported candidate |
 | --- | --- |
 | Node.js / pnpm | 24.21.0 / 10.26.0; exact CI pins in `.node-version` and `package.json` |
-| Next.js / React | 16.3.8 / 19.3.0 |
+| Next.js / React | 16.4.5 / 19.3.0 on development `main`; published beta 4 uses 16.3.8 / 19.3.0 |
 | Production host | Linux x86-64, local persistent disk, one app replica; 2 vCPU / 2 GiB reference runtime target still unmeasured |
 | Windows/macOS | Documented Docker Desktop container path; native distribution not supported |
 | Application / database / backup / native config | `0.1.0-beta.4` evaluation release / schema 3 / format 1 / format 1 |
@@ -124,7 +124,7 @@ docker build --build-arg VCS_REF=<FULL_SOURCE_SHA> --build-arg VERSION=<PACKAGE_
 pnpm release:prepare --image kekbot:candidate --gitleaks /path/to/verified/gitleaks
 ```
 
-Use checksum-verified Gitleaks 8.30.1. Preparation rejects dirty source, incorrect image platform/user/source/version/license, unexpected baked environment names, private application-layer files and a failing secret scan. It scans files removed by later layers as well as the final application files. The only reviewed exceptions are the exact generated preview-key fields in Next's prerender manifest and its generated action encryption field when both action maps are empty. Provider/application secrets have no exception; enabling Server Actions fails the audit until key handling is reviewed. This complements source/history scanning and review; it is not a vulnerability audit or proof that every upstream package is safe.
+Use checksum-verified Gitleaks 8.30.1. Preparation rejects dirty source, incorrect image platform/user/source/version/license, unexpected baked environment names, private application-layer files and a failing secret scan. It scans files removed by later layers as well as the final application files. The only reviewed exceptions are the exact generated preview-key fields in Next's prerender manifest, an exact copy of those values in Next 16.4's separate `server/preview-props.json`, and the generated action encryption field when both action maps are empty. Provider/application secrets have no exception; enabling Server Actions fails the audit until key handling is reviewed. This complements source/history scanning and review; it is not a vulnerability audit or proof that every upstream package is safe.
 
 Output is named with the application version and first twelve source-SHA characters:
 
