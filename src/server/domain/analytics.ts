@@ -2,6 +2,9 @@ import { z } from "zod";
 import type BetterSqlite3 from "better-sqlite3";
 import { AppError } from "../errors.ts";
 import { compareMetrics, metricInfo, METRIC_ORDER, WORKER_METRIC } from "./analytics-metrics.ts";
+import { localDays, MAX_TIME, validTimeZone } from "./analytics-time.ts";
+
+export { localDay } from "./analytics-time.ts";
 
 /**
  * Read-only analytics model over recorded observations. It never writes, never calls a provider
@@ -13,23 +16,26 @@ const DAY = 86_400_000;
 /** A worker heartbeat is recorded once per minute; more than two minutes apart is a gap. */
 export const GAP_THRESHOLD = 2 * MINUTE;
 export const MAX_RANGE = 3660 * DAY;
-const BUCKET_SIZES = [5, 10, 15, 30, 60].map((m) => m * MINUTE).concat([DAY, 7 * DAY]);
+/** Fixed-length buckets for short spans; longer spans use local calendar days or weeks. */
+const BUCKET_SIZES = [5, 10, 15, 30, 60].map((m) => m * MINUTE);
 const MAX_BUCKETS = 90;
+const MAX_DAYS = 3700;
 const MAX_GAPS = 500;
 const MAX_COMPARED_STREAMS = 60;
 const MAX_ROWS = 100_000;
 
 export type StreamRecord = { id: string; start: number; end: number | null };
-export type AnalyticsQuery = { from: number; to: number; stream?: string; tzOffset?: number };
+export type AnalyticsQuery = { from: number; to: number; stream?: string; timeZone?: string };
 export type AnalyticsContext = { now: number; summaryDays: number };
 type Aggregate = { samples: number; total: number; mean: number; minimum: number; maximum: number };
 
 const querySchema = z
   .object({
-    from: z.number().int().nonnegative(),
-    to: z.number().int().nonnegative(),
+    from: z.number().int().nonnegative().max(MAX_TIME),
+    to: z.number().int().nonnegative().max(MAX_TIME),
     stream: z.string().min(1).max(200).optional(),
-    tzOffset: z.number().int().min(-840).max(840).default(0),
+    /** The viewer's IANA time zone, e.g. "Europe/London"; days start at its real local midnight. */
+    timeZone: z.string().max(64).default("UTC"),
   })
   .refine((q) => q.to >= q.from, "to_before_from")
   // A selected stream defines its own window, so only a plain range is length-limited.
@@ -70,6 +76,8 @@ export function readAnalytics(
   const parsed = querySchema.safeParse(input);
   if (!parsed.success) throw new AppError("invalid_analytics_range", 400);
   const query = parsed.data;
+  if (!validTimeZone(query.timeZone)) throw new AppError("invalid_time_zone", 400);
+  const timeZone = query.timeZone;
   const history = streamHistory(rawHistory);
   let selected: StreamRecord | undefined;
   if (query.stream === "latest") selected = history.at(-1);
@@ -156,23 +164,28 @@ export function readAnalytics(
         : "worker_offline";
   const gaps: { from: number; to: number; reason: string }[] = [];
   const windows: { from: number; to: number }[] = [];
+  // A gap that crosses the retention horizon is split: older data was deleted, not missed.
+  const addGap = (from: number, to: number) => {
+    if (from < retainedFrom && to > retainedFrom) {
+      gaps.push({ from, to: retainedFrom, reason: "not_retained" });
+      from = retainedFrom;
+    }
+    gaps.push({ from, to, reason: reason(from, to) });
+  };
   if (span.first === null || span.last === null) {
-    if (observedUntil - start > GAP_THRESHOLD)
-      gaps.push({ from: start, to: observedUntil, reason: reason(start, observedUntil) });
+    if (observedUntil - start > GAP_THRESHOLD) addGap(start, observedUntil);
   } else {
-    if (span.first - start > GAP_THRESHOLD)
-      gaps.push({ from: start, to: span.first, reason: reason(start, span.first) });
+    if (span.first - start > GAP_THRESHOLD) addGap(start, span.first);
     let windowStart = span.first;
     for (const row of boundaries.slice(0, MAX_GAPS)) {
       if (row.previous === null) continue;
       windows.push({ from: windowStart, to: row.previous });
-      gaps.push({ from: row.previous, to: row.at, reason: reason(row.previous, row.at) });
+      addGap(row.previous, row.at);
       windowStart = row.at;
     }
     if (!truncated) {
       windows.push({ from: windowStart, to: span.last });
-      if (observedUntil - span.last > GAP_THRESHOLD)
-        gaps.push({ from: span.last, to: observedUntil, reason: reason(span.last, observedUntil) });
+      if (observedUntil - span.last > GAP_THRESHOLD) addGap(span.last, observedUntil);
     }
   }
   const coverage = {
@@ -188,33 +201,54 @@ export function readAnalytics(
     firstEverObserved: firstEver,
   };
 
-  // Time series in fixed buckets from the selection start up to now (never into the future).
+  // Time series from the selection start up to now (never into the future). Short spans use
+  // fixed buckets; longer spans use the viewer's local calendar days, or weeks of seven days.
   const seriesSpan = Math.max(1, observedUntil - start);
-  const bucketMs =
-    BUCKET_SIZES.find((size) => Math.ceil(seriesSpan / size) <= MAX_BUCKETS) ??
-    BUCKET_SIZES.at(-1)!;
-  const bucketCount = Math.max(1, Math.ceil(seriesSpan / bucketMs));
+  const fixed = BUCKET_SIZES.find((size) => Math.ceil(seriesSpan / size) <= MAX_BUCKETS);
+  type Bucket = { from: number; to: number; day?: string };
+  let bucketUnit: "fixed" | "day" | "week";
+  let bucketList: Bucket[];
+  if (fixed) {
+    bucketUnit = "fixed";
+    bucketList = Array.from({ length: Math.max(1, Math.ceil(seriesSpan / fixed)) }, (_, index) => ({
+      from: start + index * fixed,
+      to: Math.min(observedUntil, start + (index + 1) * fixed),
+    }));
+  } else {
+    const days = localDays(start, observedUntil, timeZone, MAX_DAYS);
+    const step = days.length <= MAX_BUCKETS ? 1 : 7;
+    bucketUnit = step === 1 ? "day" : "week";
+    bucketList = [];
+    for (let index = 0; index < days.length; index += step) {
+      const group = days.slice(index, index + step);
+      bucketList.push({
+        from: Math.max(start, group[0].start),
+        to: Math.min(observedUntil, group.at(-1)!.end),
+        day: group[0].day,
+      });
+    }
+  }
+  // Each bucket is [from, next from); the last one also includes `observedUntil` itself.
+  const bucketBounds = bucketList.map((bucket, index) => [
+    bucket.from,
+    bucketList[index + 1]?.from ?? observedUntil + 1,
+  ]);
   const bucketRows = db
     .prepare(
-      "SELECT CAST((at-?)/? AS INTEGER) AS bucket,metric,count(*) AS samples,sum(value) AS total,avg(value) AS mean,min(value) AS minimum,max(value) AS maximum FROM observations WHERE at>=? AND at<=? GROUP BY bucket,metric LIMIT ?",
+      "WITH b AS (SELECT CAST(key AS INTEGER) AS i,json_extract(value,'$[0]') AS s,json_extract(value,'$[1]') AS e FROM json_each(?)) SELECT b.i AS bucket,o.metric,count(*) AS samples,sum(o.value) AS total,avg(o.value) AS mean,min(o.value) AS minimum,max(o.value) AS maximum FROM b CROSS JOIN observations o WHERE o.at>=b.s AND o.at<b.e GROUP BY b.i,o.metric LIMIT ?",
     )
-    .all(start, bucketMs, start, observedUntil, (bucketCount + 1) * 500) as (Aggregate & {
+    .all(JSON.stringify(bucketBounds), (bucketList.length + 1) * 500) as (Aggregate & {
     bucket: number;
     metric: string;
   })[];
   const byBucket = new Map<string, Aggregate>();
-  for (const row of bucketRows)
-    byBucket.set(`${Math.min(row.bucket, bucketCount - 1)}:${row.metric}`, row);
-  const buckets = Array.from({ length: bucketCount }, (_, index) => {
-    const from = start + index * bucketMs,
-      to = Math.min(observedUntil, from + bucketMs);
-    return {
-      from,
-      to,
-      workerMinutes: byBucket.get(`${index}:${WORKER_METRIC}`)?.samples ?? 0,
-      expectedMinutes: Math.max(1, Math.ceil((to - from) / MINUTE)),
-    };
-  });
+  for (const row of bucketRows) byBucket.set(`${row.bucket}:${row.metric}`, row);
+  const buckets = bucketList.map((bucket, index) => ({
+    ...bucket,
+    workerMinutes: byBucket.get(`${index}:${WORKER_METRIC}`)?.samples ?? 0,
+    expectedMinutes: Math.max(1, Math.ceil((bucket.to - bucket.from) / MINUTE)),
+  }));
+  const bucketMs = fixed ?? (bucketUnit === "day" ? DAY : 7 * DAY);
   const series = Object.fromEntries(
     metricIds.map((id) => {
       const info = metricInfo(id);
@@ -264,13 +298,19 @@ export function readAnalytics(
       };
     });
 
-  // Daily rows in the viewer's UTC offset for tables and CSV. Viewer samples report their mean.
+  // Daily rows on the viewer's real local days (23 or 25 hours across daylight-saving changes)
+  // for tables and CSV. Viewer samples report their mean.
+  const days = localDays(start, end, timeZone, MAX_DAYS).map((day, index, all) => [
+    day.day,
+    Math.max(start, day.start),
+    index === all.length - 1 ? end + 1 : day.end,
+  ]);
   const rows = (
     db
       .prepare(
-        "SELECT strftime('%Y-%m-%d',(at/1000)-?,'unixepoch') AS day,metric,CASE WHEN metric='viewers.sample' THEN avg(value) ELSE sum(value) END AS value,count(*) AS samples,min(value) AS minimum,max(value) AS maximum FROM observations WHERE at>=? AND at<=? AND metric!=? GROUP BY day,metric ORDER BY day,metric LIMIT ?",
+        "WITH d AS (SELECT json_extract(value,'$[0]') AS day,json_extract(value,'$[1]') AS s,json_extract(value,'$[2]') AS e FROM json_each(?)) SELECT d.day AS day,o.metric AS metric,CASE WHEN o.metric='viewers.sample' THEN avg(o.value) ELSE sum(o.value) END AS value,count(*) AS samples,min(o.value) AS minimum,max(o.value) AS maximum FROM d CROSS JOIN observations o WHERE o.at>=d.s AND o.at<d.e AND o.metric!=? GROUP BY d.day,o.metric ORDER BY d.day,o.metric LIMIT ?",
       )
-      .all(query.tzOffset * 60, start, end, WORKER_METRIC, MAX_ROWS + 1) as {
+      .all(JSON.stringify(days), WORKER_METRIC, MAX_ROWS + 1) as {
       day: string;
       metric: string;
       value: number;
@@ -292,7 +332,7 @@ export function readAnalytics(
       kind: selected ? ("stream" as const) : ("range" as const),
       stream: selected ? { ...selected, ongoing: selected.end === null } : null,
       requestedStream: query.stream ?? null,
-      tzOffset: query.tzOffset,
+      timeZone,
     },
     streams: history
       .slice(-1000)
@@ -306,7 +346,7 @@ export function readAnalytics(
     summary: { metrics, subscriptions, streamsInRange: overlapping.length },
     summaries: compared,
     comparedStreamsTruncated: overlapping.length > MAX_COMPARED_STREAMS,
-    series: { bucketMs, buckets, metrics: series },
+    series: { bucketMs, bucketUnit, buckets, metrics: series },
     rows: rows.slice(0, MAX_ROWS),
     rowsTruncated,
     coverage,

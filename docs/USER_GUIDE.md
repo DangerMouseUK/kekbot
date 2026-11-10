@@ -172,7 +172,7 @@ Create an enabled raffle with a future deadline and an empty Winners field. Empt
 
 - **Last stream**: the newest stream KekBot saw go live. A stream that is still live shows its time so far.
 - **A specific stream**: pick from every retained stream, listed by date, start time and duration (for example `Sun, 1 Nov 2026, 18:00 · 2 h`). Streams appear once KekBot observes Kick's live/offline status events. If none has been observed yet, **Last stream** shows the last 30 days instead and says so.
-- **Last 7 days** / **Last 30 days**: whole days in this browser's time zone, up to now.
+- **Last 7 days** / **Last 30 days**: whole calendar days in this browser's time zone, from local midnight up to now.
 - **Custom dates**: choose From and To, then **Show these dates**. The To day is included in full.
 
 The summary cards group what KekBot observed in that period: chat messages, distinct chatters, commands answered, follows, subscriptions (with new, renewed and gifted counts), sampled viewers (average and peak), estimated watchtime, points awarded, redemptions, media requests and completions, moderation incidents, poll votes, raffle entries, alerts and goal progress. Each card shows a plain label and unit:
@@ -188,7 +188,7 @@ The summary cards group what KekBot observed in that period: chat messages, dist
 
 **Over time** charts one metric at a time; choose it with **Metric**. Counts are columns and viewer samples are a line. Hatched bands mark periods with no data. Hover over or tap a period, or focus the chart and use the arrow keys, Home and End, to read its value and worker coverage. **Show as a table** gives the same values as text. **Streams in this period** compares each stream's duration, coverage, messages, chatters, follows, subscriptions and viewers; with two or more streams it also charts the selected metric per stream.
 
-**Download this selection (CSV)** and **Download this selection (JSON)** export exactly the period or stream on screen. The CSV has one row per day and metric with `day`, `metric`, `label`, `unit`, `value`, `samples`, `minimum` and `maximum` columns, using this browser's time zone for day boundaries; a viewer-sample `value` is the day's average. Cells starting with `=`, `+`, `-`, `@` or a control character are prefixed with `'` so spreadsheets do not run them as formulas. The JSON contains the full analytics result, including coverage gaps and per-stream summaries. The same exports are available through the [session analytics route](API.md#route-inventory).
+**Download this selection (CSV)** and **Download this selection (JSON)** export exactly the period or stream on screen. The CSV has one row per day and metric with `day`, `metric`, `label`, `unit`, `value`, `samples`, `minimum` and `maximum` columns; a viewer-sample `value` is the day's average. Days, in the CSV and in daily or weekly charts, run from local midnight to local midnight in this browser's time zone, so a day when the clocks change lasts 23 or 25 hours and nothing shifts into the neighbouring day. Cells starting with `=`, `+`, `-`, `@` or a control character are prefixed with `'` so spreadsheets do not run them as formulas. The JSON contains the full analytics result, including coverage gaps and per-stream summaries. The same exports are available through the [session analytics route](API.md#route-inventory).
 
 No pre-installation history is imported, and retention limits available rows. Real-session accuracy has not been live-verified yet; it is acceptance gate L17 in [live acceptance](LIVE_ACCEPTANCE.md).
 

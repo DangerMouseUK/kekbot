@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { rmSync } from "node:fs";
 import { readAnalytics, streamHistory } from "../src/server/domain/analytics.ts";
+import { localDay, localMidnight } from "../src/server/domain/analytics-time.ts";
 import { metricInfo } from "../src/server/domain/analytics-metrics.ts";
 import { BotService } from "../src/server/domain/bot.ts";
 import { csv } from "../src/server/domain/operations.ts";
@@ -68,7 +69,7 @@ function setup() {
   for (let m = 0; m <= 90; m++) observe("worker.minute", 1, B.start + m * MINUTE);
   for (let i = 0; i < 3; i++) observe("chat.messages", 1, B.start + (10 + i) * MINUTE);
   const history = JSON.stringify([A, B]);
-  const read = (query: { from: number; to: number; stream?: string; tzOffset?: number }) =>
+  const read = (query: { from: number; to: number; stream?: string; timeZone?: string }) =>
     readAnalytics(db, history, query, CONTEXT);
   return { db, read, history, observe };
 }
@@ -156,6 +157,11 @@ describe("analytics read model over real SQLite", () => {
     // A range ending before the retention horizon is labelled as such.
     const old = read({ from: NOW - 200 * DAY, to: NOW - 100 * DAY });
     expect(old.coverage.gaps.map((gap) => gap.reason)).toEqual(["not_retained"]);
+    // A range straddling the horizon splits its leading gap there.
+    expect(read({ from: NOW - 100 * DAY, to: NOW - 80 * DAY }).coverage.gaps).toEqual([
+      { from: NOW - 100 * DAY, to: NOW - 90 * DAY, reason: "not_retained" },
+      { from: NOW - 90 * DAY, to: NOW - 80 * DAY, reason: "before_first_record" },
+    ]);
     // The coverage gap never extends into the future.
     const open = read({ from: B.start, to: NOW + DAY });
     expect(open.coverage.observedUntil).toBe(NOW);
@@ -188,6 +194,9 @@ describe("analytics read model over real SQLite", () => {
     expect(() => read({ from: 0, to: NOW, stream: "missing" })).toThrow("stream_not_observed");
     expect(() => read({ from: NOW, to: NOW - 1 })).toThrow("invalid_analytics_range");
     expect(() => read({ from: 0, to: 4000 * DAY })).toThrow("invalid_analytics_range");
+    // Valid numbers outside the four-digit-year date range are rejected, not a server error.
+    expect(() => read({ from: 9e15, to: 9e15 })).toThrow("invalid_analytics_range");
+    expect(() => read({ from: T0, to: NOW, timeZone: "Mars/Olympus" })).toThrow("invalid_time_zone");
     // A malformed stored entry is skipped instead of hiding every observed stream.
     expect(streamHistory(JSON.stringify([{ id: 7 }, A, "x"])).map((item) => item.id)).toEqual([
       "stream-a",
@@ -200,6 +209,9 @@ describe("analytics read model over real SQLite", () => {
     const { series } = read({ from: 0, to: NOW, stream: "stream-a" });
     expect(series.bucketMs).toBe(5 * MINUTE);
     expect(series.buckets).toHaveLength(24);
+    expect(series.bucketUnit).toBe("fixed");
+    // The last bucket also holds the observation exactly at the stream end (minutes 115–120).
+    expect(series.buckets[23].workerMinutes).toBe(6);
     const messages = series.metrics["chat.messages"];
     expect(messages[1]).toEqual({ value: 5, samples: 5 });
     expect(messages[2]).toEqual({ value: 0, samples: 0 });
@@ -210,8 +222,20 @@ describe("analytics read model over real SQLite", () => {
     expect(series.metrics["viewers.sample"][3]).toBeNull();
     // A week of history uses daily buckets aligned to the requested start.
     const week = read({ from: T0 - 5 * DAY, to: T0 + 2 * DAY - 1 });
-    expect(week.series.bucketMs).toBe(DAY);
-    expect(week.series.buckets[5].from).toBe(T0);
+    expect(week.series.bucketUnit).toBe("day");
+    // The first day starts at the requested instant; later days at UTC midnight (the default zone).
+    expect(week.series.buckets.map((bucket) => bucket.day)).toEqual([
+      "2026-10-27",
+      "2026-10-28",
+      "2026-10-29",
+      "2026-10-30",
+      "2026-10-31",
+      "2026-11-01",
+      "2026-11-02",
+      "2026-11-03",
+    ]);
+    expect(week.series.buckets[0].from).toBe(T0 - 5 * DAY);
+    expect(week.series.buckets[5].from).toBe(Date.UTC(2026, 10, 1));
   });
 
   it("exports exactly the selection as escaped CSV in the viewer's day boundaries", () => {
@@ -226,7 +250,7 @@ describe("analytics read model over real SQLite", () => {
     // Formula-looking metric IDs stay neutralised by the existing CSV escaping.
     expect(text).toContain(`"'=future.metric","'=future.metric"`);
     // Days follow the viewer's UTC offset: 18:00 UTC is the next day at UTC+10.
-    const shifted = read({ from: 0, to: NOW, stream: "stream-a", tzOffset: -600 });
+    const shifted = read({ from: 0, to: NOW, stream: "stream-a", timeZone: "Australia/Brisbane" });
     expect(shifted.rows.every((row) => row.day === "2026-11-02")).toBe(true);
     // An empty selection still exports a header row.
     expect(csv(read({ from: T0 - 2 * DAY, to: T0 - DAY }).rows, COLUMNS)).toBe(
@@ -244,9 +268,96 @@ describe("analytics read model over real SQLite", () => {
       repo.store.sqlite.prepare("SELECT (SELECT count(*) FROM observations) + (SELECT count(*) FROM settings) AS n").get();
     const before = count();
     const result = bot.operations.analytics(Date.now() - DAY, Date.now(), "latest", {
-      tzOffset: 60,
+      timeZone: "Europe/Paris",
     });
-    expect(result.selection).toMatchObject({ kind: "range", stream: null, tzOffset: 60 });
+    expect(result.selection).toMatchObject({
+      kind: "range",
+      stream: null,
+      timeZone: "Europe/Paris",
+    });
     expect(count()).toEqual(before);
+  });
+});
+
+describe("analytics days follow the viewer's real local midnights", () => {
+  const H = HOUR;
+  const dstSetup = () => {
+    const env = environment();
+    cleanup.push(() => rmSync(env.root, { recursive: true, force: true }));
+    const repo = repository(env.config);
+    cleanup.push(() => repo.store.close());
+    let n = 0;
+    const observe = (at: number) =>
+      repo.store.sqlite
+        .prepare("INSERT INTO observations(id,metric,value,at) VALUES(?,?,?,?)")
+        .run(`dst:${n++}`, "chat.messages", 1, at);
+    const read = (from: number, to: number, timeZone: string) =>
+      readAnalytics(repo.store.sqlite, "[]", { from, to, timeZone }, {
+        now: Date.UTC(2026, 10, 10),
+        summaryDays: 90,
+      });
+    return { observe, read };
+  };
+  const consecutive = (first: string, count: number) =>
+    Array.from({ length: count }, (_, i) =>
+      new Date(Date.parse(`${first}T00:00:00Z`) + i * DAY).toISOString().slice(0, 10),
+    );
+
+  it("keeps Europe/London days distinct across the 25 October 2026 change", () => {
+    const { observe, read } = dstSetup();
+    // 00:30 local on each side of the change; British Summer Time ends at 01:00 UTC on 25 Oct.
+    observe(Date.UTC(2026, 9, 23, 23, 30)); // 24 Oct 00:30 BST
+    observe(Date.UTC(2026, 9, 24, 23, 30)); // 25 Oct 00:30 BST
+    observe(Date.UTC(2026, 9, 26, 0, 30)); // 26 Oct 00:30 GMT
+    const from = localMidnight(2026, 10, 20, "Europe/London");
+    expect(from).toBe(Date.UTC(2026, 9, 19, 23));
+    const result = read(from, Date.UTC(2026, 9, 30, 12), "Europe/London");
+    expect(result.series.bucketUnit).toBe("day");
+    const days = result.series.buckets.map((bucket) => bucket.day);
+    expect(days).toEqual(consecutive("2026-10-20", 11));
+    const change = result.series.buckets[days.indexOf("2026-10-25")];
+    expect([change.from, change.to]).toEqual([Date.UTC(2026, 9, 24, 23), Date.UTC(2026, 9, 26)]);
+    expect(change.to - change.from).toBe(25 * H);
+    const messages = result.series.metrics["chat.messages"];
+    expect(messages[days.indexOf("2026-10-24")]).toMatchObject({ value: 1 });
+    expect(messages[days.indexOf("2026-10-25")]).toMatchObject({ value: 1 });
+    expect(messages[days.indexOf("2026-10-26")]).toMatchObject({ value: 1 });
+    expect(result.rows.map((row) => [row.day, row.value])).toEqual([
+      ["2026-10-24", 1],
+      ["2026-10-25", 1],
+      ["2026-10-26", 1],
+    ]);
+  });
+
+  it("keeps America/New_York days distinct across the 1 November 2026 change", () => {
+    const { observe, read } = dstSetup();
+    observe(Date.UTC(2026, 10, 1, 4, 30)); // 1 Nov 00:30 EDT
+    observe(Date.UTC(2026, 10, 2, 4, 30)); // 1 Nov 23:30 EST
+    observe(Date.UTC(2026, 10, 2, 5, 30)); // 2 Nov 00:30 EST
+    const from = localMidnight(2026, 10, 28, "America/New_York");
+    expect(from).toBe(Date.UTC(2026, 9, 28, 4));
+    const result = read(from, Date.UTC(2026, 10, 4, 12), "America/New_York");
+    const days = result.series.buckets.map((bucket) => bucket.day);
+    expect(days).toEqual(consecutive("2026-10-28", 8));
+    const change = result.series.buckets[days.indexOf("2026-11-01")];
+    expect(change.to - change.from).toBe(25 * H);
+    expect(result.rows.map((row) => [row.day, row.value])).toEqual([
+      ["2026-11-01", 2],
+      ["2026-11-02", 1],
+    ]);
+  });
+
+  it("finds the first instant of a day whose midnight is skipped", () => {
+    // Chile moves clocks forward at local midnight in September, so 00:00 does not exist.
+    for (const [zone, year, month, day] of [
+      ["America/Santiago", 2026, 9, 6],
+      ["Europe/London", 2026, 3, 29],
+      ["UTC", 2026, 1, 1],
+    ] as const) {
+      const start = localMidnight(year, month, day, zone);
+      const target = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      expect(localDay(start, zone), zone).toBe(target);
+      expect(localDay(start - 1, zone) < target, zone).toBe(true);
+    }
   });
 });

@@ -1,6 +1,7 @@
 import { boundedBody, failure, json, requireAccount } from "../../../server/http.ts";
 import { control } from "../../../server/control.ts";
 import { csv } from "../../../server/domain/operations.ts";
+import { localDay } from "../../../server/domain/analytics.ts";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export function GET(request: Request) {
@@ -12,11 +13,11 @@ export function GET(request: Request) {
     if (params.get("view") === "media-history") return json(app.bot.media.history({ cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }));
     if (params.get("view") === "analytics") {
       const now = Date.now(), number = (key: string, fallback: number) => params.has(key) ? Number(params.get(key)) : fallback;
-      const result = app.bot.operations.analytics(number("from", now - 30 * 86400000), number("to", now), params.get("stream") || undefined, { tzOffset: number("tz", 0) });
+      const result = app.bot.operations.analytics(number("from", now - 30 * 86400000), number("to", now), params.get("stream") || undefined, { timeZone: params.get("tz") || undefined });
       const format = params.get("format");
       if (format === "csv" || format === "json") {
         // The download covers exactly the loaded selection: the stream window or the requested range.
-        const day = (at: number) => new Date(at - result.selection.tzOffset * 60000).toISOString().slice(0, 10);
+        const day = (at: number) => localDay(at, result.selection.timeZone);
         const name = `kekbot-analytics-${result.selection.kind === "stream" ? `stream-${day(result.from)}` : `${day(result.from)}-to-${day(result.to)}`}.${format}`;
         const headers = { "Content-Disposition": `attachment; filename=${name}`, "Cache-Control": "no-store" };
         if (format === "csv") return new Response(csv(result.rows as Record<string, unknown>[], ["day", "metric", "label", "unit", "value", "samples", "minimum", "maximum"]), { headers: { ...headers, "Content-Type": "text/csv; charset=utf-8" } });

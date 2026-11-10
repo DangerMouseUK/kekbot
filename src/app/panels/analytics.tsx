@@ -53,11 +53,20 @@ const streamLabel = (stream: Pick<StreamItem, "start" | "ongoing"> & { durationM
   `${formatDate(stream.start)}, ${formatTime(stream.start)} · ${stream.ongoing ? `live now, ${formatDuration(stream.durationMs)} so far` : formatDuration(stream.durationMs)}`;
 const percent = (part: number, whole: number) =>
   whole > 0 ? `${Math.min(100, Math.round((part / whole) * 100))}%` : "0%";
-const startOfDay = (at: number) => {
-  const day = new Date(at);
+/** Local midnight `days` calendar days ago (not 24-hour steps, which drift across DST). */
+const midnightDaysAgo = (days: number) => {
+  const day = new Date();
+  day.setDate(day.getDate() - days);
   day.setHours(0, 0, 0, 0);
   return day.getTime();
 };
+/** The viewer's IANA time zone; the server builds day boundaries from its real local midnights. */
+const timeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+/** Format a YYYY-MM-DD local day from the server without shifting it through another zone. */
+const dayLabel = (day: string, options: Intl.DateTimeFormatOptions) =>
+  new Intl.DateTimeFormat(undefined, { ...options, timeZone: "UTC" }).format(
+    Date.UTC(Number(day.slice(0, 4)), Number(day.slice(5, 7)) - 1, Number(day.slice(8, 10))),
+  );
 const dateValue = (at: number) => {
   const day = new Date(at);
   return `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
@@ -65,12 +74,12 @@ const dateValue = (at: number) => {
 
 function queryFor(period: Period, stream: string, from: string, to: string): Query | string {
   const now = Date.now();
-  if (period === "latest") return { from: now - 30 * DAY, to: now, stream: "latest" };
+  if (period === "latest") return { from: midnightDaysAgo(29), to: now, stream: "latest" };
   if (period === "stream")
     // The server uses the stream's own window; from/to only need to be valid.
     return stream ? { from: now - DAY, to: now, stream } : "Choose a stream.";
-  if (period === "7d") return { from: startOfDay(now - 6 * DAY), to: now };
-  if (period === "30d") return { from: startOfDay(now - 29 * DAY), to: now };
+  if (period === "7d") return { from: midnightDaysAgo(6), to: now };
+  if (period === "30d") return { from: midnightDaysAgo(29), to: now };
   const start = new Date(`${from}T00:00`).getTime(),
     end = new Date(`${to}T00:00`).getTime();
   if (!Number.isFinite(start) || !Number.isFinite(end)) return "Choose both dates.";
@@ -84,7 +93,7 @@ function params(query: Query, extra: Record<string, string> = {}) {
     view: "analytics",
     from: String(query.from),
     to: String(query.to),
-    tz: String(new Date().getTimezoneOffset()),
+    tz: timeZone(),
     ...(query.stream ? { stream: query.stream } : {}),
     ...extra,
   }).toString();
@@ -162,7 +171,7 @@ export default function AnalyticsPanel({ message }: PanelProps) {
   useEffect(() => {
     let active = true;
     const now = Date.now(),
-      next = { from: now - 30 * DAY, to: now, stream: "latest" },
+      next = { from: midnightDaysAgo(29), to: now, stream: "latest" },
       id = ++latestRequest.current;
     fetchAnalytics(next).then((outcome) => {
       if (active) apply(id, next, outcome);
@@ -303,6 +312,8 @@ function AnalyticsView({
     ? `${selected.ongoing ? "Live now, " : ""}${formatDuration((selected.end ?? data.generatedAt) - selected.start)}${selected.ongoing ? " so far" : ""}`
     : `${data.summary.streamsInRange} ${data.summary.streamsInRange === 1 ? "stream" : "streams"} observed in this period`;
   const groups = [...new Set(data.summary.metrics.map((metric) => metric.group))];
+  // Up to 100,000 rows: render them only once the reader opens the table.
+  const [dailyOpen, setDailyOpen] = useState(false);
   return (
     <>
       <section aria-labelledby="an-summary">
@@ -332,9 +343,9 @@ function AnalyticsView({
       <StreamComparison data={data} chartMetric={chartMetric} />
       <section aria-labelledby="an-daily">
         <h2 id="an-daily">Daily totals</h2>
-        <details>
+        <details onToggle={(event) => setDailyOpen(event.currentTarget.open)}>
           <summary>Show {data.rows.length} daily rows (as exported in the CSV)</summary>
-          {data.rows.length ? (
+          {!dailyOpen ? null : data.rows.length ? (
             <div className="table-scroll">
               <table>
                 <caption className="an-visually-hidden">Daily totals by metric</caption>
@@ -462,26 +473,29 @@ function Trend({
   const metricId = data.series.metrics[chartMetric] ? chartMetric : "chat.messages";
   const info = metricInfo(metricId);
   const values = data.series.metrics[metricId] ?? [];
-  const bucket = data.series.bucketMs;
-  const per = bucket >= 7 * DAY ? "week" : bucket >= DAY ? "day" : formatDuration(bucket);
+  const bucket = data.series.bucketMs,
+    unit = data.series.bucketUnit;
+  const per = unit === "week" ? "week" : unit === "day" ? "day" : formatDuration(bucket);
   const multiDay = !sameDay(data.from, data.coverage.observedUntil);
   const label =
     metricId === "chat.distinct"
       ? "New chatters (first message this stream)"
       : `${info.label}${info.kind === "sample" ? " (average)" : ""}`;
   const tick = (at: number) =>
-    bucket >= DAY
-      ? shortDate.format(at)
-      : multiDay
-        ? `${new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(at)} ${formatTime(at)}`
-        : formatTime(at);
+    multiDay
+      ? `${new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(at)} ${formatTime(at)}`
+      : formatTime(at);
   const points: Point[] = data.series.buckets.map((b, i) => {
     const entry = values[i] as { value: number; peak?: number; samples: number } | null;
-    const when = bucket >= DAY ? formatDate(b.from) : `${formatMoment(b.from)}–${formatTime(b.to)}`;
+    const day = "day" in b && b.day ? b.day : undefined;
+    const when = day
+      ? `${unit === "week" ? "Week starting " : ""}${dayLabel(day, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}`
+      : `${formatMoment(b.from)}–${formatTime(b.to)}`;
     const coverageLine = `Worker running ${integer.format(b.workerMinutes)} of ${integer.format(b.expectedMinutes)} min`;
     return {
       from: b.from,
       to: b.to,
+      tick: day ? dayLabel(day, { day: "numeric", month: "short" }) : tick(b.from),
       value: entry ? entry.value : null,
       detail: entry
         ? [
@@ -506,7 +520,7 @@ function Trend({
   const missing = points.length - known.length;
   const summary = `${label} per ${per}, ${formatMoment(data.from)} to ${formatMoment(data.coverage.observedUntil)}. ${
     highest
-      ? `Highest ${formatNumber(highest.value!, info)} ${unitFor(info, highest.value)} at ${tick(highest.from)}.`
+      ? `Highest ${formatNumber(highest.value!, info)} ${unitFor(info, highest.value)} at ${highest.tick}.`
       : "No values observed."
   }${missing ? ` ${missing} of ${points.length} periods have no data.` : ""}`;
   return (
@@ -537,7 +551,6 @@ function Trend({
           shape={info.kind === "sample" ? "line" : "columns"}
           label={label}
           formatValue={(v) => formatNumber(v, info)}
-          formatTick={tick}
           summary={summary}
         />
       </figure>

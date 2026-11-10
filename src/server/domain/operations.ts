@@ -251,11 +251,11 @@ export class OperationsService {
   }
 
   /** Read-only observed history; see `readAnalytics` for the bounded result shape. */
-  analytics(from: number, to: number, stream?: string, options: { tzOffset?: number } = {}) {
+  analytics(from: number, to: number, stream?: string, options: { timeZone?: string } = {}) {
     return readAnalytics(
       this.state.db,
       this.state.repository.setting("stream_history"),
-      { from, to, stream, tzOffset: options.tzOffset },
+      { from, to, stream, timeZone: options.timeZone },
       { now: Date.now(), summaryDays: this.state.settings.summaryDays },
     );
   }

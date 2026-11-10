@@ -34,7 +34,7 @@ test("analytics shows an observed fixture stream, exports exactly the selection 
     return result.summary?.metrics.find((metric: { id: string }) => metric.id === "chat.messages")?.value;
   }).toBe(1);
 
-  const csv = await request.get(`/api/control?view=analytics&stream=${streamId}&format=csv&tz=0`);
+  const csv = await request.get(`/api/control?view=analytics&stream=${streamId}&format=csv&tz=UTC`);
   expect(csv.headers()["content-type"]).toContain("text/csv");
   expect(csv.headers()["content-disposition"]).toMatch(/^attachment; filename=kekbot-analytics-stream-\d{4}-\d{2}-\d{2}\.csv$/);
   const lines = (await csv.text()).split("\r\n");
@@ -48,6 +48,8 @@ test("analytics shows an observed fixture stream, exports exactly the selection 
   expect(before.headers()["content-disposition"]).toMatch(/kekbot-analytics-\d{4}-\d{2}-\d{2}-to-\d{4}-\d{2}-\d{2}\.csv$/);
   expect((await before.text()).split("\r\n")).toHaveLength(1);
   expect((await request.get("/api/control?view=analytics&from=10&to=5")).status()).toBe(400);
+  expect((await request.get("/api/control?view=analytics&from=9000000000000000&to=9000000000000000&format=csv")).status()).toBe(400);
+  expect((await request.get("/api/control?view=analytics&tz=Mars/Olympus")).status()).toBe(400);
   expect((await request.get("/api/control?view=analytics&stream=missing")).status()).toBe(404);
 
   await page.context().addCookies([{ name: "kekbot_session", value: cookie.split("=")[1], url: origin, httpOnly: true, sameSite: "Lax" }]);

@@ -11,6 +11,8 @@ export type Point = {
   from: number;
   to: number;
   value: number | null;
+  /** Axis label for this period. */
+  tick: string;
   /** Lines shown in the tooltip below the heading. */
   detail: string[];
 };
@@ -67,14 +69,12 @@ export function TimeChart({
   shape,
   label,
   formatValue,
-  formatTick,
   summary,
 }: {
   points: Point[];
   shape: "columns" | "line";
   label: string;
   formatValue: (value: number) => string;
-  formatTick: (at: number) => string;
   summary: string;
 }) {
   const [ref, width] = useWidth();
@@ -239,7 +239,7 @@ export function TimeChart({
                 y={HEIGHT - 10}
                 textAnchor="middle"
               >
-                {formatTick(p.from)}
+                {p.tick}
               </text>
             ) : null,
           )}
