@@ -123,7 +123,7 @@ Discord is optional. It uses signed HTTP interactions, with no Gateway connectio
 4. Configure a **Guild Install** with `bot` and `applications.commands` scopes. Give the bot **View Channel** and **Send Messages** in each intended normal text channel. Install it using your app's install link. Administrator permission is unnecessary. Thread-only channels need additional provider permissions and their own testing.
 5. In Discord user settings, enable **Advanced → Developer Mode**. Copy the server, text-channel and relevant role/user IDs via their context menus.
 6. In KekBot **Connections**, select **Add guild**. Enter the guild/channel IDs and selected events (`live`, `offline`, `alert`, `media`, `goal`, `moderation`, `engagement`). Create additional routes deliberately; only selected events go to each configured channel.
-7. Add role/user permission mappings. Lists are JSON in these two fields. For example, replacing the synthetic ID with your moderator role ID:
+7. Add role/user permission mappings under **Who can use /kekbot commands**: select **Add role grant** or **Add user grant**, paste the role/user ID and choose a permission. API callers send the same mappings as JSON. For example, with your moderator role ID in place of the synthetic one:
 
 ```json
 [{"id":"123456789012345678","permission":"media"}]
@@ -140,7 +140,7 @@ Discord requires the initial response within three seconds; KekBot verifies/comm
 
 ### Discord grant examples
 
-For a media team, grant `media` to its role in the **Roles** JSON field. For a user who can pause timers/send alerts but cannot moderate, grant only `operate` in **Users**. Repeat an ID with a different permission to grant additional capabilities. Keep IDs quoted as strings. A member with no mappings must be denied even if Discord itself permits slash-command use. Discord Administrator permission does not bypass KekBot's grant checks.
+For a media team, add a **Discord roles** row with its role ID and **Media**. For a user who can pause timers/send alerts but cannot moderate, add only an **Operate** row under **Individual Discord users**. Add another row with the same ID and a different permission to grant additional capabilities. API callers keep IDs quoted as strings. A member with no mappings must be denied even if Discord itself permits slash-command use. Discord Administrator permission does not bypass KekBot's grant checks.
 
 Use one deliberate route for each intended guild/channel combination. Routing determines both notifications and the channel where controls are allowed; a command in another channel is denied. Avoid overlapping contradictory routes. Selecting Events does not grant control permissions. After editing routes, register commands and test both allowed and denied identities again. The [action table](API_ACTIONS.md) lists precisely which operations are available through slash commands.
 
