@@ -6,7 +6,7 @@ import { basename } from "node:path";
 const files = [...new Set(execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], {
   encoding: "utf8", windowsHide: true
 }).split("\0").filter(Boolean))];
-const privateDirectory = /(?:^|\/)(?:data|backups|secrets|proof-captures|\.ssh|\.config|\.next|node_modules|test-results|playwright-report|output|coverage|__pycache__|\.codex|\.vscode|\.idea|\.playwright-cli)(?:\/|$)/i;
+const privateDirectory = /(?:^|\/)(?:data|backups|secrets|proof-captures|\.ssh|\.config|\.next|node_modules|test-results|playwright-report|output|coverage|__pycache__|\.claude|\.codex|\.vscode|\.idea|\.playwright-cli)(?:\/|$)/i;
 const privateName = /^(?:kick-client-(?:id|secret)|kick-creator\.json|kick-live-evidence\.json|restore-evidence\.json|live-recovery-paths\.json|workload-driver\.json|workload-report\.json|KekBot-Test-Setup\.md)$/i;
 const privateExtension = /\.(?:env|key|pem|token|p12|pfx|db|capture|enc|pub|pyc|tsbuildinfo|log|zip|tar|tar\.gz|tgz|7z)$|\.sqlite[^/]*$/i;
 const privateKey = /-----BEGIN (?:OPENSSH|RSA|EC|DSA|ENCRYPTED|PGP)? ?PRIVATE KEY(?: BLOCK)?-----/;

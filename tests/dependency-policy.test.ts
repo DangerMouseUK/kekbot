@@ -2,7 +2,9 @@ import { expect, it } from "vitest";
 import { dependencyPolicy, validateDependencyReview, dependencyBlockers } from "../scripts/dependency-policy.mjs";
 import { auditSummary, imageSummary, reviewDependencies } from "../scripts/dependency-review.mjs";
 import { bracesRemediation, verifyBracesRemediation } from "../scripts/dependency-patches.mjs";
-import { readFileSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 
 const sourceRef = "a".repeat(40), imageDigest = `sha256:${"b".repeat(64)}`;
 const review = () => ({ format: "kekbot-dependency-review", version: 1, candidate: { sourceRef, imageDigest }, reviews: Object.fromEntries(["application", "tooling", "image", "licenses"].map(name => [name, { outcome: "pass", date: "2026-10-08", reference: "docs/DEPENDENCY_MAINTENANCE.md#review-record" } as { outcome: string; date: string | null; reference: string | null }])) });
@@ -12,6 +14,21 @@ it("validates current exact pins and requires a complete identity-bound release 
   expect(dependencyBlockers(record, "c".repeat(40), imageDigest)).toContain("dependency_source_mismatch");
   expect(dependencyBlockers(record, sourceRef, `sha256:${"d".repeat(64)}`)).toContain("dependency_image_mismatch");
   delete record.reviews.tooling; expect(() => validateDependencyReview(record)).toThrow("invalid_dependency_review");
+});
+it("requires one Node version across the version file, manifest, both digest-pinned stages, image env and notice gate", () => {
+  const root = mkdtempSync(join(tmpdir(), "kekbot-node-pin-"));
+  try {
+    const files = [".node-version", ".npmrc", "package.json", "Dockerfile", ".github/workflows/ci.yml", "scripts/runtime-notices.mjs"];
+    const reset = () => { for (const file of files) { mkdirSync(join(root, file, ".."), { recursive: true }); cpSync(file, join(root, file)); } };
+    const mutate = (file: string, from: RegExp, to: string) => { const before = readFileSync(join(root, file), "utf8"), after = before.replace(from, to); expect(after).not.toBe(before); writeFileSync(join(root, file), after); };
+    reset(); expect(dependencyPolicy(root)).toEqual([]);
+    const node = readFileSync(".node-version", "utf8").trim();
+    mutate(".node-version", /.+/, "24.0.0"); expect(dependencyPolicy(root)).toEqual(expect.arrayContaining(["node_pin_mismatch", "node_image_pin_mismatch", "node_runtime_pin_mismatch"]));
+    reset(); mutate("Dockerfile", /NODE_VERSION=\S+/, "NODE_VERSION=24.0.0"); expect(dependencyPolicy(root)).toEqual(["node_runtime_pin_mismatch"]);
+    reset(); mutate("scripts/runtime-notices.mjs", /"v[^"]+"/, `"v${node}-unreviewed"`); expect(dependencyPolicy(root)).toEqual(["node_runtime_pin_mismatch"]);
+    reset(); mutate("Dockerfile", /@sha256:[a-f0-9]{64}( AS runtime-files)/, "$1"); expect(dependencyPolicy(root)).toEqual(["node_image_pin_mismatch"]);
+    reset(); mutate("Dockerfile", /@sha256:[a-f0-9]{64}( AS runtime-files)/, `@sha256:${"0".repeat(64)}$1`); expect(dependencyPolicy(root)).toEqual(["node_image_pin_mismatch"]);
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 it("fails closed on missing, impossible or undated evidence and refuses private extra fields", () => {
   const record = review(); record.reviews.application.date = "2026-02-31";
