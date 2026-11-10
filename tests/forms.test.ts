@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { configSchemas, type Kind } from "../src/server/domain/catalog.ts";
+import {
+  configSchemas,
+  widgetAccents,
+  widgetThemes,
+  type Kind,
+} from "../src/server/domain/catalog.ts";
 import { renderTemplate as serverRender } from "../src/server/domain/presentation.ts";
 import { examples } from "../src/app/forms/examples.ts";
 import { describeServerError } from "../src/app/forms/errors.ts";
@@ -177,6 +182,61 @@ describe("schema-driven validation", () => {
       for (const field of sections.flatMap((section) => section.fields))
         expect(keys, kind).toContain(field.key);
     }
+  });
+
+  it("gives every widget field a control and shows type-specific options only where they apply", () => {
+    const sections = layouts.widget;
+    const fields = sections.flatMap((section) => section.fields);
+    expect(fields.map((field) => field.key).sort()).toEqual(
+      Object.keys(configSchemas.widget.shape).sort(),
+    );
+    const field = (key: string) => fields.find((spec) => spec.key === key)!;
+    const shown = (key: string, type: string, extra: Record<string, unknown> = {}) => {
+      const data = { ...examples.widget, type, ...extra };
+      const section = sections.find((candidate) => candidate.fields.includes(field(key)))!;
+      return (section.visible?.(data) ?? true) && (field(key).visible?.(data) ?? true);
+    };
+    const options = (key: string) => {
+      const control = field(key).control;
+      return control.type === "select" ? control.options.map((option) => option.value) : [];
+    };
+    expect(options("theme")).toEqual([...widgetThemes]);
+    expect(options("accent")).toEqual([...widgetAccents]);
+    for (const key of [
+      "theme",
+      "accent",
+      "fontScale",
+      "align",
+      "backdrop",
+      "layout",
+      "reducedMotion",
+    ])
+      for (const type of ["alerts", "chat", "status", "socials"])
+        expect(shown(key, type), `${key}/${type}`).toBe(true);
+    expect(shown("shoutoutSeconds", "shoutout")).toBe(true);
+    expect(shown("shoutoutSeconds", "alerts")).toBe(false);
+    expect(shown("chatFadeSeconds", "chat")).toBe(true);
+    expect(shown("chatFadeSeconds", "queue")).toBe(false);
+    expect(shown("endText", "countdown")).toBe(true);
+    expect(shown("endText", "counter")).toBe(false);
+    for (const key of ["showUptime", "showViewers"]) {
+      expect(shown(key, "status")).toBe(true);
+      expect(shown(key, "chat")).toBe(false);
+    }
+    expect(shown("showEmpty", "queue")).toBe(true);
+    expect(shown("showEmpty", "alerts")).toBe(false);
+    expect(shown("showEmpty", "shoutout")).toBe(false);
+    expect(shown("title", "queue")).toBe(true);
+    expect(shown("title", "queue", { showTitle: false })).toBe(false);
+    expect(shown("title", "chat")).toBe(false);
+    expect(shown("showDetails", "counter")).toBe(false);
+  });
+
+  it("starts new widgets with friendlier values than the upgrade-safe schema defaults", () => {
+    const defaults = configSchemas.widget.parse({ name: "Legacy", type: "shoutout" });
+    expect(defaults).toMatchObject({ showEmpty: false, shoutoutSeconds: 0 });
+    expect(examples.widget).toMatchObject({ showEmpty: true, shoutoutSeconds: 20 });
+    expect(validate("widget", examples.widget)).toEqual({});
   });
 
   it("mirrors the server's trigger conflict rules", () => {

@@ -239,18 +239,4 @@ meter { width: 100%; }
 @media (max-width: 850px) { .app-shell { grid-template-columns: minmax(0, 1fr); } :where(.app-shell) aside { min-width: 0; position: sticky; top: 0; z-index: 10; border-right: 0; border-bottom: 1px solid #34443a; padding: 10px 12px 8px; } :where(.app-shell) .aside-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; } :where(.app-shell) .brand { padding: 0; font-size: 22px; } :where(.app-shell) .brand span { display: none; } :where(.app-shell) .who { display: flex; align-items: center; gap: 10px; padding: 0; } :where(.app-shell) .identity { margin: 0; font-size: 14px; text-align: right; } :where(.app-shell) nav { display: flex; flex-wrap: nowrap; min-width: 0; max-width: 100%; overflow-x: auto; gap: 4px; margin-top: 8px; padding-bottom: 4px; scrollbar-width: thin; } :where(.app-shell) nav button { flex: 0 0 auto; min-height: 38px; padding: 6px 10px; } :where(.app-shell) .workspace { padding: 20px 16px; } :where(.app-shell) section { padding: 16px; } :where(.app-shell) .notice { top: 112px; } :where(.app-shell) .checklist li { grid-template-columns: 28px minmax(0, 1fr); } :where(.app-shell) .checklist li > button { grid-column: 2; justify-self: start; } :where(.app-shell) .work-list li, :where(.app-shell) .chat-list li, :where(.app-shell) .incident-list li, :where(.app-shell) .token-list li { flex-wrap: wrap; } :where(.app-shell) .results li { grid-template-columns: minmax(0, 1fr) auto; } :where(.app-shell) .results .bar { grid-column: 1 / -1; grid-row: 2; } }
 @media (max-width: 480px) { :where(.app-shell) .identity span { display: none; } :where(.app-shell) .copy-row { flex-wrap: wrap; } :where(.app-shell) .copy-row button { flex: 1; } }
 
-html:has(.widget-root) { background: transparent; }
-.widget-root { --widget-bg: #10251ee8; --widget-text: #f1fff4; --widget-accent: #83db9d; color: var(--widget-text); padding: 12px; box-sizing: border-box; font-size: 24px; }
-.widget-root[data-theme=midnight] { --widget-bg: #10162be8; --widget-text: #f1f4ff; --widget-accent: #b2baff; }
-.widget-root[data-theme=paper] { --widget-bg: #fffaf0eb; --widget-text: #262b29; --widget-accent: #315d41; color-scheme: light; }
-.widget-root article, .widget-root section { background: var(--widget-bg); color: var(--widget-text); border-color: var(--widget-accent); margin: 8px 0; }
-.widget-root h2, .widget-root h3 { margin: 5px 0; }
-.widget-root img { max-height: 180px; max-width: 100%; object-fit: contain; }
-.widget-root progress { width: 100%; accent-color: var(--widget-accent); }
-.widget-status { font-size: 14px; padding: 8px 12px; background: var(--widget-bg); border-radius: 6px; }
-.youtube-frame { width: 100%; min-width: 200px; min-height: 200px; aspect-ratio: 16 / 9; }
-.widget-root[data-motion=false] .alert-fade { animation: alert-fade .3s ease-out; }
-.widget-root[data-motion=false] .alert-slide { animation: alert-slide .3s ease-out; }
-@keyframes alert-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes alert-slide { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
