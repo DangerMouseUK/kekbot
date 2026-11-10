@@ -82,7 +82,7 @@ The [interactive installer](INSTALLER.md) supports repository branches, PR heads
 
 | Component | Supported candidate |
 | --- | --- |
-| Node.js / pnpm | 24.21.0 / 10.26.0; exact CI pins in `.node-version` and `package.json` |
+| Node.js / pnpm | 24.22.1 / 10.26.0; exact CI pins in `.node-version` and `package.json` |
 | Next.js / React | 16.4.5 / 19.3.0 on development `main`; published beta 4 uses 16.3.8 / 19.3.0 |
 | Production host | Linux x86-64, local persistent disk, one app replica; 2 vCPU / 2 GiB reference runtime target still unmeasured |
 | Windows/macOS | Documented Docker Desktop container path; native distribution not supported |

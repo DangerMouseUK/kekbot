@@ -17,7 +17,7 @@ it("packages only committed public source, verifies identity/checksums and refus
   const prepare = () => spawnSync(process.execPath, ["scripts/release-package.mjs", "--source-only"], { cwd: root, encoding: "utf8", windowsHide: true });
   try {
     mkdirSync(join(root, "scripts")); mkdirSync(join(root, "docs"));
-    for (const name of ["release-package", "image-audit", "release-policy", "check-publication", "check-dependencies", "dependency-policy"]) cpSync(`scripts/${name}.mjs`, join(root, `scripts/${name}.mjs`));
+    for (const name of ["release-package", "image-audit", "release-policy", "check-publication", "check-dependencies", "dependency-policy", "runtime-notices"]) cpSync(`scripts/${name}.mjs`, join(root, `scripts/${name}.mjs`));
     cpSync("docs/release-evidence.json", join(root, "docs/release-evidence.json"));
     cpSync("package.json", join(root, "package.json"));
     cpSync("docs/dependency-review.json", join(root, "docs/dependency-review.json"));

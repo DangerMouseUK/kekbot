@@ -19,7 +19,7 @@ For image changes, read [runtime packaging](docs/RUNTIME_IMAGE.md). The applicat
 
 ## Start with an isolated development setup
 
-Follow the [fixture quickstart](docs/QUICKSTART.md). Use Node.js **24.21.0**, pnpm **10.26.0** and the frozen lockfile. No provider account, private dependency or maintainer credential is needed. Never use live grants for development/CI.
+Follow the [fixture quickstart](docs/QUICKSTART.md). Use Node.js **24.22.1**, pnpm **10.26.0** and the frozen lockfile. No provider account, private dependency or maintainer credential is needed. Never use live grants for development/CI.
 
 Install Python 3.10+ and Bash as well for `pnpm check`'s offline host-lifecycle tests (`python` on Windows, `python3` elsewhere). Git for Windows supplies Bash; without it, launcher contracts are explicitly skipped locally and must pass Linux CI. No pip dependencies are needed. Real root/daemon installation flows run only against isolated Linux CI fixtures, not your creator data.
 
