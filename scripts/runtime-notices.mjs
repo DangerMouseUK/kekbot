@@ -14,7 +14,7 @@ export function runtimePackages(database) {
   return packages.sort((a, b) => a.name.localeCompare(b.name));
 }
 export function writeRuntimeNotices(root, nodeLicense, legal) {
-  if (process.version !== "v24.21.0") throw new Error("unreviewed_node_runtime");
+  if (process.version !== "v24.22.1") throw new Error("unreviewed_node_runtime");
   for (const [name, hash] of Object.entries({ "musl-COPYRIGHT": "b870108ec5e7790e9f9919064f1b9421d62d5f9b0e6c230c6adf7ea2da62e97b", "GCC-COPYING3": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903", "GCC-RUNTIME-EXCEPTION": "9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74" })) if (createHash("sha256").update(readFileSync(join(legal, name))).digest("hex") !== hash) throw new Error("modified_upstream_runtime_notice");
   const packages = runtimePackages(readFileSync(join(root, "lib/apk/db/installed"), "utf8"));
   const destination = join(root, "app/THIRD_PARTY_LICENSES/runtime");
