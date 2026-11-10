@@ -207,7 +207,8 @@ export class BotService {
       return this.presentation.alert(
         "manual",
         {
-          user: actor.id,
+          // `{user}` is shown on stream; never expose an account, API or Discord identifier there.
+          user: "",
           text: z.string().min(1).max(500).parse(input.reason),
           name: String(input.reason),
         },

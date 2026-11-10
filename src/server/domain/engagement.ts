@@ -74,7 +74,7 @@ export class EngagementService {
       this.state.db.prepare("UPDATE redemptions SET status=? WHERE id=? AND status='pending'").run(result === "complete" ? "completed" : "refunded", id);
       if (result === "reject") this.state.db.prepare("INSERT INTO ledger(id,viewer,amount,reason,at) VALUES(?,?,?,?,?)").run(`refund:${id}`, row.viewer, row.cost, "reward_refund", Date.now());
       const reward = this.state.document(row.reward);
-      if (result === "complete" && reward?.data.fulfillment === "alert") new PresentationService(this.state).alert("manual", { name: String(reward.data.name), text: String(reward.data.description), user: row.viewer }, `reward:${id}`);
+      if (result === "complete" && reward?.data.fulfillment === "alert") /* {user} is shown on stream: use the observed name, never the numeric viewer ID. */ this.state.repository.withViewers([row.viewer], () => new PresentationService(this.state).alert("manual", { name: String(reward.data.name), text: String(reward.data.description), user: this.state.viewerName(row.viewer) ?? "a viewer" }, `reward:${id}`));
       this.state.observe(`fulfillment:${id}`, `rewards.${result}`);
       this.state.audit(actor.id, `reward.${result}`, id);
       return { status: result === "complete" ? "completed" : "refunded" };
