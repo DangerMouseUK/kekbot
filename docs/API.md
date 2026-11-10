@@ -37,7 +37,7 @@ Owner API tokens are separate, individually named, shown once and stored hashed.
 | `operate` | `status`, `timers.pause/resume`, `alert.manual`, `goal.adjust` |
 | `moderate` | `moderation.warn/delete/timeout/ban/pause/resume/bulk/test/incident.start/incident.stop`; moderator notes additionally use `configure` for API editing |
 | `media` | Request/approve/reject/remove/reorder/clear; player pause/resume/skip/volume |
-| `engage` | Points adjustments, reward complete/reject, activity close, raffle draw/reroll |
+| `engage` | Points adjustments, reward complete/reject/pending list, poll/raffle creation (at most 10 open) and poll results, activity close, raffle draw/reroll |
 
 The API adapter permits a bounded action allowlist and dispatches into the same control/domain services as the dashboard. It does not accept arbitrary provider URLs or executable templates. Authorization also runs inside domain services: an API action mapped to one scope may need another scope for its target document (for example notes). Use the narrow combined scopes required by your integration.
 
@@ -157,6 +157,8 @@ Fixtures create signing keys and credentials at runtime in isolated ignored stor
 
 ## Media history reads
 
+`GET /api/control?view=viewers&q=…` requires a current dashboard session and returns up to 20 observed viewers whose name contains `q` (wildcards are literal) or whose Kick user ID equals `q`, newest first, with their points balance. `q` is at most 50 characters; an empty `q` lists the most recent. Erased viewers are omitted. It reads data the session can already see in the snapshot and grants no mutation authority.
+
 `GET /api/control?view=media-history` requires a current dashboard session. `GET /api/v1/control?view=media-history` requires an owner API token with `read` scope. Both are uncached. Optional `limit` is an integer 1-100 (default 50); optional `cursor` is the opaque `nextCursor` from the preceding response. Invalid limits/cursors return 400.
 
 The response is `{ "items": [...], "nextCursor": "..." }`, with null at the end; the versioned endpoint also returns `version: 1`. Items are terminal requests, newest first, ordered by creation time then ID. Use the cursor unchanged to fetch older items, or omit it to refresh the newest page. New arrivals do not shift an existing cursor boundary. This is pagination, not a frozen historical export.
@@ -169,4 +171,6 @@ Use `GET /api/control?view=uncertain-jobs` or `?view=pending-redemptions` with a
 
 Both return `{ "items": [...], "nextCursor": "..." }` with null at the end; the versioned endpoint adds `version: 1`. Items are ordered by creation time then ID, newest first. Job items contain `id`, `kind`, `status`, `attempts`, `error`, `createdAt`; redemption items contain `id`, `viewer`, `reward`, `cost`, `status`, `createdAt`. Job payloads/credentials are excluded. Cursors are page boundaries, not frozen exports: newly resolved work disappears and new arrivals appear on a fresh first page.
 
-Dashboard snapshots expose first pages as `uncertainJobs` and `pendingRedemptions`, each with the same response shape. Existing `jobs` and `redemptions` remain recent lists limited to 100 and must not be used as exhaustive actionable queues. Browse subsequent pages to discover all outstanding work. Reads grant no reconciliation or fulfillment authority: `job.resolve` remains owner-only, while reward decisions require `engage`.
+Dashboard snapshots expose first pages as `uncertainJobs` and `pendingRedemptions`, each with the same response shape. Redemption rows also carry `viewerName` and `rewardName` when known.
+
+Snapshots also carry read-only display fields: `media[].requesterName`, `leaderboard[].name`, `redemptions[].viewerName`/`rewardName`, `incidents[].viewerName`/`ruleName`/`messageId`, `audit[].actorLabel`/`targetName`/`mediaTitle`/`viewerName`, `raffleWinners`, `timers` (each timer's next scheduled check, chat messages still needed and latest queued send) and `stream` (`live`, `startedAt`). `audit[].actorLabel` and `media[].requesterName` show an account username only to an owner session; other sessions and API tokens see a role such as "a moderator". Actors without `moderate` receive `null` for `incidents[].messageId` and for `audit[].targetName` when the target is a moderator note. `recentChat` lists the latest 50 inspected chat messages only for actors with `moderate`, and is empty otherwise. Existing `jobs` and `redemptions` remain recent lists limited to 100 and must not be used as exhaustive actionable queues. Browse subsequent pages to discover all outstanding work. Reads grant no reconciliation or fulfillment authority: `job.resolve` remains owner-only, while reward decisions require `engage`.

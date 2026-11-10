@@ -10,6 +10,7 @@ import { PresentationService } from "./presentation.ts";
 import { ModerationService, type ChatMessage } from "./moderation.ts";
 import { AutomationService } from "./automation.ts";
 import { OperationsService } from "./operations.ts";
+import { configSchemas } from "./catalog.ts";
 
 export class BotService {
   readonly state: State;
@@ -117,22 +118,37 @@ export class BotService {
     if (action === "status") {
       if (actor.id.startsWith("discord:") && !actor.permissions.length)
         throw new AppError("discord_permission_denied", 403);
+      const settings = this.state.settings;
+      const incident = JSON.parse(this.state.repository.setting("incident_mode") ?? "null") as {
+        preset: string;
+        endsAt: number;
+      } | null;
       return {
         stream: this.state.repository.setting("stream_is_live") ?? "unavailable",
-        player: { state: this.media.player.state, version: this.media.player.version },
+        player: {
+          state: this.media.player.state,
+          version: this.media.player.version,
+          volume: this.media.player.volume,
+        },
         jobs: this.state.repository.diagnostics().jobs,
-        ...(this.state.settings.mediaEnabled &&
+        timersPaused: settings.timersPaused,
+        moderationPaused: settings.moderationPaused,
+        incidentMode: incident && incident.endsAt > Date.now() ? incident : null,
+        mediaEnabled: settings.mediaEnabled,
+        ...(settings.mediaEnabled &&
         (!actor.id.startsWith("discord:") || actor.permissions.includes("media"))
           ? {
               requests: this.state.db
                 .prepare(
-                  "SELECT id,title,status,version FROM media WHERE status IN ('pending','approved','playing') ORDER BY position LIMIT 8",
+                  "SELECT id,title,status,position,version FROM media WHERE status IN ('pending','approved','playing') ORDER BY position LIMIT 8",
                 )
                 .all(),
             }
           : {}),
       };
     }
+    const extended = this.extended(actor, action, input, id);
+    if (extended !== undefined) return extended;
     if (action === "moderation.pause" || action === "moderation.resume") {
       this.state.assertActor(actor, "moderate");
       this.state.db
@@ -244,8 +260,197 @@ export class BotService {
       );
     if (action === "activity.close")
       return this.engagement.close(actor, target) ?? { closed: true };
-    if (action === "raffle.draw" || action === "raffle.reroll")
-      return this.engagement.draw(actor, target, action === "raffle.reroll");
+    if (action === "raffle.draw" || action === "raffle.reroll") {
+      const reroll = action === "raffle.reroll";
+      if (input.version === undefined) return this.engagement.draw(actor, target, reroll);
+      // A rendered control (for example a Discord button) acts only on the version it showed.
+      const version = z.number().int().positive().parse(input.version);
+      this.state.assertActor(actor, "engage");
+      return this.state.db
+        .transaction(() => {
+          const doc = this.state.document(target);
+          if (!doc || doc.kind !== "raffle") throw new AppError("raffle_not_found", 404);
+          if (doc.version !== version) throw new AppError("raffle_changed_reload", 409);
+          return this.engagement.draw(actor, target, reroll);
+        })
+        .immediate();
+    }
     throw new AppError("unknown_operation", 400);
+  }
+
+  /** Queue views and engagement shortcuts used by Discord and the integration API. */
+  private extended(actor: Actor, action: string, input: Record<string, unknown>, id: string) {
+    const db = this.state.db;
+    switch (action) {
+      case "media.queue": {
+        this.state.assertActor(actor, "media");
+        const player = this.media.player;
+        const items = db
+          .prepare(
+            "SELECT id,title,requester,duration,status,position,version FROM media WHERE status IN ('validating','pending','approved','playing') ORDER BY CASE status WHEN 'playing' THEN 0 ELSE 1 END,position,created_at,id LIMIT 25",
+          )
+          .all() as { requester: string }[];
+        const total = db
+          .prepare(
+            "SELECT count(*) AS n FROM media WHERE status IN ('validating','pending','approved','playing')",
+          )
+          .get() as { n: number };
+        return {
+          player: {
+            state: player.state,
+            volume: player.volume,
+            current: player.current,
+            version: player.version,
+          },
+          items: items.map((item) => ({
+            ...item,
+            requesterName: this.state.viewerName(item.requester) ?? null,
+          })),
+          total: total.n,
+        };
+      }
+      case "media.move": {
+        this.state.assertActor(actor, "media");
+        const target = z.string().min(1).max(200).parse(input.target);
+        const position = z.number().int().min(1).max(500).parse(input.position);
+        return db
+          .transaction(() => {
+            const order = (
+              db
+                .prepare(
+                  "SELECT id FROM media WHERE status='approved' ORDER BY position,created_at,id",
+                )
+                .all() as { id: string }[]
+            ).map((row) => row.id);
+            const item = this.media.item(target);
+            if (!item || !order.includes(target)) throw new AppError("media_not_waiting", 409);
+            if (input.version !== undefined && item.version !== input.version)
+              throw new AppError("media_changed_reload", 409);
+            order.splice(order.indexOf(target), 1);
+            order.splice(Math.min(position - 1, order.length), 0, target);
+            this.media.reorder(actor, order);
+            return { item: this.media.item(target)!, total: order.length };
+          })
+          .immediate();
+      }
+      case "media.clear": {
+        this.state.assertActor(actor, "media");
+        if (input.acknowledge !== true)
+          throw new AppError("operator_acknowledgement_required", 409);
+        return db
+          .transaction(() => {
+            const removed = db
+              .prepare(
+                "SELECT count(*) AS n FROM media WHERE status IN ('validating','pending','approved')",
+              )
+              .get() as { n: number };
+            this.media.clear(actor);
+            return { cleared: true, removed: removed.n };
+          })
+          .immediate();
+      }
+      case "goal.list": {
+        this.state.assertActor(actor, "operate");
+        return {
+          goals: this.state
+            .list("goal")
+            .slice(0, 25)
+            .map((goal) => ({ id: goal.id, version: goal.version, ...goal.data })),
+        };
+      }
+      case "poll.create":
+      case "raffle.create": {
+        this.state.assertActor(actor, "engage");
+        const kind = action === "poll.create" ? "poll" : "raffle";
+        const minutes = z
+          .number()
+          .int()
+          .min(1)
+          .max(1440)
+          .parse(input.minutes ?? 5);
+        const fields =
+          kind === "poll"
+            ? { name: input.name, options: input.options, allowChange: input.allowChange ?? false }
+            : { name: input.name, minPoints: input.minPoints ?? 0 };
+        const data = configSchemas[kind]
+          .strict()
+          .parse({ ...fields, endsAt: Date.now() + minutes * 60000 });
+        // Derived from the request/interaction ID so a retried request cannot create a duplicate.
+        const document = this.state.createActivity(actor, kind, `${kind}-${id}`, data);
+        this.state.emit(kind, { id: document.id });
+        return document;
+      }
+      case "poll.results": {
+        this.state.assertActor(actor, "engage");
+        const doc = this.state.document(z.string().max(100).parse(input.target));
+        if (!doc || doc.kind !== "poll") throw new AppError("poll_not_found", 404);
+        const poll = configSchemas.poll.parse(doc.data);
+        const counts = new Map(
+          (
+            db
+              .prepare(
+                "SELECT choice,count(*) AS n FROM participation WHERE activity=? GROUP BY choice",
+              )
+              .all(doc.id) as { choice: string; n: number }[]
+          ).map((row) => [row.choice, row.n]),
+        );
+        return {
+          id: doc.id,
+          name: poll.name,
+          status: poll.endsAt <= Date.now() ? "closed" : poll.status,
+          endsAt: poll.endsAt,
+          options: poll.options.map((option, index) => ({
+            option,
+            votes: counts.get(String(index + 1)) ?? 0,
+          })),
+        };
+      }
+      case "reward.pending": {
+        this.state.assertActor(actor, "engage");
+        const rows = db
+          .prepare(
+            "SELECT id,viewer,reward,cost,created_at AS createdAt FROM redemptions WHERE status='pending' ORDER BY created_at,id LIMIT 25",
+          )
+          .all() as {
+          id: string;
+          viewer: string;
+          reward: string;
+          cost: number;
+          createdAt: number;
+        }[];
+        const total = db
+          .prepare("SELECT count(*) AS n FROM redemptions WHERE status='pending'")
+          .get() as { n: number };
+        return {
+          items: rows.map((row) => ({
+            ...row,
+            rewardName: String(this.state.document(row.reward)?.data.name ?? "Removed reward"),
+            viewerName: this.state.viewerName(row.viewer) ?? null,
+          })),
+          total: total.n,
+        };
+      }
+      case "points.lookup": {
+        this.state.assertActor(actor, "engage");
+        const viewer = z
+          .string()
+          .regex(/^\d{1,24}$/)
+          .parse(input.viewer);
+        const row = db
+          .prepare(
+            "SELECT watch_minutes AS watchMinutes,last_seen AS lastSeen FROM viewers WHERE id=?",
+          )
+          .get(viewer) as { watchMinutes: number; lastSeen: number } | undefined;
+        return {
+          viewer,
+          name: this.state.viewerName(viewer) ?? null,
+          balance: this.engagement.balance(viewer),
+          watchMinutes: row?.watchMinutes ?? 0,
+          lastSeen: row?.lastSeen ?? null,
+          pointsEnabled: this.state.settings.pointsEnabled,
+        };
+      }
+    }
+    return undefined;
   }
 }

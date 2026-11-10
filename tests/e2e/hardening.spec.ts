@@ -77,7 +77,7 @@ test("an owner-granted admin can invite a reader through the UI without delegati
     expect(await page.getByLabel("Role").locator("option").allTextContents()).not.toContain("Moderator");
     await expect(page.getByRole("button", { name: "Revoke sessions" })).toHaveCount(0);
     await page.getByRole("button", { name: "Create one-day invitation" }).click();
-    await expect(page.getByRole("status")).toContainText('"token"');
+    await expect(page.getByLabel("Invitation token")).toHaveValue(/^[A-Za-z0-9_-]{20,}$/);
     expect((await operation(context.request, adminCsrf, "account.invite", { role: "moderator" })).status()).toBe(403);
     expect((await operation(context.request, adminCsrf, "account.invite", { role: "admin", permissions: ["invite"] })).status()).toBe(403);
   } finally { await context.close(); }
@@ -112,7 +112,7 @@ test("all dashboard panels pass axe checks, keyboard navigation and responsive l
   await incident.getByLabel("Incident preset").selectOption("links");
   await incident.getByLabel("I have reviewed the temporary warning rules").check();
   await incident.getByRole("button", { name: "Start incident mode" }).click();
-  await expect(page.getByText(/links preset active until/)).toBeVisible();
+  await expect(page.getByText(/Links preset active/)).toBeVisible();
   await page.getByRole("button", { name: "Stop incident mode" }).click();
   await expect(page.getByText(/No temporary preset active/)).toBeVisible();
   expect(await page.evaluate(() => Reflect.get(globalThis, "__kekbotXss"))).toBeUndefined();

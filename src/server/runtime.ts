@@ -211,7 +211,7 @@ export class Runtime {
         const input = JSON.parse(job.payload);
         await this.bot.media.validate(input.id, Boolean(input.moderator));
       } else if (job.kind === "discord.send") {
-        await this.discord.send(JSON.parse(job.payload));
+        await this.discord.send(JSON.parse(job.payload), job.id);
       } else if (job.kind === "discord.interaction") {
         await this.discord.execute(job, (actor, name, input, id) =>
           this.bot.action(actor, name, input, id),

@@ -7,7 +7,8 @@ import {
 } from "../src/server/domain/catalog.ts";
 import { renderTemplate as serverRender } from "../src/server/domain/presentation.ts";
 import { examples } from "../src/app/forms/examples.ts";
-import { describeServerError } from "../src/app/forms/errors.ts";
+import { describeServerError, problemFromError } from "../src/app/forms/errors.ts";
+import { ControlError } from "../src/app/ui.tsx";
 import { grantRowErrors, grantsToRows, rowsToGrants } from "../src/app/forms/grants.ts";
 import { layouts, normalizeDomain, normalizeTrigger } from "../src/app/forms/layouts.ts";
 import { bounds, crossChecks, validate } from "../src/app/forms/schema.ts";
@@ -338,5 +339,33 @@ describe("previews and server errors", () => {
     expect(describeServerError("something_new", "widget").summary).toBe(
       "Saving failed (something new).",
     );
+  });
+
+  it("reads the code and fields from the dashboard's ControlError, not its plain-English message", () => {
+    const conflict = problemFromError(
+      new ControlError("configuration_changed_reload", [], 409),
+      "command",
+    );
+    expect(conflict.conflict).toBe(true);
+    expect(conflict.summary).toMatch(/Reload the latest values/);
+    expect(
+      problemFromError(new ControlError("invalid_input", ["trigger", "aliases.1"]), "command")
+        .fields,
+    ).toEqual({
+      trigger: expect.any(String),
+      aliases: expect.any(String),
+    });
+    expect(
+      problemFromError(new ControlError("command_trigger_conflict", [], 409), "command").fields
+        .trigger,
+    ).toBeTruthy();
+    // Codes the form has no special handling for keep the dashboard's own wording.
+    const other = new ControlError("runtime_unavailable", [], 503);
+    expect(problemFromError(other, "widget").summary).toBe(other.message);
+    // Plain errors (e.g. a discarded result after a session change) pass through unchanged.
+    expect(
+      problemFromError(new Error("Your session changed, so this result was discarded."), "command")
+        .summary,
+    ).toBe("Your session changed, so this result was discarded.");
   });
 });

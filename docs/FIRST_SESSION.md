@@ -22,7 +22,7 @@ Fixture installations simulate effects. On a live installation, the command and 
 
 ## 1. Check the starting state
 
-Sign in at the exact configured origin. **Control room** should show a working worker. Open **Maintenance → Diagnostics** and check storage/worker errors before adding features. Owner-only **Connections** should show the expected integrations. “Offline” or “unavailable” stream state can be correct for a channel that has not streamed.
+Sign in at the exact configured origin. **Control room** should show **Background work: Running**, and its **Setup checklist** links to each step below. Open **Maintenance → Diagnostics** and check storage/worker errors before adding features. Owner-only **Connections** should show the expected integrations. “Offline” or “unavailable” stream state can be correct for a channel that has not streamed.
 
 For live use, finish [Kick setup](PROVIDERS.md#kick) first. Confirm the authorized account is the creator whose chat you intend to serve. A developer application's display name does not choose the reply sender.
 
@@ -56,7 +56,7 @@ No message is due immediately. A stream-only timer waits for observed live state
 1. In **Alerts → Add alert**, create an enabled alert with **Show this alert for** set to **Manual alert or reward**, **Alert text** `{text}` (the `{text}` insert button adds it), **Show for** 5 seconds and **Priority** 0.
 2. Choose **Preview without delivery** to inspect a synthetic preview.
 3. In **Widgets → Add widget**, create an enabled widget with **What it shows** set to **Alerts**. Choose theme/dimensions; 800 × 400 is a starting point.
-4. Save and choose **Create OBS source URL**. Copy the private URL shown once into an OBS Browser Source, with matching dimensions.
+4. Save and choose **Create OBS source URL** on its card. Select **Copy** next to the private URL (it is shown once), paste it into an OBS Browser Source and use the width and height shown on the card. The card also shows a live preview.
 5. In **Alerts**, send a manual alert with text such as `Presentation check`. It should appear in the source. A configured Discord alert route will also receive this live event.
 
 Preview is pure; sending a manual alert changes live history. Optional assets require an owner: choose an uploaded file in the alert's **Image**/**Sound** lists, or use **Upload a new image**/**Upload a new sound** in the form. Check [OBS](OBS.md) for audio, source tokens, supported types and recovery.

@@ -55,4 +55,188 @@ meter { width: 100%; }
 .auth-page { max-width: 500px; }
 @media (max-width: 850px) { .app-shell { grid-template-columns: 1fr; } aside { border-right: 0; border-bottom: 1px solid #34443a; padding: 18px; } .brand { padding-bottom: 12px; } nav { display: flex; flex-wrap: wrap; } .identity { margin: 12px; } .workspace { padding: 24px 16px; } header { flex-wrap: wrap; } section { padding: 18px; } }
 
+/* Dashboard shell. :where() keeps specificity unchanged and keeps these rules off OBS widget pages. */
+:where(.app-shell) h2 { font-size: 22px; margin: 0 0 12px; }
+:where(.app-shell) h3 { font-size: 17px; margin: 18px 0 8px; }
+:where(.app-shell) h4 { font-size: 15px; margin: 12px 0 6px; }
+:where(.app-shell) section { margin-top: 24px; padding: 24px; border: 1px solid #34443a; border-radius: 12px; background: #18201b; }
+:where(.app-shell) label { display: block; font-weight: 600; }
+:where(.app-shell) input { box-sizing: border-box; width: 100%; margin-top: 12px; padding: 12px; color: inherit; background: #101412; border: 1px solid #617268; border-radius: 6px; font: inherit; }
+:where(.app-shell) .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+:where(.app-shell) button { padding: 10px 14px; border: 1px solid #83db9d; background: #83db9d; color: #102519; border-radius: 6px; cursor: pointer; font: inherit; font-weight: 600; }
+:where(.app-shell) button:hover:not(:disabled) { filter: brightness(1.08); }
+:where(.app-shell) button:disabled { opacity: .45; cursor: default; }
+:where(.app-shell) .help { font-size: 13px; color: #b3c3b8; }
+:where(.app-shell) button, :where(.app-shell) .button { min-height: 42px; }
+:where(.app-shell) button.small { min-height: 34px; padding: 6px 10px; font-size: 14px; }
+:where(.app-shell) button.danger { background: #ff9b8f; border-color: #ff9b8f; color: #2b0d09; }
+:where(.app-shell) button.link { background: none; border: 0; padding: 4px 0; color: #a0e6b1; text-decoration: underline; min-height: 0; font-weight: 500; }
+:where(.app-shell) form { margin: 24px 0; padding: 20px 0; }
+:where(.app-shell) form > label, :where(.app-shell) form > button { margin-top: 16px; }
+:where(.app-shell) form.inline { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 12px; margin: 12px 0; padding: 0; }
+:where(.app-shell) form.inline > label { margin: 0; flex: 1 1 180px; }
+:where(.app-shell) form.inline > label.check { flex-basis: 100%; }
+:where(.app-shell) form.inline > button { margin: 0; }
+:where(.app-shell) fieldset { border: 1px solid #34443a; border-radius: 8px; margin: 16px 0 0; padding: 12px 16px; min-width: 0; }
+:where(.app-shell) legend { font-weight: 600; padding: 0 6px; }
+:where(.app-shell) select, :where(.app-shell) textarea { box-sizing: border-box; width: 100%; margin-top: 10px; padding: 11px; font: inherit; color: inherit; background: #101412; border: 1px solid #617268; border-radius: 6px; }
+:where(.app-shell) textarea { min-height: 90px; resize: vertical; }
+:where(.app-shell) input[type=checkbox], :where(.app-shell) input[type=radio] { width: 20px; height: 20px; margin: 0 8px 0 0; vertical-align: middle; accent-color: #83db9d; flex-shrink: 0; }
+:where(.app-shell) label.check { display: flex; align-items: center; font-weight: 500; margin-top: 12px; }
+:where(.app-shell) .checks { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+:where(.app-shell) input[type=range] { padding: 0; accent-color: #83db9d; }
+:where(.app-shell) .secondary { background: transparent; color: #c1d8c8; border-color: #617268; }
+:where(.app-shell) .button { display: inline-block; box-sizing: border-box; padding: 10px 14px; margin: 10px; text-decoration: none; border: 1px solid #617268; border-radius: 6px; }
+:where(.app-shell) .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+:where(.app-shell) .skip-link { position: absolute; left: 12px; top: -60px; z-index: 20; padding: 10px 14px; background: #83db9d; color: #102519; border-radius: 6px; }
+:where(.app-shell) .skip-link:focus { top: 12px; }
+.app-shell { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: 100vh; }
+:where(.app-shell) aside { padding: 28px 18px; border-right: 1px solid #34443a; background: #141b17; }
+:where(.app-shell) .brand { display: block; padding: 0 12px 24px; color: #e8eee9; text-decoration: none; font-size: 28px; font-weight: 750; }
+:where(.app-shell) .brand span, :where(.app-shell) .identity span { display: block; font-size: 12px; color: #a2b5a9; font-weight: 400; letter-spacing: 1px; }
+:where(.app-shell) .who { padding: 0 12px 20px; }
+:where(.app-shell) nav { display: grid; gap: 4px; }
+:where(.app-shell) nav button { display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; border-color: transparent; color: #b3c3b8; background: transparent; font-size: 14px; font-weight: 500; }
+:where(.app-shell) nav button[aria-current=page] { background: #233d2c; color: #a0e6b1; border-color: #3c6249; }
+:where(.app-shell) nav .count { min-width: 22px; padding: 1px 7px; border-radius: 11px; background: #f5c97a; color: #2b1d02; font-size: 12px; font-weight: 700; text-align: center; }
+:where(.app-shell) .identity { margin: 0 0 10px; }
+:where(.app-shell) .workspace { width: 100%; max-width: 1350px; box-sizing: border-box; margin: 0 auto; padding: 40px; }
+:where(.app-shell) .workspace:focus { outline: none; }
+:where(.app-shell) .workspace h1 { font-size: clamp(28px, 3vw, 42px); letter-spacing: -1px; margin-bottom: 4px; }
+:where(.app-shell) .intro { margin: 0; color: #c1d8c8; }
+:where(.app-shell) header, :where(.app-shell) .section-title { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
+:where(.app-shell) .section-title h2 { margin: 0; }
+:where(.app-shell) .connection { flex-shrink: 0; font-size: 12px; border: 1px solid #697269; padding: 7px 12px; border-radius: 20px; }
+:where(.app-shell) .connected { border-color: #458957; color: #a0e6b1; }
+:where(.app-shell) .stats, :where(.app-shell) .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; margin: 24px 0; }
+:where(.app-shell) .cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+:where(.app-shell) article { padding: 20px; background: #18201b; border: 1px solid #34443a; border-radius: 10px; overflow-wrap: anywhere; }
+:where(.app-shell) section article { background: #121a15; margin: 10px 0; }
+:where(.app-shell) .cards article { margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+:where(.app-shell) .cards article h3 { margin: 0; }
+:where(.app-shell) .cards article > .actions { margin-top: auto; padding-top: 8px; }
+:where(.app-shell) .card.off { border-style: dashed; }
+:where(.app-shell) .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+:where(.app-shell) .summary { margin: 0; color: #c1d8c8; }
+:where(.app-shell) details summary { cursor: pointer; color: #b3c3b8; font-size: 13px; }
+:where(.app-shell) details.tech p { margin: 6px 0 0; }
+:where(.app-shell) code { font-size: 12px; background: #101412; padding: 1px 5px; border-radius: 4px; }
+:where(.app-shell) .stats strong { display: block; margin-top: 8px; font-size: 24px; font-weight: 600; }
+:where(.app-shell) .stats p { margin: 6px 0 0; }
+:where(.app-shell) .stats span, :where(.app-shell) .empty { color: #a2b5a9; }
+:where(.app-shell) .good { color: #a0e6b1; }
+:where(.app-shell) .warn { color: #f5c97a; }
+:where(.app-shell) .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 20px; margin: 20px 0; align-items: start; }
+:where(.app-shell) .editor { background: #101812; border: 1px solid #458957; padding: 24px; border-radius: 10px; }
+:where(.app-shell) .notice { position: sticky; top: 8px; z-index: 5; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin: 16px 0; border-left: 4px solid #83db9d; background: #192c20; padding: 14px 18px; border-radius: 6px; box-shadow: 0 6px 24px #0008; }
+:where(.app-shell) .notice p { margin: 0; }
+:where(.app-shell) .notice p + p { margin-top: 4px; }
+:where(.app-shell) .notice.error { border-color: #ff9b8f; background: #33201d; }
+:where(.app-shell) .notice.info { position: static; display: block; box-shadow: none; border-color: #8fb7ff; background: #1a2333; }
+:where(.app-shell) .notice.info p + button { margin-top: 10px; }
+:where(.app-shell) .problem { border-left: 3px solid #f5c97a; padding: 6px 12px; background: #2a2416; border-radius: 4px; }
+:where(.app-shell) .ok { border-left: 3px solid #83db9d; padding: 6px 12px; background: #192c20; border-radius: 4px; }
+:where(.app-shell) .badge { display: inline-block; font-size: 12px; font-weight: 600; color: #a0e6b1; border: 1px solid #3c6249; border-radius: 12px; padding: 2px 9px; white-space: nowrap; }
+:where(.app-shell) .badge.live { color: #102519; background: #83db9d; border-color: #83db9d; }
+:where(.app-shell) .badge.warn { color: #2b1d02; background: #f5c97a; border-color: #f5c97a; }
+:where(.app-shell) .badge.muted { color: #b3c3b8; border-color: #4b5a50; }
+:where(.app-shell) .badge.success { align-self: flex-start; color: #102519; background: #a0e6b1; border-color: #a0e6b1; margin: 0; }
+:where(.app-shell) .table-scroll { overflow-x: auto; }
+:where(.app-shell) table { width: 100%; border-collapse: collapse; font-size: 14px; }
+:where(.app-shell) th, :where(.app-shell) td { text-align: left; border-bottom: 1px solid #34443a; padding: 10px 12px; max-width: 350px; overflow-wrap: anywhere; }
+:where(.app-shell) th { color: #b3c3b8; font-weight: 600; }
+:where(.app-shell) .chart > div { display: grid; grid-template-columns: 1fr 1fr 60px; align-items: center; gap: 12px; margin: 8px 0; }
+:where(.app-shell) meter { width: 100%; }
+:where(.app-shell) .progress { margin: 6px 0; }
+:where(.app-shell) .progress-track { height: 12px; border-radius: 6px; background: #101412; border: 1px solid #34443a; overflow: hidden; }
+:where(.app-shell) .progress-track span { display: block; height: 100%; background: #83db9d; }
+:where(.app-shell) .progress-label { font-size: 13px; color: #c1d8c8; }
+:where(.app-shell) .goal-controls { display: grid; gap: 4px; }
+:where(.app-shell) .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 10px 20px; margin: 8px 0; }
+:where(.app-shell) .facts div { min-width: 0; }
+:where(.app-shell) .facts dt { font-size: 12px; color: #b3c3b8; text-transform: uppercase; letter-spacing: 1px; }
+:where(.app-shell) .facts dd { margin: 2px 0 0; }
+:where(.app-shell) .switch { display: inline-flex; align-items: center; gap: 10px; align-self: flex-start; background: transparent; color: #c1d8c8; border-color: #617268; }
+:where(.app-shell) .switch .track { position: relative; width: 36px; height: 20px; border-radius: 10px; background: #34443a; transition: background .15s; }
+:where(.app-shell) .switch .track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #e8eee9; transition: left .15s; }
+:where(.app-shell) .switch[aria-checked=true] .track { background: #83db9d; }
+:where(.app-shell) .switch[aria-checked=true] .track::after { left: 18px; background: #102519; }
+:where(.app-shell) .status-line { margin: 0; }
+:where(.app-shell) .results { list-style: none; padding: 0; margin: 6px 0; display: grid; gap: 8px; }
+:where(.app-shell) .results li { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(60px, 1fr) auto; align-items: center; gap: 10px; }
+:where(.app-shell) .results .bar { height: 10px; border-radius: 5px; background: #101412; border: 1px solid #34443a; overflow: hidden; }
+:where(.app-shell) .results .bar span { display: block; height: 100%; background: #617268; }
+:where(.app-shell) .results .leading .bar span { background: #83db9d; }
+:where(.app-shell) .results .result-value { font-variant-numeric: tabular-nums; font-size: 14px; }
+:where(.app-shell) .winners { margin: 4px 0; }
+:where(.app-shell) .banner { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+:where(.app-shell) .banner > div { flex: 1 1 320px; min-width: 0; }
+:where(.app-shell) .banner h2 { margin-bottom: 4px; }
+:where(.app-shell) .banner p { margin: 0; }
+:where(.app-shell) .banner form.inline { flex: 1 1 100%; }
+:where(.app-shell) section.banner.warn { border-color: #b08a3e; background: #221d12; color: inherit; }
+:where(.app-shell) .countdown { font-variant-numeric: tabular-nums; font-size: 1.15em; }
+:where(.app-shell) .checklist, :where(.app-shell) .activity, :where(.app-shell) .work-list, :where(.app-shell) .chat-list, :where(.app-shell) .incident-list, :where(.app-shell) .viewer-list, :where(.app-shell) .token-list, :where(.app-shell) ul.plain { list-style: none; margin: 0; padding: 0; }
+:where(.app-shell) .checklist li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #2a372f; }
+:where(.app-shell) .checklist .check { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 2px solid #617268; font-weight: 700; color: #102519; }
+:where(.app-shell) .checklist .done .check { background: #83db9d; border-color: #83db9d; }
+:where(.app-shell) .checklist .help { display: block; margin: 2px 0 0; }
+:where(.app-shell) .checklist .badge { margin-left: 8px; }
+:where(.app-shell) .activity li { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid #2a372f; }
+:where(.app-shell) .activity time { flex-shrink: 0; font-size: 13px; color: #b3c3b8; }
+:where(.app-shell) .work-list li, :where(.app-shell) .chat-list li, :where(.app-shell) .incident-list li, :where(.app-shell) .viewer-list li, :where(.app-shell) .token-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #2a372f; }
+:where(.app-shell) .work-list li > span:first-child, :where(.app-shell) .chat-list li > div, :where(.app-shell) .incident-list li > div { min-width: 0; flex: 1; }
+:where(.app-shell) .chat-list p, :where(.app-shell) .incident-list p { margin: 2px 0 0; overflow-wrap: anywhere; }
+:where(.app-shell) .chat-list .badge { margin-left: 8px; }
+:where(.app-shell) .chat-list li.removed p { text-decoration: line-through; color: #a2b5a9; }
+:where(.app-shell) .viewer-list li > span { flex: 1; min-width: 0; }
+:where(.app-shell) .bulk-bar { position: sticky; top: 8px; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 10px 0; padding: 10px 14px; border: 1px solid #458957; border-radius: 8px; background: #192c20; }
+:where(.app-shell) .queue { list-style: none; padding: 0; margin: 0; }
+:where(.app-shell) .queue li[draggable=true] { cursor: grab; }
+:where(.app-shell) .queue li.dragging { opacity: .5; }
+:where(.app-shell) .queue-item h4 { margin: 0 0 4px; }
+:where(.app-shell) .queue-item p { margin: 0 0 8px; }
+:where(.app-shell) h3.group { color: #c1d8c8; font-size: 15px; text-transform: uppercase; letter-spacing: 1px; }
+:where(.app-shell) .now-playing { font-size: 18px; margin: 6px 0; }
+:where(.app-shell) .player-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; }
+:where(.app-shell) .volume { flex: 1 1 220px; max-width: 360px; }
+:where(.app-shell) .volume output { font-weight: 400; color: #c1d8c8; margin-left: 6px; }
+:where(.app-shell) .add-request { margin: 24px 0; }
+:where(.app-shell) .copy-field { margin: 12px 0; }
+:where(.app-shell) .copy-row { display: flex; gap: 8px; margin-top: 8px; }
+:where(.app-shell) .copy-row button { flex-shrink: 0; white-space: nowrap; }
+:where(.app-shell) .copy-row input { margin: 0; min-width: 0; font-family: ui-monospace, monospace; font-size: 13px; }
+:where(.app-shell) .source-result { margin: 12px 0; padding: 16px; border: 1px solid #458957; border-radius: 8px; background: #101812; }
+:where(.app-shell) .source-result > p:first-child { margin-top: 0; }
+:where(.app-shell) .preview { margin: 12px 0; }
+:where(.app-shell) .preview-box { position: relative; overflow: hidden; border: 1px dashed #617268; border-radius: 6px; background: repeating-conic-gradient(#1b231e 0% 25%, #141b17 0% 50%) 0 0 / 24px 24px; }
+:where(.app-shell) .preview-box iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; background: transparent; }
+:where(.app-shell) .token-list h4 { margin-top: 14px; }
+:where(.app-shell) .token-list ul { list-style: none; margin: 0; padding: 0; }
+:where(.app-shell) .steps { padding-left: 22px; }
+:where(.app-shell) .steps li { margin: 6px 0; line-height: 1.6; }
+:where(.app-shell) .type-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 8px 20px; margin: 0; }
+:where(.app-shell) .type-list dt { font-family: ui-monospace, monospace; font-size: 13px; color: #a0e6b1; }
+:where(.app-shell) .type-list dd { margin: 0 0 6px; font-size: 14px; }
+:where(.app-shell) .empty-state { padding: 12px 0; }
+:where(.app-shell) .empty-state p { margin: 0; }
+:where(.app-shell) .segmented { display: flex; flex-wrap: wrap; gap: 8px; border: 0; padding: 0; margin: 8px 0; }
+:where(.app-shell) .segmented label { display: flex; align-items: center; padding: 8px 12px; border: 1px solid #617268; border-radius: 6px; font-weight: 500; cursor: pointer; }
+:where(.app-shell) .segmented label:has(input:checked) { border-color: #83db9d; background: #233d2c; }
+:where(.app-shell) .option-row { display: flex; align-items: flex-end; gap: 10px; }
+:where(.app-shell) .option-row label { flex: 1; }
+:where(.app-shell) .dialog { width: min(560px, calc(100vw - 32px)); box-sizing: border-box; padding: 24px; color: #e8eee9; background: #18201b; border: 1px solid #458957; border-radius: 12px; }
+:where(.app-shell) .dialog::backdrop { background: #000a; }
+:where(.app-shell) .dialog form { margin: 0; padding: 0; }
+:where(.app-shell) .dialog label { margin-top: 14px; }
+:where(.app-shell) .dialog blockquote { margin: 0 0 12px; padding: 10px 14px; border-left: 3px solid #617268; background: #101412; overflow-wrap: anywhere; }
+:where(.app-shell) .dialog-actions { margin-top: 20px; }
+:where(.app-shell) .picked { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 12px 0; padding: 10px 14px; border: 1px solid #458957; border-radius: 8px; }
+:where(.app-shell) .picked-label { font-size: 13px; color: #b3c3b8; }
+:where(.app-shell) .pick-list { list-style: none; padding: 0; margin: 4px 0 12px; display: grid; gap: 6px; max-height: 280px; overflow-y: auto; }
+:where(.app-shell) .pick-list button { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; text-align: left; font-weight: 500; }
+:where(.app-shell) .pick-list button span { font-size: 13px; color: #b3c3b8; }
+@media (max-width: 850px) { .app-shell { grid-template-columns: minmax(0, 1fr); } :where(.app-shell) aside { min-width: 0; position: sticky; top: 0; z-index: 10; border-right: 0; border-bottom: 1px solid #34443a; padding: 10px 12px 8px; } :where(.app-shell) .aside-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; } :where(.app-shell) .brand { padding: 0; font-size: 22px; } :where(.app-shell) .brand span { display: none; } :where(.app-shell) .who { display: flex; align-items: center; gap: 10px; padding: 0; } :where(.app-shell) .identity { margin: 0; font-size: 14px; text-align: right; } :where(.app-shell) nav { display: flex; flex-wrap: nowrap; min-width: 0; max-width: 100%; overflow-x: auto; gap: 4px; margin-top: 8px; padding-bottom: 4px; scrollbar-width: thin; } :where(.app-shell) nav button { flex: 0 0 auto; min-height: 38px; padding: 6px 10px; } :where(.app-shell) .workspace { padding: 20px 16px; } :where(.app-shell) section { padding: 16px; } :where(.app-shell) .notice { top: 112px; } :where(.app-shell) .checklist li { grid-template-columns: 28px minmax(0, 1fr); } :where(.app-shell) .checklist li > button { grid-column: 2; justify-self: start; } :where(.app-shell) .work-list li, :where(.app-shell) .chat-list li, :where(.app-shell) .incident-list li, :where(.app-shell) .token-list li { flex-wrap: wrap; } :where(.app-shell) .results li { grid-template-columns: minmax(0, 1fr) auto; } :where(.app-shell) .results .bar { grid-column: 1 / -1; grid-row: 2; } }
+@media (max-width: 480px) { :where(.app-shell) .identity span { display: none; } :where(.app-shell) .copy-row { flex-wrap: wrap; } :where(.app-shell) .copy-row button { flex: 1; } }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

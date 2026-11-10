@@ -67,7 +67,8 @@ test("owner setup, command editor, CSRF denial and read-only permissions work in
   await page.getByLabel("Name", { exact: true }).fill("Private source");
   await page.getByRole("button", { name: "Save widget" }).click();
   await page.getByRole("button", { name: "Create OBS source URL" }).click();
-  await expect(page.getByRole("status")).toContainText("Copy this private OBS");
+  await expect(page.getByLabel("OBS source URL", { exact: true })).toHaveValue(/\/widgets\/[^?]+\?token=/);
+  await expect(page.getByTitle("Live preview of Private source")).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
   await expect(page.locator("body")).not.toContainText("token=");
@@ -84,9 +85,9 @@ test("signed Discord approval reaches a fixture player and a duplicate completio
   const eventId = "01J00000000000000000000009", timestamp = new Date().toISOString();
   const signed = sign("RSA-SHA256", Buffer.from(`${eventId}.${timestamp}.${body}`), readFileSync(join(root(), "fixture/secrets/fixture-private.pem"))).toString("base64");
   expect((await request.post("/api/providers/kick/events", { headers: { "Content-Type": "application/json", "Kick-Event-Message-Id": eventId, "Kick-Event-Message-Timestamp": timestamp, "Kick-Event-Signature": signed, "Kick-Event-Type": "chat.message.sent", "Kick-Event-Version": "1" }, data: body })).ok()).toBe(true);
-  let pending: { id: string; version: number };
+  let pending: { id: string; version: number; position: number };
   await expect.poll(async () => { const state = await (await request.get("/api/control")).json(); pending = state.media.find((row: { status: string }) => row.status === "pending"); return Boolean(pending); }).toBe(true);
-  const interaction = Buffer.from(JSON.stringify({ id: "500", application_id: "900", type: 2, token: "fixture-interaction", guild_id: "100", channel_id: "200", member: { user: { id: "400" }, roles: ["300"] }, data: { name: "kekbot", options: [{ name: "action", value: "media.approve" }, { name: "target", value: pending!.id }, { name: "version", value: pending!.version }] } }));
+  const interaction = Buffer.from(JSON.stringify({ id: "500", application_id: "900", type: 2, token: "fixture-interaction", guild_id: "100", channel_id: "200", member: { user: { id: "400" }, roles: ["300"] }, data: { name: "kekbot", options: [{ type: 2, name: "media", options: [{ type: 1, name: "approve", options: [{ type: 3, name: "request", value: `#${pending!.position}` }] }] }] } }));
   const stamp = String(Math.floor(Date.now() / 1000));
   const headers = { "Content-Type": "application/json", "X-Signature-Timestamp": stamp, "X-Signature-Ed25519": sign(null, Buffer.concat([Buffer.from(stamp), interaction]), readFileSync(join(root(), "fixture/secrets/fixture-discord-private.pem"))).toString("hex") };
   expect((await (await request.post("/api/providers/discord/interactions", { headers, data: interaction })).json()).type).toBe(5);
@@ -166,6 +167,23 @@ test("every widget family renders with scoped read access and an API token canno
   expect((await request.post("/api/v1/control", { headers: { Authorization: `Bearer ${token.token}` }, data: { action: "timers.pause" } })).status()).toBe(401);
   await operation(request, csrf, "token.revoke", { id: token.id });
   expect((await request.get("/api/v1/control", { headers: { Authorization: `Bearer ${token.token}` } })).status()).toBe(401);
+});
+
+
+test("an engage-scoped API token can create and read a poll and a read-only token cannot", async ({ request }) => {
+  const csrf = await login(request);
+  const read = await operation(request, csrf, "token.create", { name: "Read poll API", kind: "api", scopes: ["read"] });
+  const engage = await operation(request, csrf, "token.create", { name: "Engage poll API", kind: "api", scopes: ["engage"] });
+  const post = (token: string, action: string, input: Record<string, unknown>) => request.post("/api/v1/control", { headers: { Authorization: `Bearer ${token}` }, data: { action, input } });
+  const poll = { name: "API poll", options: ["Yes", "No"], minutes: 5 };
+  expect((await post(read.token, "poll.create", poll)).status()).toBe(401);
+  const created = await post(engage.token, "poll.create", poll);
+  expect(created.ok()).toBe(true);
+  const { result } = await created.json();
+  expect(result).toMatchObject({ kind: "poll", data: { name: "API poll", options: ["Yes", "No"], status: "open" } });
+  expect((await (await post(engage.token, "poll.results", { target: result.id })).json()).result).toMatchObject({ name: "API poll", options: [{ option: "Yes", votes: 0 }, { option: "No", votes: 0 }] });
+  const state = await (await request.get("/api/control")).json();
+  expect(state.documents.filter((doc: { data: { name: string } }) => doc.data.name === "API poll")).toHaveLength(1);
 });
 
 

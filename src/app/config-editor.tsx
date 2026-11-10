@@ -31,7 +31,7 @@ import {
   Winners,
 } from "./forms/pickers.tsx";
 import { TemplatePreview } from "./forms/preview.tsx";
-import { describeServerError, type ServerProblem } from "./forms/errors.ts";
+import { problemFromError, type ServerProblem } from "./forms/errors.ts";
 import { helpOf, labelOf, layouts, type Data, type FieldSpec } from "./forms/layouts.ts";
 import {
   bounds,
@@ -420,7 +420,7 @@ export default function ConfigEditor({
         try {
           await save(ready, { version: base?.version });
         } catch (e) {
-          setProblem(describeServerError(e instanceof Error ? e.message : "", kind));
+          setProblem(problemFromError(e, kind));
           requestAnimationFrame(() => summary.current?.focus());
         } finally {
           setBusy(false);

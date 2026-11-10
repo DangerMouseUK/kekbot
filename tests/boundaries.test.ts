@@ -28,7 +28,7 @@ function signed(input: unknown, timestamp = String(Math.floor(Date.now() / 1000)
   const body = Buffer.from(typeof input === "string" ? input : JSON.stringify(input));
   return { body, headers: new Headers({ "x-signature-timestamp": timestamp, "x-signature-ed25519": sign(null, Buffer.concat([Buffer.from(timestamp), body]), keys.privateKey).toString("hex") }) };
 }
-const interaction = { id: "700", application_id: "900", type: 2, token: "synthetic-interaction", guild_id: "100", channel_id: "200", member: { user: { id: "400" }, roles: ["300"] }, data: { name: "kekbot", options: [{ name: "action", value: "timers.pause" }] } };
+const interaction = { id: "700", application_id: "900", type: 2, token: "synthetic-interaction", guild_id: "100", channel_id: "200", member: { user: { id: "400" }, roles: ["300"] }, data: { name: "kekbot", options: [{ type: 2, name: "timers", options: [{ type: 1, name: "pause" }] }] } };
 function guild(bot: BotService, owner: Actor) { return bot.state.save(owner, "guild", "boundary-guild", { name: "Allowed guild", guildId: "100", channelId: "200", events: ["live"], roles: [{ id: "300", permission: "operate" }] }); }
 
 describe("assembled provider and authority boundaries", () => {
@@ -79,7 +79,7 @@ describe("assembled provider and authority boundaries", () => {
     const { bot, repo, owner } = await setup(); guild(bot, owner); const discord = new DiscordService(bot.state);
     const payload = signed({ ...interaction, member: { ...interaction.member, roles: [] } }); discord.intake(payload.body, payload.headers, credentials);
     await discord.execute(repo.claim()!, (actor, name, input, id) => bot.action(actor, name, input, id));
-    expect(repo.setting("discord_result:700")).toBe("discord_permission_denied"); expect(bot.state.settings.timersPaused).toBe(false);
+    expect(repo.setting("discord_result:700")).toContain("Code: discord_permission_denied"); expect(bot.state.settings.timersPaused).toBe(false);
   });
 
   it("routes notifications only to configured events and cancels queued sends after route removal", async () => {
