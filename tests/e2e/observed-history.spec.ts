@@ -24,7 +24,8 @@ async function kick(request: APIRequestContext, suffix: string, type: string, pa
 test("analytics shows an observed fixture stream, exports exactly the selection and passes axe", async ({ request, page }) => {
   test.setTimeout(90000);
   const { cookie } = await login(request);
-  await kick(request, "01", "livestream.status.updated", { is_live: true, started_at: new Date(Date.now() - 10 * 60000).toISOString(), ended_at: null });
+  // Start the stream now: earlier specs sent chat messages that must stay outside its window.
+  await kick(request, "01", "livestream.status.updated", { is_live: true, started_at: new Date().toISOString(), ended_at: null });
   await kick(request, "02", "chat.message.sent", { message_id: "analytics-chat", sender: { user_id: 456, username: "Fixture viewer" }, content: "hello analytics" });
   let streamId = "";
   await expect.poll(async () => {
