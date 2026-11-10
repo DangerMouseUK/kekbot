@@ -89,7 +89,7 @@ Kick requests use fixed official hosts with redirects rejected and timeouts boun
 
 ## ADR 005 — Web interfaces and media recovery
 
-Use Next.js route handlers with uncached operational responses. Authenticated SSE uses durable IDs, bounded replay and snapshot recovery; active sessions/source tokens are rechecked. Browser, signed Discord, verified Kick and scoped owner API actions call shared domain services. Discord interaction tokens are encrypted in durable jobs and never retained in receipt bodies.
+Use Next.js route handlers with uncached operational responses. Authenticated SSE uses durable IDs, bounded replay and snapshot recovery; active sessions/source tokens are rechecked. Browser, signed Discord, verified Kick and scoped owner API actions call shared domain services. Discord slash commands and notification buttons are deferred durable jobs; autocomplete is answered inline from bounded, permission-checked SQLite reads. Buttons carry the item ID and rendered version, so a stale click never acts on newer state. Discord interaction tokens are encrypted in durable jobs and never retained in receipt bodies, and a delivered reply leaves only a marker.
 
 Media preserves the current item/queue after restart, pauses until moderator resume, then restarts the item from the beginning. Only one active player lease can acknowledge completion. Stale/disconnected players never advance a newer item.
 

@@ -10,6 +10,8 @@ import { configSchemas, defaults, type ConfigDocument, type Kind } from "./catal
 import { APP_VERSION } from "../version.ts";
 
 export const ERASED_VIEWER = "Erased viewer";
+/** Open polls plus raffles at which `engage`-only creation stops (see State.createActivity). */
+export const OPEN_ACTIVITY_LIMIT = 10;
 
 export class State {
   readonly repository: Repository;
@@ -115,14 +117,50 @@ export class State {
   }
 
   save(actor: Actor, kind: Kind, id: string | undefined, input: unknown, version?: number) {
-    this.assertActor(
+    return this.write(
       actor,
+      kind,
+      id,
+      input,
+      version,
       kind === "settings" || kind === "guild"
         ? "integrations"
         : kind === "note"
           ? "moderate"
           : "configure",
     );
+  }
+
+  /**
+   * Deliberate permission exception: `engage` holders may start polls and raffles. Uses the same
+   * strict validation, document-ID rules, limits and audit as save(). The caller derives `id` from
+   * its request/interaction, so a retried request returns the document it already created.
+   */
+  createActivity(actor: Actor, kind: "poll" | "raffle", id: string, input: unknown) {
+    this.assertActor(actor, "engage");
+    return this.db
+      .transaction(() => {
+        const existing = this.document(id);
+        if (existing?.kind === kind) return existing;
+        const now = Date.now();
+        const open = [...this.list("poll"), ...this.list("raffle")].filter(
+          (doc) => doc.data.status === "open" && doc.data.endsAt > now,
+        ).length;
+        if (open >= OPEN_ACTIVITY_LIMIT) throw new AppError("open_activity_limit", 409);
+        return this.write(actor, kind, id, input, undefined, "engage");
+      })
+      .immediate();
+  }
+
+  private write(
+    actor: Actor,
+    kind: Kind,
+    id: string | undefined,
+    input: unknown,
+    version: number | undefined,
+    permission: Permission,
+  ) {
+    this.assertActor(actor, permission);
     const data = configSchemas[kind].strict().parse(input);
     if (kind === "alert") {
       const alert = configSchemas.alert.parse(data);
