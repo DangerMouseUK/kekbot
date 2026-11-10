@@ -68,6 +68,19 @@ Before the first stable release, there is no supported stable version. Afterward
 <a id="review-record"></a>
 ## Current review record
 
+<a id="node-24-22-1"></a>
+### Node.js 24.22.1 toolchain — 2026-11-10
+
+This maintenance moves the pinned Node.js toolchain and runtime from 24.21.0 to 24.22.1. The pin changes together in `.node-version`, `package.json` `engines.node`, both Dockerfile stages, the image's `NODE_VERSION`, the runtime-notice version gate and the current guides. No application code, package, lockfile, schema, backup or configuration format changes.
+
+- **Selection.** [24.22.1](https://github.com/nodejs/node/releases/tag/v24.22.1) (2026-10-20) is a Node 24 LTS security release. It fixes HTTP agent, DNS, TLS IP-normalization, permission-model, crypto snapshot and Brotli decoder advisories, and updates OpenSSL to 3.5.9, undici to 7.30.1, c-ares to 1.34.9 and root certificates to NSS 3.131.1. It also carries the semver-minor [24.22.0](https://github.com/nodejs/node/releases/tag/v24.22.0) (2026-10-14) additions, which KekBot does not use. It is the current Node 24 LTS installer, and the 24.21.0 notice gate rejected it with `unreviewed_node_runtime`. No newer 24.x release existed on 2026-11-10.
+- **Native compatibility.** `NODE_MODULE_VERSION` stays 137, so the better-sqlite3 binding ABI is unchanged. The standalone and browser checks exercise it on the new runtime.
+- **Lower bound.** `engines.node` is `>=24.22.1 <25`. The dependency policy deliberately requires the lower bound to equal the exact pin, so contributors on 24.21.0 must update.
+- **Image digest.** Both stages use `node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53`. The OCI index was resolved anonymously from the Docker Hub registry (`registry-1.docker.io`, `library/node`), and the SHA-256 of the returned index body was recomputed to match the registry's content digest. The same query still returns the previous pin `sha256:ebfe2f90…c1c1` for 24.21.0. The index lists linux/amd64 (`sha256:1200d815…1420`), linux/arm64/v8 and linux/s390x images with attestations. The base Alpine release moves from 3.24.2 to 3.24.3.
+- **Node license.** `/usr/local/LICENSE` was extracted from the verified amd64 Node layer of both images. Both files are 157,609 bytes with SHA-256 `5888dbb9a1d2b18f2c3e6c5f6af1b39de658372b402a0577b002777f14c62ace`, byte-identical. The musl and GCC notices and their checksums are unchanged. The runtime closure is still installed from signed Alpine repositories and gated by the [notice script](../scripts/runtime-notices.mjs).
+
+This is **not** a candidate review. [dependency-review.json](dependency-review.json) still binds beta 4, whose image ships Node 24.21.0; the exposure of beta 4 to the Node 24.22.1 advisories was not assessed here. The next candidate needs its own image scan and four reviews.
+
 <a id="maintenance-2026-11-10"></a>
 ### Upstream drift maintenance — 2026-11-10
 

@@ -15,8 +15,11 @@ export function dependencyPolicy(root = ".") {
   const node = read(".node-version").trim(), pnpm = pkg.packageManager?.match(/^pnpm@(\d+\.\d+\.\d+)$/)?.[1];
   if (!exact.test(node) || pkg.engines?.node !== `>=${node} <${Number(node.split(".")[0]) + 1}`) problems.push("node_pin_mismatch");
   if (!pnpm || pkg.engines?.pnpm !== pnpm || !read("Dockerfile").includes(`pnpm@${pnpm}`)) problems.push("pnpm_pin_mismatch");
-  const bases = [...read("Dockerfile").matchAll(/^FROM node:([^\s@]+)(?:@sha256:[a-f0-9]{64})?/gm)];
-  if (bases.length !== 2 || bases.some(match => match[1] !== `${node}-alpine3.24`) || !read("Dockerfile").includes("FROM scratch AS runtime")) problems.push("node_image_pin_mismatch");
+  const dockerfile = read("Dockerfile"), bases = [...dockerfile.matchAll(/^FROM node:([^\s@]+)(@sha256:[a-f0-9]{64})?\s/gm)];
+  // Both Node stages share one immutable index digest for the pinned version.
+  if (bases.length !== 2 || bases.some(match => match[1] !== `${node}-alpine3.24` || !match[2] || match[2] !== bases[0][2]) || !dockerfile.includes("FROM scratch AS runtime")) problems.push("node_image_pin_mismatch");
+  const runtimeEnv = dockerfile.match(/^ENV .*\bNODE_VERSION=(\S+)/m)?.[1], noticeGate = read("scripts/runtime-notices.mjs").match(/process\.version !== "v([^"]+)"/)?.[1];
+  if (runtimeEnv !== node || noticeGate !== node) problems.push("node_runtime_pin_mismatch");
   for (const line of read(".github/workflows/ci.yml").split("\n")) {
     if (/uses:/.test(line) && !/uses: [a-zA-Z0-9_.-]+\/[a-zA-Z0-9_./-]+@[a-f0-9]{40}(?:\s|$)/.test(line)) problems.push("unpinned_workflow_action");
   }

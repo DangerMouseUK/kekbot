@@ -10,6 +10,7 @@ playwright-report/
 output/
 .playwright-cli/
 backups/
+.claude/
 .codex/
 .vscode/
 .idea/
