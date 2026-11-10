@@ -1,4 +1,4 @@
-FROM node:24.21.0-alpine3.24@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS build
+FROM node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS build
 ENV NEXT_TELEMETRY_DISABLED=1 KEKBOT_RUN_JOBS=0
 WORKDIR /app
 RUN apk add --no-cache python3 make g++
@@ -9,7 +9,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build
 
-FROM node:24.21.0-alpine3.24@sha256:ebfe2f90462722a7a4de65e91990e97fe0d401c70e0e762c5b53302f905ec1c1 AS runtime-files
+FROM node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS runtime-files
 # Install the actual runtime closure into a separate root, retaining apk's real
 # package database. No shell, package manager or build tools enter the image.
 RUN apk --root /runtime --initdb --no-scripts --no-cache \
@@ -33,7 +33,7 @@ FROM scratch AS runtime
 ARG VCS_REF=unknown
 ARG VERSION=0.1.0-beta.4
 LABEL org.opencontainers.image.title="KekBot" org.opencontainers.image.source="https://github.com/DangerMouseUK/kekbot" org.opencontainers.image.revision=$VCS_REF org.opencontainers.image.version=$VERSION org.opencontainers.image.licenses="MIT"
-ENV PATH=/usr/local/bin NODE_VERSION=24.21.0 NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 NEXT_MANUAL_SIG_HANDLE=1 KEKBOT_RUN_JOBS=1 KEKBOT_DATA_DIR=/data HOSTNAME=0.0.0.0 PORT=3000
+ENV PATH=/usr/local/bin NODE_VERSION=24.22.1 NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 NEXT_MANUAL_SIG_HANDLE=1 KEKBOT_RUN_JOBS=1 KEKBOT_DATA_DIR=/data HOSTNAME=0.0.0.0 PORT=3000
 COPY --from=runtime-files /runtime /
 WORKDIR /app
 COPY --from=build --chown=node:node /app/.next/standalone ./
