@@ -167,6 +167,23 @@ test("every widget family renders with scoped read access and an API token canno
 });
 
 
+test("an engage-scoped API token can create and read a poll and a read-only token cannot", async ({ request }) => {
+  const csrf = await login(request);
+  const read = await operation(request, csrf, "token.create", { name: "Read poll API", kind: "api", scopes: ["read"] });
+  const engage = await operation(request, csrf, "token.create", { name: "Engage poll API", kind: "api", scopes: ["engage"] });
+  const post = (token: string, action: string, input: Record<string, unknown>) => request.post("/api/v1/control", { headers: { Authorization: `Bearer ${token}` }, data: { action, input } });
+  const poll = { name: "API poll", options: ["Yes", "No"], minutes: 5 };
+  expect((await post(read.token, "poll.create", poll)).status()).toBe(401);
+  const created = await post(engage.token, "poll.create", poll);
+  expect(created.ok()).toBe(true);
+  const { result } = await created.json();
+  expect(result).toMatchObject({ kind: "poll", data: { name: "API poll", options: ["Yes", "No"], status: "open" } });
+  expect((await (await post(engage.token, "poll.results", { target: result.id })).json()).result).toMatchObject({ name: "API poll", options: [{ option: "Yes", votes: 0 }, { option: "No", votes: 0 }] });
+  const state = await (await request.get("/api/control")).json();
+  expect(state.documents.filter((doc: { data: { name: string } }) => doc.data.name === "API poll")).toHaveLength(1);
+});
+
+
 test("large terminal history stays separate from the active queue and pages without granting mutation authority", async ({ request, page }) => {
   const csrf = await login(request);
   const db = new Database(join(root(), "fixture/kekbot.sqlite"));

@@ -37,7 +37,7 @@ Owner API tokens are separate, individually named, shown once and stored hashed.
 | `operate` | `status`, `timers.pause/resume`, `alert.manual`, `goal.adjust` |
 | `moderate` | `moderation.warn/delete/timeout/ban/pause/resume/bulk/test/incident.start/incident.stop`; moderator notes additionally use `configure` for API editing |
 | `media` | Request/approve/reject/remove/reorder/clear; player pause/resume/skip/volume |
-| `engage` | Points adjustments, reward complete/reject, activity close, raffle draw/reroll |
+| `engage` | Points adjustments, reward complete/reject/pending list, poll/raffle creation (at most 10 open) and poll results, activity close, raffle draw/reroll |
 
 The API adapter permits a bounded action allowlist and dispatches into the same control/domain services as the dashboard. It does not accept arbitrary provider URLs or executable templates. Authorization also runs inside domain services: an API action mapped to one scope may need another scope for its target document (for example notes). Use the narrow combined scopes required by your integration.
 
