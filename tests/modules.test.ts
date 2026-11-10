@@ -127,6 +127,21 @@ describe("shared module services with real SQLite", () => {
     repo.set("stream_is_live", "false"); bot.engagement.accrue(now + 300000);
     expect(repo.store.sqlite.prepare("SELECT watch_minutes FROM viewers WHERE id='456'").get()).toEqual({ watch_minutes: 5 });
   });
+  it("never puts an operator or viewer identifier into on-stream manual and reward alerts", async () => {
+    const { bot, owner, repo } = await setup();
+    bot.state.save(owner, "alert", undefined, { name: "Manual", event: "manual", template: "{text} from {user}" });
+    await bot.action(owner, "alert.manual", { reason: "Thanks everyone" }, "manual-one");
+    bot.state.save(owner, "settings", "instance", { pointsEnabled: true });
+    repo.store.sqlite.prepare("INSERT INTO viewers(id,name,role,last_seen) VALUES('456','viewer_one','viewer',?)").run(Date.now());
+    bot.engagement.adjust(owner, "456", 50, "fixture");
+    const reward = bot.state.save(owner, "reward", undefined, { name: "Hydrate", cost: 10, description: "Drink water", fulfillment: "alert" });
+    bot.engagement.redeem("456", reward.id, "redeem-alert");
+    bot.engagement.fulfill(owner, "redeem-alert", "complete");
+    const texts = (JSON.parse(repo.setting("alert_queue")!) as { text: string }[]).map(alert => alert.text);
+    expect(texts).toEqual(["Thanks everyone from ", "Drink water from viewer_one"]);
+    expect(texts.join(" ")).not.toContain(owner.id);
+    expect(texts.join(" ")).not.toMatch(/\b456\b/);
+  });
   it("names raffle winners in Discord notices, ties them to the winner and hides erased names", async () => {
     const { bot, owner, repo } = await setup();
     bot.state.save(owner, "guild", undefined, { name: "Guild", guildId: "100", channelId: "200", events: ["engagement"] });

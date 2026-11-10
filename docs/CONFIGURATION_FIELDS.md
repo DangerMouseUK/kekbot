@@ -105,7 +105,7 @@ Requires `configure`; manual delivery requires `operate`; the dashboard exposes 
 | `volume` | `0.5` | Decimal 0–1, separate from player volume |
 | `animation` | `fade` | `fade`, `slide`, `none` |
 
-Use `{user}`/`{name}` for supporters, `{count}` for available subscription/gift data, `{text}` for manual text and `{title}` for media titles. Values depend on the event; the editor's **Insert** buttons list the variables for the selected event and its preview renders sample values. An asset ID must already exist and match image/audio type. Owners pick uploaded files from the **Image**/**Sound** lists (filtered by type) or upload one from the form; other accounts see a plain file ID field. Provider event availability remains subject to live verification.
+Use `{user}`/`{name}` for supporters, `{count}` for available subscription/gift data, `{text}` for manual text (manual alerts sent by an operator leave `{user}` empty; reward-fulfilment alerts fill it with the redeemer's observed name, never an ID) and `{title}` for media titles. Values depend on the event; the editor's **Insert** buttons list the variables for the selected event and its preview renders sample values. An asset ID must already exist and match image/audio type. Owners pick uploaded files from the **Image**/**Sound** lists (filtered by type) or upload one from the form; other accounts see a plain file ID field. Provider event availability remains subject to live verification.
 
 ## widget
 
