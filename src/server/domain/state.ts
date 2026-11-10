@@ -373,6 +373,11 @@ export class State {
     });
   }
 
+  /** Only an owner session (not an owner-issued API token) may see account usernames. */
+  private static ownerView(actor?: Actor) {
+    return !actor || (actor.role === "owner" && !actor.capabilityId);
+  }
+
   /** Display labels for audit actors without widening account visibility. */
   private auditActors(actor?: Actor) {
     const accounts = new Map(
@@ -384,7 +389,7 @@ export class State {
         }[]
       ).map((row) => [row.id, row]),
     );
-    const owner = !actor || (actor.role === "owner" && !actor.capabilityId);
+    const owner = State.ownerView(actor);
     const roles: Record<string, string> = {
       owner: "the owner",
       admin: "an admin",
@@ -413,6 +418,7 @@ export class State {
       }
     }
     const actorLabel = this.auditActors(actor);
+    const ownerView = State.ownerView(actor);
     return {
       settings: this.settings,
       documents: (Object.keys(configSchemas) as Kind[])
@@ -428,18 +434,24 @@ export class State {
         this.db
           .prepare(
             `SELECT a.*,
-              (SELECT json_extract(data,'$.name') FROM documents WHERE id=a.target) AS targetName,
+              (SELECT json_extract(data,'$.name') FROM documents WHERE id=a.target AND (kind!='note' OR ?)) AS targetName,
               (SELECT title FROM media WHERE id=a.target) AS mediaTitle,
               (SELECT name FROM viewers WHERE id=a.target) AS viewerName
             FROM audit a ORDER BY a.id DESC LIMIT 100`,
           )
-          .all() as (Record<string, unknown> & { actor: string })[]
+          // Moderator note names stay behind moderation authority, like the notes themselves.
+          .all(notesAllowed ? 1 : 0) as (Record<string, unknown> & { actor: string })[]
       ).map((row) => ({ ...row, actorLabel: actorLabel(row.actor) })),
       media: this.db
         .prepare(
-          "SELECT m.*,coalesce(v.name,a.username) AS requesterName FROM media m LEFT JOIN viewers v ON v.id=m.requester LEFT JOIN accounts a ON a.id=m.requester WHERE m.status IN ('validating','pending','approved','playing') ORDER BY m.position,m.created_at,m.id",
+          `SELECT m.*,coalesce(v.name,CASE WHEN ? THEN a.username WHEN a.role='owner' THEN 'the owner'
+            WHEN a.role='admin' THEN 'an admin' WHEN a.role='moderator' THEN 'a moderator'
+            WHEN a.role IS NOT NULL THEN 'an operator' END) AS requesterName
+          FROM media m LEFT JOIN viewers v ON v.id=m.requester LEFT JOIN accounts a ON a.id=m.requester
+          WHERE m.status IN ('validating','pending','approved','playing') ORDER BY m.position,m.created_at,m.id`,
         )
-        .all(),
+        // Local account usernames are owner-visible only; other readers see the role.
+        .all(ownerView ? 1 : 0),
       player: JSON.parse(
         this.repository.setting("player") ??
           '{"state":"paused","volume":50,"current":null,"version":0}',
@@ -460,13 +472,14 @@ export class State {
         .prepare(
           `SELECT i.*,j.status AS outcome,j.last_error AS error,v.name AS viewerName,
             CASE WHEN i.rule='manual' THEN NULL ELSE coalesce(json_extract(d.data,'$.name'),i.reason) END AS ruleName,
-            json_extract(r.payload,'$.message_id') AS messageId
+            CASE WHEN ? THEN json_extract(r.payload,'$.message_id') END AS messageId
           FROM incidents i LEFT JOIN jobs j ON j.id=i.job_id LEFT JOIN viewers v ON v.id=i.viewer
           LEFT JOIN documents d ON d.id=i.rule
           LEFT JOIN receipts r ON i.id GLOB 'moderation:*' AND r.id=substr(i.id,12)
           ORDER BY i.at DESC LIMIT 100`,
         )
-        .all(),
+        // Message references are for acting on chat, so only moderation authority receives them.
+        .all(notesAllowed ? 1 : 0),
       // Recent inspected chat lets moderators act on a message; it stays behind moderation authority.
       recentChat: notesAllowed
         ? this.db

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { readFileSync, rmSync } from "node:fs";
-import { AuthService } from "../src/server/auth.ts";
+import { AuthService, type Actor } from "../src/server/auth.ts";
 import { BotService } from "../src/server/domain/bot.ts";
 import { ERASED_VIEWER } from "../src/server/domain/state.ts";
 import { environment, repository } from "./helpers.ts";
@@ -83,6 +83,10 @@ describe("dashboard read models", () => {
       messageId: "message-two",
     });
     expect(bot.state.snapshot(reader).recentChat).toEqual([]);
+    expect(bot.state.snapshot(reader).incidents[0]).toMatchObject({
+      viewerName: "Fixture viewer",
+      messageId: null,
+    });
   });
 
   it("labels audit actors by role for non-owners and names viewers and timers", async () => {
@@ -133,5 +137,55 @@ describe("dashboard read models", () => {
       at: 5,
       error: null,
     });
+  });
+
+  it("keeps note names, message references and account usernames from readers and read API tokens", async () => {
+    const { bot, owner, reader, chat } = await setup();
+    const readToken = bot.presentation.issueToken(owner, "Read only", "api", ["read"]);
+    const readApi = {
+      id: owner.id,
+      role: "owner" as const,
+      permissions: ["read"] as unknown as Actor["permissions"],
+      capabilityId: readToken.id,
+    };
+    const note = bot.state.save(owner, "note", undefined, {
+      name: "Private case name",
+      viewer: "456",
+      text: "Protected",
+    });
+    bot.state.save(owner, "rule", undefined, { name: "No links", type: "link", action: "warn" });
+    chat("one", 456, "Fixture viewer", "visit spam.example now");
+    bot.state.save(
+      owner,
+      "settings",
+      "instance",
+      { mediaEnabled: true },
+      bot.state.document("instance")?.version,
+    );
+    bot.media.request("abcdefghijk", owner.id, "dashboard-request", true);
+
+    const ownerView = bot.state.snapshot(owner);
+    expect(
+      (ownerView.audit as Record<string, unknown>[]).find((row) => row.target === note.id),
+    ).toMatchObject({
+      targetName: "Private case name",
+    });
+    expect(
+      ownerView.media.find((row) => (row as { id: string }).id === "dashboard-request"),
+    ).toMatchObject({ requesterName: "owner" });
+    for (const actor of [reader, readApi] as Actor[]) {
+      const view = bot.state.snapshot(actor);
+      expect(
+        (view.audit as Record<string, unknown>[]).find((row) => row.target === note.id),
+      ).toMatchObject({ targetName: null });
+      expect(JSON.stringify(view)).not.toContain("Private case name");
+      expect(view.documents.some((doc) => doc.kind === "note")).toBe(false);
+      expect(view.incidents[0]).toMatchObject({ ruleName: "No links", messageId: null });
+      expect(view.recentChat).toEqual([]);
+      expect(
+        view.media.find((row) => (row as { id: string }).id === "dashboard-request"),
+      ).toMatchObject({ requesterName: "the owner" });
+      expect(JSON.stringify(view.media)).not.toContain('"owner"');
+    }
   });
 });

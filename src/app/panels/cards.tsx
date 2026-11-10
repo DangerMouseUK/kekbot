@@ -485,7 +485,7 @@ export function scopes(token: Row) {
 }
 
 function WidgetSource({ doc, snapshot, auth, run, busy, confirm }: CardProps) {
-  const [urls, setUrls] = useState<{ display: string; player?: string }>();
+  const [urls, setUrls] = useState<{ display: string; readId: string; player?: string }>();
   const owner = auth.actor?.role === "owner";
   const name = String(doc.data.name),
     type = String(doc.data.type);
@@ -494,16 +494,9 @@ function WidgetSource({ doc, snapshot, auth, run, busy, confirm }: CardProps) {
   const tokens = (snapshot.tokens ?? []).filter((token) =>
     scopes(token).includes(`widget:${doc.id}`),
   );
-  async function create() {
-    const label = name.slice(0, 70);
-    const read = await run(
-      "token.create",
-      { kind: "widget", name: `${label} read`, scopes: [`widget:${doc.id}`] },
-      { quiet: true },
-    );
-    if (!read) return;
-    const display = `${location.origin}/widgets/${doc.id}?token=${encodeURIComponent(String(read.token))}`;
-    if (type !== "player") return setUrls({ display });
+  const label = name.slice(0, 70);
+  /** Issues the separate playback credential for a display URL that already exists. */
+  async function addPlayer(display: string, readId: string) {
     const player = await run(
       "token.create",
       { kind: "player", name: `${label} player`, scopes: [`widget:${doc.id}`] },
@@ -511,8 +504,20 @@ function WidgetSource({ doc, snapshot, auth, run, busy, confirm }: CardProps) {
     );
     setUrls({
       display,
+      readId,
       player: player ? `${display}#player=${encodeURIComponent(String(player.token))}` : undefined,
     });
+  }
+  async function create() {
+    const read = await run(
+      "token.create",
+      { kind: "widget", name: `${label} read`, scopes: [`widget:${doc.id}`] },
+      { quiet: true },
+    );
+    if (!read) return;
+    const display = `${location.origin}/widgets/${doc.id}?token=${encodeURIComponent(String(read.token))}`;
+    if (type !== "player") return setUrls({ display, readId: String(read.id) });
+    await addPlayer(display, String(read.id));
   }
   if (!owner) return null;
   return (
@@ -528,12 +533,34 @@ function WidgetSource({ doc, snapshot, auth, run, busy, confirm }: CardProps) {
           </p>
           {type === "player" ? (
             <>
-              {urls.player && (
+              {urls.player ? (
                 <CopyField
                   label="OBS player source URL"
                   value={urls.player}
                   help="Use this one in OBS. The part after #player= is a separate playback credential, so this source can play and advance requests."
                 />
+              ) : (
+                <div className="problem" role="alert">
+                  <p>
+                    <strong>The playback credential was not created.</strong> Only the display-only
+                    URL below exists, and it cannot play requests. Try again, or revoke the display
+                    URL so it is not left unused.
+                  </p>
+                  <div className="actions">
+                    <button disabled={busy} onClick={() => addPlayer(urls.display, urls.readId)}>
+                      Try again
+                    </button>
+                    <button
+                      className="secondary"
+                      disabled={busy}
+                      onClick={async () => {
+                        if (await run("token.revoke", { id: urls.readId })) setUrls(undefined);
+                      }}
+                    >
+                      Revoke display URL
+                    </button>
+                  </div>
+                </div>
               )}
               <CopyField
                 label="Display-only URL"

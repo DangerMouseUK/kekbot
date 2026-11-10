@@ -250,7 +250,194 @@ const messages: Record<string, [string, string?]> = {
   api_rate_limited: ["Too many API requests.", "Wait a minute, then try again."],
   invalid_work_queue_cursor: ["That page link expired.", "Go back to the newest items."],
   invalid_media_history_cursor: ["That page link expired.", "Go back to the latest history."],
+  invalid_event_cursor: ["The live update link expired.", "Reload the page."],
+  // Configuration import and export.
+  duplicate_import_id: [
+    "The file lists the same item twice.",
+    "Export it again, or remove the duplicate.",
+  ],
+  duplicate_import_asset: ["The file lists the same image or sound twice.", "Export it again."],
+  import_asset_conflict: [
+    "A file in the import has the same name as a different file here.",
+    "Delete or rename one of them, then import again.",
+  ],
+  import_asset_missing: [
+    "An alert in the file uses an image or sound that is not included.",
+    "Export it again with its files.",
+  ],
+  import_asset_type_mismatch: [
+    "An image or sound in the file is not the type its alert expects.",
+    undefined,
+  ],
+  import_id_conflicts_with_nonportable_state: [
+    "An item in the file has the same ID as something that cannot be replaced here.",
+    "Use Merge instead of Replace, or remove that item from the file.",
+  ],
+  import_id_conflicts_with_other_state: [
+    "An item in the file has the same ID as a different kind of item here.",
+    "Remove that item from the file, then import again.",
+  ],
+  import_settings_id_invalid: [
+    "The settings in the file are not valid.",
+    "Export them again from KekBot.",
+  ],
+  // Secrets and keys.
+  secret_decryption_failed_check_key: [
+    "KekBot could not unlock saved credentials.",
+    "Check that the host uses the original encryption key file.",
+  ],
+  // Kick connection and deliveries (also shown in delivery outcomes and diagnostics).
+  invalid_broadcaster_id: [
+    "That Kick broadcaster ID is not a number.",
+    "Use your channel's numeric Kick user ID.",
+  ],
+  kick_identity_response_invalid: [
+    "Kick sent an unexpected reply about your account.",
+    "Try authorizing again later.",
+  ],
+  kick_invalid_response: [
+    "Kick sent an unexpected reply.",
+    "Check the result on Kick before trying again.",
+  ],
+  kick_reply_confirmation_invalid: [
+    "Kick did not clearly confirm a chat message.",
+    "Check your chat to see whether it was posted.",
+  ],
+  kick_stored_token_invalid: [
+    "The saved Kick connection is not readable.",
+    "Authorize Kick again in Connections.",
+  ],
+  kick_stream_sample_invalid: ["Kick sent an unexpected stream status.", "KekBot will try again."],
+  kick_subscription_response_invalid: [
+    "Kick sent an unexpected reply about event subscriptions.",
+    "Try Subscribe to events again.",
+  ],
+  kick_token_response_invalid: [
+    "Kick sent an unexpected sign-in reply.",
+    "Authorize Kick again in Connections.",
+  ],
+  trusted_kick_key_unavailable: [
+    "KekBot could not fetch Kick's signing key.",
+    "Events wait until Kick can be reached.",
+  ],
+  event_for_different_channel: [
+    "An event arrived for a different Kick channel and was ignored.",
+    "Check the broadcaster ID in Connections.",
+  ],
+  invalid_webhook_signature: ["An event failed Kick's signature check and was ignored.", undefined],
+  invalid_webhook_json: ["An event from Kick was not readable and was ignored.", undefined],
+  invalid_webhook_payload: ["An event from Kick was incomplete and was ignored.", undefined],
+  missing_or_invalid_signed_headers: [
+    "An event arrived without Kick's signature and was ignored.",
+    undefined,
+  ],
+  webhook_timestamp_outside_retry_window: [
+    "An event from Kick was too old and was ignored.",
+    undefined,
+  ],
+  webhook_too_large: ["An event from Kick was too large and was ignored.", undefined],
+  unsupported_event_type: ["KekBot does not handle that kind of Kick event.", undefined],
+  unsupported_event_version: ["KekBot does not support that Kick event version.", undefined],
+  receipt_payload_missing: [
+    "The event's details were already removed by retention.",
+    "Nothing else is needed.",
+  ],
+  // Background delivery bookkeeping.
+  timer_no_longer_eligible: [
+    "A timer message was skipped because the timer changed, was paused or the stream went offline.",
+    "Nothing else is needed.",
+  ],
+  job_lease_lost: [
+    "A delivery was taken over after a restart.",
+    "Check its final result before retrying.",
+  ],
+  job_without_lease: ["A delivery could not be tracked.", checkHost],
+  unsupported_job: ["KekBot found queued work it does not recognise.", checkHost],
+  // Discord deliveries and commands.
+  discord_route_revoked: [
+    "That Discord server or channel is no longer allowed.",
+    "Check Discord servers in Connections.",
+  ],
+  discord_interaction_expired: [
+    "The Discord command expired before KekBot replied.",
+    "Run it again in Discord.",
+  ],
+  discord_guild_or_channel_not_allowed: [
+    "That Discord server or channel is not allowed.",
+    "Add it under Discord servers in Connections.",
+  ],
+  wrong_discord_application: [
+    "A Discord request was for a different application and was ignored.",
+    "Check the Discord application ID.",
+  ],
+  invalid_discord_signature: [
+    "A Discord request failed its signature check and was ignored.",
+    "Check the Discord public key.",
+  ],
+  invalid_discord_json: ["A Discord request was not readable and was ignored.", undefined],
+  unsupported_discord_interaction: ["KekBot does not handle that Discord interaction.", undefined],
+  // Chat and analytics.
+  provide_channel_username: ["Add a Kick channel name after !so.", undefined],
+  oauth_callback_missing_parameters: [
+    "Kick returned without completing sign-in.",
+    "Start authorization again in Connections.",
+  ],
+  unknown_authentication_action: [
+    "That sign-in action is not recognised.",
+    "Reload the page and try again.",
+  ],
+  stream_not_observed: ["KekBot has no record of that stream.", "Choose a stream from the list."],
 };
+
+/**
+ * Codes that only the host command line, backup/restore, proof tools or workload
+ * benchmarks raise. The dashboard never shows them, so they need no dashboard text.
+ */
+export const hostOnlyErrorCodes = new Set([
+  "backup_asset_checksum_mismatch",
+  "backup_contains_non_regular_file",
+  "backup_database_checksum_mismatch",
+  "backup_database_integrity_failed",
+  "backup_database_metadata_mismatch",
+  "backup_destination_already_exists",
+  "backup_destination_inside_data",
+  "backup_mode_mismatch",
+  "duplicate_backup_asset",
+  "unsupported_or_invalid_backup_manifest",
+  "restore_requires_empty_assets_directory",
+  "restore_requires_new_data_directory",
+  "restore_requires_original_encryption_key",
+  "database_missing_run_init",
+  "database_mode_mismatch",
+  "encryption_key_does_not_match_database",
+  "invalid_encryption_key",
+  "migrations_directory_missing",
+  "unsupported_schema_version",
+  "stop_application_before_upgrade",
+  "instance_already_running_or_in_maintenance",
+  "public_url_must_be_https_origin",
+  "fixture_command_requires_explicit_fixture_mode",
+  "fixture_discord_key_pair_incomplete",
+  "fixture_key_pair_incomplete",
+  "invalid_proof_token",
+  "invalid_capture_delivery_id",
+  "proof_auth_rate_limited",
+  "proof_capture_expired_or_future_timestamp",
+  "proof_capture_unavailable_or_invalid",
+  "proof_replay_not_confirmed_duplicate",
+  "proof_replay_request_failed",
+  "proof_replay_requires_committed_receipt",
+  "proof_replay_requires_configured_https_origin",
+  "proof_replay_requires_live_mode_and_flag",
+  "proof_token_required",
+  "proof_tools_disabled",
+  "invalid_workload_run",
+  "workload_result_limit",
+  "fixture_workload_only",
+]);
+
+/** True when the dashboard has plain-English text for this code. */
+export const hasErrorText = (code: string) => code in messages;
 
 const fieldNames: Record<string, string> = {
   target: "item",

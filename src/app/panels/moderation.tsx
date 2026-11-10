@@ -38,11 +38,14 @@ function ActionDialog({
   initial,
   run,
   close,
+  done,
 }: {
   targets: Target[];
   initial: Action;
   run: Run;
   close: () => void;
+  /** Called after the action was accepted, before the dialog closes. */
+  done: () => void;
 }) {
   const bulk = targets.length > 1,
     single = targets[0];
@@ -86,7 +89,10 @@ function ActionDialog({
                 acknowledge: serious,
               });
           setSending(false);
-          if (result) close();
+          if (result) {
+            done();
+            close();
+          }
         }}
       >
         {bulk ? (
@@ -357,6 +363,10 @@ export default function ModerationPanel(props: PanelProps) {
           initial={dialog.action}
           run={run}
           close={() => setDialog(undefined)}
+          // A queued bulk action clears the ticked viewers so they are not acted on twice.
+          done={() => {
+            if (dialog.targets.length > 1) setSelected([]);
+          }}
         />
       )}
       <IncidentMode {...props} />
