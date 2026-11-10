@@ -1,41 +1,520 @@
 "use client";
-import { useState } from "react";
+import "./forms/forms.css";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { defaults, type ConfigDocument, type Kind } from "../server/domain/catalog.ts";
+import { examples } from "./forms/examples.ts";
+import type { Snapshot } from "./ui";
+import {
+  Checks,
+  Chips,
+  DateTimeInput,
+  DurationInput,
+  FieldShell,
+  HourSelect,
+  ListInput,
+  NumberInput,
+  Select,
+  TextArea,
+  TextInput,
+  Toggle,
+  Volume,
+  describedBy,
+  rangeText,
+} from "./forms/fields.tsx";
+import {
+  AssetPicker,
+  GrantRows,
+  TargetPicker,
+  TemplateInput,
+  TimezoneSelect,
+  ViewerInput,
+  Winners,
+} from "./forms/pickers.tsx";
+import { TemplatePreview } from "./forms/preview.tsx";
+import { describeServerError, type ServerProblem } from "./forms/errors.ts";
+import { helpOf, labelOf, layouts, type Data, type FieldSpec } from "./forms/layouts.ts";
+import {
+  bounds,
+  crossChecks,
+  explainIssue,
+  itemSchema,
+  specFor,
+  validate,
+} from "./forms/schema.ts";
+import { commandVariables, timerVariables } from "./forms/template.ts";
+import { formatDuration } from "./forms/time.ts";
 
-export const examples: Record<Kind, Record<string, unknown>> = {
-  command: { name: "Welcome", enabled: true, trigger: "!welcome", aliases: [], group: "General", responses: ["Welcome, {user}!"], roles: [], cooldown: 10, userCooldown: 30, streamOnly: false, condition: "always", counter: false },
-  timer: { name: "Community reminder", enabled: true, messages: ["Thanks for being here."], interval: 300, minMessages: 5, streamOnly: true, timezone: "UTC", quietStart: null, quietEnd: null },
-  alert: { name: "Follow alert", enabled: true, event: "channel.followed", template: "Thanks for following, {user}!", duration: 5, priority: 0, image: null, sound: null, volume: 0.5, animation: "fade" },
-  widget: { name: "Chat overlay", enabled: true, type: "chat", theme: "mint", width: 800, height: 400, limit: 10, target: "", text: "", endsAt: null, reducedMotion: false },
-  rule: { name: "Link rule", enabled: false, type: "link", patterns: [], allowedDomains: [], threshold: 5, windowSeconds: 30, trustedRoles: ["moderator", "broadcaster"], action: "warn", duration: 10, startsAt: null, endsAt: null, escalation: false, escalationAfter: 2, escalationWindowSeconds: 3600, escalationAction: "timeout" },
-  goal: { name: "Follower goal", enabled: true, metric: "follow", target: 100, value: 0, completed: false },
-  reward: { name: "Community reward", enabled: true, cost: 100, description: "Fulfilled by a moderator", fulfillment: "manual" },
-  poll: { name: "Choose our next game", enabled: true, options: ["Option one", "Option two"], status: "open", endsAt: 0, allowChange: false },
-  raffle: { name: "Community raffle", enabled: true, status: "open", endsAt: 0, roles: [], minPoints: 0, winners: [] },
-  note: { name: "Moderator note", enabled: true, viewer: "", text: "" },
-  guild: { name: "Community guild", enabled: true, guildId: "", channelId: "", events: ["live", "offline"], roles: [], users: [] },
-  settings: defaults
+export { examples };
+
+const nouns: Record<Kind, string> = {
+  command: "command",
+  timer: "timer",
+  alert: "alert",
+  widget: "widget",
+  rule: "rule",
+  goal: "goal",
+  reward: "reward",
+  poll: "poll",
+  raffle: "raffle",
+  note: "note",
+  guild: "Discord route",
+  settings: "settings",
 };
-const choices: Record<string, string[]> = {
-  "command.condition": ["always", "live", "offline"], "rule.type": ["link", "phrase", "repetition", "caps", "burst"], "rule.action": ["warn", "delete", "timeout", "ban"], "rule.escalationAction": ["warn", "delete", "timeout", "ban"],
-  "alert.event": ["channel.followed", "channel.subscription.new", "channel.subscription.renewal", "channel.subscription.gifts", "manual", "goal", "media"], "alert.animation": ["fade", "slide", "none"],
-  "widget.type": ["alerts", "chat", "player", "nowplaying", "queue", "eventfeed", "supporter", "goal", "multigoal", "status", "counter", "leaderboard", "poll", "raffle", "countdown", "shoutout", "socials", "activity"],
-  "widget.theme": ["mint", "midnight", "paper"], "goal.metric": ["manual", "follow", "subscription", "points", "media"], "reward.fulfillment": ["manual", "alert"], "poll.status": ["open", "closed"], "raffle.status": ["open", "closed", "drawn"]
-};
-const label = (key: string) => key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase());
-export default function ConfigEditor({ kind, document, save, cancel }: { kind: Kind; document?: ConfigDocument; save: (data: Record<string, unknown>) => Promise<void>; cancel: () => void }) {
-  const [data, setData] = useState(() => {
-    const initial = { ...examples[kind], ...document?.data };
-    if (!document && ["poll", "raffle"].includes(kind)) initial.endsAt = Date.now() + 3600000;
-    return initial;
-  }), [error, setError] = useState(""), [busy, setBusy] = useState(false);
-  return <form className="editor" onSubmit={async event => { event.preventDefault(); setBusy(true); try { await save(data); } catch (e) { setError(e instanceof Error ? e.message : "Save failed"); } finally { setBusy(false); } }}>
-    <h3>{document ? "Edit" : "New"} {kind}</h3><p className="help">Responses support {"{user}, {args}, {channel}, {counter}, {points}"}. Lists use one value per line. Time values ending in “At” use Unix milliseconds.</p>
-    <div className="fields">{Object.entries(data).map(([key, value]) => {
-      const update = (next: unknown) => { setError(""); setData(previous => ({ ...previous, [key]: next })); };
-      const options = choices[`${kind}.${key}`], nested = kind === "guild" && ["roles", "users"].includes(key);
-      return <label key={key}>{label(key)}{options ? <select aria-label={label(key)} value={String(value)} onChange={event => update(event.target.value)}>{options.map(option => <option key={option}>{option}</option>)}</select> : typeof value === "boolean" ? <input aria-label={label(key)} type="checkbox" checked={value} onChange={event => update(event.target.checked)} /> : Array.isArray(value) ? nested ? <textarea aria-label={label(key)} defaultValue={JSON.stringify(value, null, 2)} onBlur={event => { try { update(JSON.parse(event.target.value)); } catch { setError(`${label(key)} must be a JSON list of id/permission objects.`); } }} /> : <textarea aria-label={label(key)} value={value.join("\n")} onChange={event => update(event.target.value.split("\n").filter(Boolean))} /> : typeof value === "number" || value === null && ["quietStart", "quietEnd", "startsAt", "endsAt"].includes(key) ? <input aria-label={label(key)} type="number" step={key === "volume" ? 0.05 : 1} value={value ?? ""} onChange={event => update(event.target.value === "" ? null : Number(event.target.value))} /> : <input aria-label={label(key)} value={String(value ?? "")} onChange={event => update(value === null && event.target.value === "" ? null : event.target.value)} />}</label>;
-    })}</div>{kind === "guild" && <p className="help">Role/user mappings: {"[{\"id\":\"DISCORD_ID\",\"permission\":\"media\"}]"}. Permissions: operate, moderate, media, engage. Empty mappings grant no control.</p>}
-    {error && <p role="alert">{error}</p>}<div className="actions"><button disabled={busy}>Save {kind}</button><button type="button" className="secondary" onClick={cancel}>Cancel</button></div>
-  </form>;
+
+function initial(kind: Kind, document?: ConfigDocument): Data {
+  const data: Data = { ...examples[kind], ...document?.data };
+  if (!document && ["poll", "raffle"].includes(kind))
+    data.endsAt = Math.ceil((Date.now() + 3600000) / 60000) * 60000;
+  return data;
+}
+
+export type SaveOptions = { version?: number };
+
+export default function ConfigEditor({
+  kind,
+  document,
+  save,
+  cancel,
+  snapshot,
+}: {
+  kind: Kind;
+  document?: ConfigDocument;
+  /** Saves the form values. `options.version` is the version the form was loaded from (it changes after "Reload latest values"). */
+  save: (data: Record<string, unknown>, options?: SaveOptions) => Promise<void>;
+  cancel: () => void;
+  /** Current dashboard state, used to populate pickers (assets, goals, polls, commands, viewers). */
+  snapshot?: Snapshot;
+}) {
+  const prefix = `kf${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const [base, setBase] = useState(document);
+  const [data, setData] = useState(() => initial(kind, document));
+  const [revision, setRevision] = useState(0);
+  const [touched, setTouched] = useState<Set<string>>(() => new Set());
+  const [submitted, setSubmitted] = useState(false);
+  const [problem, setProblem] = useState<ServerProblem>();
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const summary = useRef<HTMLDivElement>(null);
+  const noun = nouns[kind];
+
+  useEffect(() => {
+    heading.current?.focus({ preventScroll: true });
+    heading.current?.scrollIntoView({ block: "nearest" });
+  }, []);
+
+  const sections = layouts[kind];
+  const covered = useMemo(
+    () => new Set(sections.flatMap((section) => section.fields.map((field) => field.key))),
+    [sections],
+  );
+  // Fields added to the schema later still appear, with a generic control.
+  const extras = Object.keys(data).filter((key) => !covered.has(key));
+  const documentId = base?.id ?? (kind === "settings" ? "instance" : undefined);
+
+  const schemaErrors = useMemo(() => validate(kind, data), [kind, data]);
+  const cross = useMemo(
+    () => crossChecks(kind, data, snapshot?.documents, documentId),
+    [kind, data, snapshot?.documents, documentId],
+  );
+  const errors: Record<string, string> = { ...cross.errors, ...schemaErrors };
+  const visibleSpec = (spec: FieldSpec) => !spec.visible || spec.visible(data);
+
+  const update = (key: string, value: unknown) => {
+    setNotice("");
+    setTouched((previous) => (previous.has(key) ? previous : new Set(previous).add(key)));
+    setProblem((previous) => {
+      if (!previous?.fields[key]) return previous;
+      const fields = { ...previous.fields };
+      delete fields[key];
+      return { ...previous, fields };
+    });
+    setData((previous) => ({ ...previous, [key]: value }));
+  };
+
+  const shownError = (key: string) =>
+    problem?.fields[key] ?? (submitted || touched.has(key) ? errors[key] : undefined);
+
+  async function reload() {
+    setBusy(true);
+    try {
+      const response = await fetch("/api/control", { cache: "no-store" });
+      if (!response.ok) throw new Error();
+      const latest = ((await response.json()).documents as ConfigDocument[]).find(
+        (doc) => doc.id === documentId,
+      );
+      if (!latest) {
+        setProblem({
+          code: "configuration_not_found",
+          summary: `This ${noun} no longer exists; someone may have deleted it. Cancel to close the form.`,
+          fields: {},
+          conflict: false,
+        });
+        return;
+      }
+      setBase(latest);
+      setData(initial(kind, latest));
+      setRevision((value) => value + 1);
+      setTouched(new Set());
+      setSubmitted(false);
+      setProblem(undefined);
+      setNotice("Loaded the latest saved values. Review them, make your changes again, then save.");
+      heading.current?.focus();
+    } catch {
+      setProblem((previous) =>
+        previous
+          ? {
+              ...previous,
+              summary: `${previous.summary} Reloading failed; check your connection and try again.`,
+            }
+          : previous,
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const errorKeys = Object.keys(errors);
+  const allSpecs = sections.flatMap((section) => section.fields);
+  const labelFor = (key: string) => {
+    const spec = allSpecs.find((field) => field.key === key);
+    return spec ? labelOf(spec, data) : humanize(key);
+  };
+
+  function control(spec: FieldSpec) {
+    const key = spec.key,
+      id = `${prefix}-${key}`,
+      label = labelOf(spec, data),
+      b = bounds(kind, key),
+      error = shownError(key),
+      warning = cross.warnings[key];
+    let help = helpOf(spec, data);
+    const value = data[key];
+    const set = (next: unknown) => update(key, next);
+    const c = spec.control;
+    const range =
+      c.type === "number"
+        ? rangeText(b, (n) => withSuffix(n, c.suffix))
+        : c.type === "duration"
+          ? rangeText(b, (n) => formatDuration(n, c.base))
+          : "";
+    if (range) help = [help, `Range: ${range}.`].filter(Boolean).join(" ");
+    const group = ["checks", "chips", "list", "grants", "winners"].includes(c.type);
+    const d = { id, describedBy: describedBy(id, help, error, warning), invalid: Boolean(error) };
+    let input: ReactNode;
+    switch (c.type) {
+      case "text":
+        input = (
+          <TextInput
+            d={d}
+            value={value}
+            set={set}
+            placeholder={c.placeholder}
+            normalize={c.normalize}
+            mono={c.mono}
+            maxLength={b.maxLength}
+          />
+        );
+        break;
+      case "textarea":
+        input = (
+          <TextArea
+            d={d}
+            value={value}
+            set={set}
+            rows={c.rows}
+            maxLength={b.maxLength}
+            placeholder={c.placeholder}
+          />
+        );
+        break;
+      case "toggle":
+        return (
+          <FieldShell
+            key={key}
+            id={id}
+            label={label}
+            help={help}
+            error={error}
+            wide={spec.wide}
+            bare
+          >
+            <Toggle d={d} label={label} value={value} set={set} />
+          </FieldShell>
+        );
+      case "select":
+        input = <Select d={d} value={value} set={set} options={c.options} />;
+        break;
+      case "number":
+        input = (
+          <NumberInput d={d} value={value} set={set} bounds={b} suffix={c.suffix} step={c.step} />
+        );
+        break;
+      case "duration":
+        input = (
+          <DurationInput d={d} label={label} value={value} set={set} base={c.base} bounds={b} />
+        );
+        break;
+      case "datetime":
+        input = <DateTimeInput d={d} label={label} value={value} set={set} optional={c.optional} />;
+        break;
+      case "chips":
+        input = (
+          <Chips
+            d={d}
+            label={label}
+            value={value}
+            set={set}
+            item={c.item}
+            placeholder={c.placeholder}
+            normalize={c.normalize}
+            schema={itemSchema(kind, key)}
+            maxItems={b.maxItems}
+            explain={(issue) => explainIssue(kind, { ...issue, path: [key] }, data)}
+          />
+        );
+        break;
+      case "list": {
+        const item = itemSchema(kind, key) as unknown as { maxLength?: number } | undefined;
+        input = (
+          <ListInput
+            d={d}
+            value={value}
+            set={set}
+            item={c.item}
+            addLabel={c.add}
+            multiline={c.multiline}
+            bounds={{ ...b, itemMax: item?.maxLength ?? undefined }}
+            variables={
+              c.variables === "command"
+                ? commandVariables
+                : c.variables === "timer"
+                  ? timerVariables
+                  : undefined
+            }
+          />
+        );
+        break;
+      }
+      case "template":
+        input = (
+          <TemplateInput
+            d={d}
+            value={value}
+            set={set}
+            event={String(data.event)}
+            maxLength={b.maxLength}
+          />
+        );
+        break;
+      case "checks":
+        input = <Checks name={id} value={value} set={set} options={c.options} />;
+        break;
+      case "timezone":
+        input = <TimezoneSelect d={d} value={value} set={set} />;
+        break;
+      case "hour":
+        input = <HourSelect d={d} value={value} set={set} />;
+        break;
+      case "volume":
+        input = <Volume d={d} value={value} set={set} />;
+        break;
+      case "asset":
+        input = (
+          <AssetPicker
+            d={d}
+            label={label}
+            value={value}
+            set={set}
+            accept={c.accept}
+            snapshot={snapshot}
+          />
+        );
+        break;
+      case "target":
+        input = (
+          <TargetPicker
+            d={d}
+            value={value}
+            set={set}
+            type={String(data.type)}
+            documents={snapshot?.documents}
+          />
+        );
+        break;
+      case "grants":
+        input = <GrantRows d={d} value={value} set={set} noun={c.noun} />;
+        break;
+      case "viewer":
+        input = <ViewerInput d={d} value={value} set={set} viewers={snapshot?.viewers} />;
+        break;
+      case "winners":
+        input = <Winners value={value} viewers={snapshot?.viewers} />;
+        break;
+      case "json":
+        input = <pre className="kf-json">{JSON.stringify(value, null, 2)}</pre>;
+        break;
+    }
+    return (
+      <FieldShell
+        key={key}
+        id={id}
+        label={label}
+        help={help}
+        error={error}
+        warning={warning}
+        wide={spec.wide}
+        group={group}
+      >
+        {input}
+      </FieldShell>
+    );
+  }
+
+  const extraSpec = (key: string): FieldSpec => {
+    const value = data[key];
+    const known = specFor(kind, key);
+    if (known) return known;
+    return {
+      key,
+      label: humanize(key),
+      control:
+        typeof value === "boolean"
+          ? { type: "toggle" }
+          : typeof value === "number" || (value === null && bounds(kind, key).max !== undefined)
+            ? { type: "number" }
+            : Array.isArray(value) && value.every((item) => typeof item === "string")
+              ? { type: "chips", item: "value" }
+              : typeof value === "string" || value === null
+                ? { type: "text" }
+                : { type: "json" },
+      wide: Array.isArray(value),
+    };
+  };
+
+  const channel = String(snapshot?.settings?.name ?? defaults.name);
+  const hiddenErrors = errorKeys.filter((key) => {
+    const spec = allSpecs.find((field) => field.key === key);
+    return spec && !visibleSpec(spec);
+  });
+
+  return (
+    <form
+      className="editor kf"
+      noValidate
+      aria-labelledby={`${prefix}-title`}
+      onSubmit={async (event) => {
+        event.preventDefault();
+        setSubmitted(true);
+        setNotice("");
+        if (errorKeys.length) {
+          requestAnimationFrame(() => summary.current?.focus());
+          return;
+        }
+        setBusy(true);
+        setProblem(undefined);
+        try {
+          await save(data, { version: base?.version });
+        } catch (e) {
+          setProblem(describeServerError(e instanceof Error ? e.message : "", kind));
+          requestAnimationFrame(() => summary.current?.focus());
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <h3 id={`${prefix}-title`} ref={heading} tabIndex={-1}>
+        {kind === "settings" ? "Instance settings" : `${document ? "Edit" : "New"} ${noun}`}
+      </h3>
+      {notice && (
+        <p className="kf-notice" role="status">
+          {notice}
+        </p>
+      )}
+      {(problem || (submitted && errorKeys.length > 0)) && (
+        <div className="kf-summary" role="alert" tabIndex={-1} ref={summary}>
+          {problem ? (
+            <>
+              <p>{problem.summary}</p>
+              {problem.conflict && (
+                <button type="button" disabled={busy} onClick={() => void reload()}>
+                  Reload latest values
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <p>
+                {errorKeys.length === 1 ? "Fix 1 problem" : `Fix ${errorKeys.length} problems`}{" "}
+                before saving:
+              </p>
+              <ul>
+                {errorKeys.map((key) => (
+                  <li key={key}>
+                    <a
+                      href={`#${prefix}-${key}`}
+                      onClick={(event) => {
+                        const target = window.document.getElementById(`${prefix}-${key}`);
+                        if (!target) return;
+                        event.preventDefault();
+                        target.focus();
+                        target.scrollIntoView({ block: "center" });
+                      }}
+                    >
+                      {labelFor(key)}
+                    </a>
+                    : {errors[key]}
+                    {hiddenErrors.includes(key)
+                      ? " (this field is hidden for the current choice)"
+                      : ""}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      )}
+      {sections.map((section) => {
+        if (section.visible && !section.visible(data)) return null;
+        const fields = section.fields.filter(visibleSpec);
+        const description =
+          typeof section.description === "function"
+            ? section.description(data)
+            : section.description;
+        if (!fields.length && !description) return null;
+        return (
+          <fieldset key={`${revision}-${section.title}`} className="kf-section">
+            <legend>{section.title}</legend>
+            {description && <p className="kf-help">{description}</p>}
+            <div className="kf-grid">{fields.map(control)}</div>
+            {section.preview && (
+              <TemplatePreview kind={section.preview} data={data} channel={channel} />
+            )}
+          </fieldset>
+        );
+      })}
+      {extras.length > 0 && (
+        <fieldset key={`${revision}-extras`} className="kf-section">
+          <legend>Other settings</legend>
+          <div className="kf-grid">{extras.map((key) => control(extraSpec(key)))}</div>
+        </fieldset>
+      )}
+      <div className="actions kf-actions">
+        <button disabled={busy}>{busy ? "Saving…" : `Save ${noun}`}</button>
+        <button type="button" className="secondary" onClick={cancel}>
+          Cancel
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function withSuffix(value: number, suffix?: string) {
+  if (!suffix) return String(value);
+  if (suffix === "%" || suffix === "px") return `${value}${suffix === "px" ? " px" : "%"}`;
+  return `${value} ${value === 1 && suffix.endsWith("s") ? suffix.slice(0, -1) : suffix}`;
+}
+
+function humanize(key: string) {
+  return key.replace(/([A-Z])/g, " $1").replace(/^./, (s) => s.toUpperCase());
 }
