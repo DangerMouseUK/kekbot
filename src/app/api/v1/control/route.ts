@@ -31,7 +31,7 @@ export function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = JSON.parse((await boundedBody(request, 65536)).toString()) as { action: string; input?: Record<string, unknown> };
-    const permission = body.action?.startsWith("config.") ? "configure" : body.action?.startsWith("media.") || body.action?.startsWith("player.") ? "media" : body.action?.startsWith("moderation.") ? "moderate" : body.action?.startsWith("reward.") || body.action?.startsWith("raffle.") || body.action === "activity.close" || body.action === "points.adjust" ? "engage" : ["status", "timers.pause", "timers.resume", "alert.manual", "goal.adjust"].includes(body.action) ? "operate" : undefined;
+    const permission = body.action?.startsWith("config.") ? "configure" : body.action?.startsWith("media.") || body.action?.startsWith("player.") ? "media" : body.action?.startsWith("moderation.") ? "moderate" : body.action?.startsWith("reward.") || body.action?.startsWith("raffle.") || body.action?.startsWith("poll.") || body.action === "activity.close" || body.action === "points.adjust" ? "engage" : ["status", "timers.pause", "timers.resume", "alert.manual", "goal.adjust"].includes(body.action) ? "operate" : undefined;
     if (!permission || body.action?.startsWith("config.") && ["settings", "guild"].includes(String(body.input?.kind))) throw new AppError("operation_not_in_integration_api", 403);
     const { app, actor } = access(request, permission);
     app.bot.state.audit(actor.id, "api.request", randomUUID(), "pending");

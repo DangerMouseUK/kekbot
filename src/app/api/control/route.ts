@@ -11,6 +11,8 @@ export function GET(request: Request) {
     const view = params.get("view");
     if (view === "uncertain-jobs" || view === "pending-redemptions") return json(app.bot.state.workQueue(view, { cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }));
     if (params.get("view") === "media-history") return json(app.bot.media.history({ cursor: params.get("cursor") ?? undefined, limit: params.get("limit") ?? undefined }));
+    // Observed viewers are already readable by every signed-in operator; this only bounds the lookup.
+    if (view === "viewers") return json({ items: app.bot.state.searchViewers(params.get("q") ?? "") });
     if (params.get("view") === "analytics") {
       const now = Date.now(), number = (key: string, fallback: number) => params.has(key) ? Number(params.get(key)) : fallback;
       const result = app.bot.operations.analytics(number("from", now - 30 * 86400000), number("to", now), params.get("stream") || undefined, { timeZone: params.get("tz") || undefined });

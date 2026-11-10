@@ -52,7 +52,7 @@ An admin receives only the grants the owner selects. A moderator receives the fo
 | `operate`: timer pause/resume, manual alerts, goal adjustment, shoutout | Yes | If granted | Yes | No |
 | `moderate`: notes, rule tests, emergency pause, incident mode, manual moderation | Yes | If granted | Yes | No |
 | `media`: add/decide/reorder/clear requests and control the player | Yes | If granted | Yes | No |
-| `engage`: point adjustments, redemption decisions, activity close/draw/reroll | Yes | If granted | Yes | No |
+| `engage`: point adjustments, redemption decisions, starting polls/raffles (Discord/API, at most 10 open), activity close/draw/reroll | Yes | If granted | Yes | No |
 | `invite`: bounded invitations | Yes | If granted; see below | No | No |
 | Account disable/enable and session revocation | Yes | No | No | No |
 | Provider credentials, Kick authorization and Discord routes | Yes | No | No | No |

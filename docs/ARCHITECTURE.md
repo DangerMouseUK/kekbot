@@ -89,7 +89,7 @@ Kick requests use fixed official hosts with redirects rejected and timeouts boun
 
 ## ADR 005 — Web interfaces and media recovery
 
-Use Next.js route handlers with uncached operational responses. Authenticated SSE uses durable IDs, bounded replay and snapshot recovery; active sessions/source tokens are rechecked. Browser, signed Discord, verified Kick and scoped owner API actions call shared domain services. Discord interaction tokens are encrypted in durable jobs and never retained in receipt bodies.
+Use Next.js route handlers with uncached operational responses. Authenticated SSE uses durable IDs, bounded replay and snapshot recovery; active sessions/source tokens are rechecked. Browser, signed Discord, verified Kick and scoped owner API actions call shared domain services. Discord slash commands and notification buttons are deferred durable jobs; autocomplete is answered inline from bounded, permission-checked SQLite reads. Buttons carry the item ID and rendered version, so a stale click never acts on newer state. Discord interaction tokens are encrypted in durable jobs and never retained in receipt bodies, and a delivered reply leaves only a marker.
 
 Media preserves the current item/queue after restart, pauses until moderator resume, then restarts the item from the beginning. Only one active player lease can acknowledge completion. Stale/disconnected players never advance a newer item.
 
@@ -132,7 +132,7 @@ Migration `0002_retention_and_history.sql` adds job payload state/expiry/viewer 
 
 Resolved payloads use chat retention separately from outcome metadata. Uncertain outbound effects are encrypted with the installation key and job-specific purpose, remain non-retryable, and are scrubbed on explicit reconciliation. Pending/running payloads remain available for processing. Expired temporary settings are ignored on reads and removed by maintenance, while pending/running/uncertain Discord work protects its result. Durable configuration, counters and participation decisions are not temporary settings.
 
-The operational snapshot includes every active media item. Terminal history uses a separate authenticated keyset query ordered by creation time and ID, backed by an index. Dashboard modules live in focused typed panels; the media history request is abortable and uncached. Routes still call shared domain services and enforce current authorization.
+The operational snapshot includes every active media item. Terminal history uses a separate authenticated keyset query ordered by creation time and ID, backed by an index. Dashboard modules live in focused typed panels; the media history request is abortable and uncached. Panel controls carry the displayed record's ID and version into the same control actions, and `src/app/messages.ts` turns `AppError` codes into operator text at the presentation layer only; routes and the API keep returning codes. Routes still call shared domain services and enforce current authorization.
 
 Uncertain jobs and pending redemptions have independent bounded keyset views and 50-item first pages in the snapshot. They never rely on the latest-100 history lists for discoverability. Pagination grants read access only; reconciliation/fulfillment still checks current authority. Gift recipients inherit job associations alongside event actors; erasure recovers missing older associations from retained receipts before checking pending work and scrubbing payloads.
 

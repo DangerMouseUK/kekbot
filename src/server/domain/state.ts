@@ -10,6 +10,8 @@ import { configSchemas, defaults, type ConfigDocument, type Kind } from "./catal
 import { APP_VERSION } from "../version.ts";
 
 export const ERASED_VIEWER = "Erased viewer";
+/** Open polls plus raffles at which `engage`-only creation stops (see State.createActivity). */
+export const OPEN_ACTIVITY_LIMIT = 10;
 
 export class State {
   readonly repository: Repository;
@@ -115,14 +117,50 @@ export class State {
   }
 
   save(actor: Actor, kind: Kind, id: string | undefined, input: unknown, version?: number) {
-    this.assertActor(
+    return this.write(
       actor,
+      kind,
+      id,
+      input,
+      version,
       kind === "settings" || kind === "guild"
         ? "integrations"
         : kind === "note"
           ? "moderate"
           : "configure",
     );
+  }
+
+  /**
+   * Deliberate permission exception: `engage` holders may start polls and raffles. Uses the same
+   * strict validation, document-ID rules, limits and audit as save(). The caller derives `id` from
+   * its request/interaction, so a retried request returns the document it already created.
+   */
+  createActivity(actor: Actor, kind: "poll" | "raffle", id: string, input: unknown) {
+    this.assertActor(actor, "engage");
+    return this.db
+      .transaction(() => {
+        const existing = this.document(id);
+        if (existing?.kind === kind) return existing;
+        const now = Date.now();
+        const open = [...this.list("poll"), ...this.list("raffle")].filter(
+          (doc) => doc.data.status === "open" && doc.data.endsAt > now,
+        ).length;
+        if (open >= OPEN_ACTIVITY_LIMIT) throw new AppError("open_activity_limit", 409);
+        return this.write(actor, kind, id, input, undefined, "engage");
+      })
+      .immediate();
+  }
+
+  private write(
+    actor: Actor,
+    kind: Kind,
+    id: string | undefined,
+    input: unknown,
+    version: number | undefined,
+    permission: Permission,
+  ) {
+    this.assertActor(actor, permission);
     const data = configSchemas[kind].strict().parse(input);
     if (kind === "alert") {
       const alert = configSchemas.alert.parse(data);
@@ -304,7 +342,7 @@ export class State {
     const selection =
       view === "uncertain-jobs"
         ? "id,kind,status,attempts,last_error AS error,created_at AS createdAt"
-        : "id,viewer,reward,cost,status,created_at AS createdAt";
+        : "id,viewer,reward,cost,status,created_at AS createdAt,(SELECT name FROM viewers WHERE id=redemptions.viewer) AS viewerName,(SELECT json_extract(data,'$.name') FROM documents WHERE id=redemptions.reward) AS rewardName";
     const source =
       view === "uncertain-jobs"
         ? "jobs WHERE status='uncertain'"
@@ -332,6 +370,81 @@ export class State {
     };
   }
 
+  /** Bounded lookup of observed viewers for operator pickers. */
+  searchViewers(query: unknown, limit = 20) {
+    const text = z
+      .string()
+      .trim()
+      .max(50)
+      .parse(query ?? "");
+    const pattern = `%${text.replace(/[\\%_]/g, (character) => `\\${character}`)}%`;
+    return this.db
+      .prepare(
+        `SELECT v.id,v.name,v.role,v.last_seen AS lastSeen,v.messages,v.watch_minutes AS watchMinutes,
+          coalesce((SELECT sum(amount) FROM ledger l WHERE l.viewer=v.id),0) AS balance
+        FROM viewers v WHERE v.name!=? AND (v.name LIKE ? ESCAPE '\\' OR v.id=?)
+        ORDER BY v.last_seen DESC LIMIT ?`,
+      )
+      .all(ERASED_VIEWER, pattern, text, limit);
+  }
+
+  /** Read-only view of each timer's persisted schedule and latest queued send. */
+  timerSchedules() {
+    const chat = Number(this.repository.setting("chat_count") ?? 0);
+    const latest = this.db.prepare(
+      "SELECT status,created_at AS at,last_error AS error FROM jobs WHERE id>=? AND id<? ORDER BY created_at DESC LIMIT 1",
+    );
+    return this.list("timer").map((timer) => {
+      const schedule = JSON.parse(this.repository.setting(`timer:${timer.id}`) ?? "null") as {
+        next: number;
+        count: number;
+      } | null;
+      return {
+        id: timer.id,
+        next: schedule?.next ?? null,
+        waitingMessages: Math.max(
+          0,
+          timer.data.minMessages - (schedule ? chat - schedule.count : 0),
+        ),
+        lastSent: latest.get(`timer:${timer.id}:`, `timer:${timer.id};`) ?? null,
+      };
+    });
+  }
+
+  /** Only an owner session (not an owner-issued API token) may see account usernames. */
+  private static ownerView(actor?: Actor) {
+    return !actor || (actor.role === "owner" && !actor.capabilityId);
+  }
+
+  /** Display labels for audit actors without widening account visibility. */
+  private auditActors(actor?: Actor) {
+    const accounts = new Map(
+      (
+        this.db.prepare("SELECT id,username,role FROM accounts").all() as {
+          id: string;
+          username: string;
+          role: string;
+        }[]
+      ).map((row) => [row.id, row]),
+    );
+    const owner = State.ownerView(actor);
+    const roles: Record<string, string> = {
+      owner: "the owner",
+      admin: "an admin",
+      moderator: "a moderator",
+      readonly: "a read-only operator",
+    };
+    return (id: string) => {
+      const account = accounts.get(id);
+      if (account) return owner ? account.username : (roles[account.role] ?? "an operator");
+      if (id === "worker") return "KekBot";
+      if (id === "host") return "the host administrator";
+      if (id.startsWith("discord:")) return "a Discord moderator";
+      const viewer = id.startsWith("kick:") ? id.slice(5) : id;
+      return /^\d{1,24}$/.test(viewer) ? (this.viewerName(viewer) ?? "a viewer") : "someone";
+    };
+  }
+
   snapshot(actor?: Actor) {
     let notesAllowed = !actor;
     if (actor) {
@@ -342,6 +455,8 @@ export class State {
         notesAllowed = false;
       }
     }
+    const actorLabel = this.auditActors(actor);
+    const ownerView = State.ownerView(actor);
     return {
       settings: this.settings,
       documents: (Object.keys(configSchemas) as Kind[])
@@ -353,12 +468,28 @@ export class State {
         )
         .all(),
       uncertainJobs: this.workQueue("uncertain-jobs"),
-      audit: this.db.prepare("SELECT * FROM audit ORDER BY id DESC LIMIT 100").all(),
+      audit: (
+        this.db
+          .prepare(
+            `SELECT a.*,
+              (SELECT json_extract(data,'$.name') FROM documents WHERE id=a.target AND (kind!='note' OR ?)) AS targetName,
+              (SELECT title FROM media WHERE id=a.target) AS mediaTitle,
+              (SELECT name FROM viewers WHERE id=a.target) AS viewerName
+            FROM audit a ORDER BY a.id DESC LIMIT 100`,
+          )
+          // Moderator note names stay behind moderation authority, like the notes themselves.
+          .all(notesAllowed ? 1 : 0) as (Record<string, unknown> & { actor: string })[]
+      ).map((row) => ({ ...row, actorLabel: actorLabel(row.actor) })),
       media: this.db
         .prepare(
-          "SELECT * FROM media WHERE status IN ('validating','pending','approved','playing') ORDER BY position,created_at,id",
+          `SELECT m.*,coalesce(v.name,CASE WHEN ? THEN a.username WHEN a.role='owner' THEN 'the owner'
+            WHEN a.role='admin' THEN 'an admin' WHEN a.role='moderator' THEN 'a moderator'
+            WHEN a.role IS NOT NULL THEN 'an operator' END) AS requesterName
+          FROM media m LEFT JOIN viewers v ON v.id=m.requester LEFT JOIN accounts a ON a.id=m.requester
+          WHERE m.status IN ('validating','pending','approved','playing') ORDER BY m.position,m.created_at,m.id`,
         )
-        .all(),
+        // Local account usernames are owner-visible only; other readers see the role.
+        .all(ownerView ? 1 : 0),
       player: JSON.parse(
         this.repository.setting("player") ??
           '{"state":"paused","volume":50,"current":null,"version":0}',
@@ -366,18 +497,54 @@ export class State {
       viewers: this.db.prepare("SELECT * FROM viewers ORDER BY last_seen DESC LIMIT 100").all(),
       leaderboard: this.db
         .prepare(
-          "SELECT viewer,sum(amount) AS balance FROM ledger GROUP BY viewer ORDER BY balance DESC LIMIT 100",
+          "SELECT l.viewer,v.name,sum(l.amount) AS balance FROM ledger l LEFT JOIN viewers v ON v.id=l.viewer GROUP BY l.viewer ORDER BY balance DESC LIMIT 100",
         )
         .all(),
       redemptions: this.db
-        .prepare("SELECT * FROM redemptions ORDER BY created_at DESC LIMIT 100")
+        .prepare(
+          "SELECT r.*,v.name AS viewerName,json_extract(d.data,'$.name') AS rewardName FROM redemptions r LEFT JOIN viewers v ON v.id=r.viewer LEFT JOIN documents d ON d.id=r.reward ORDER BY r.created_at DESC LIMIT 100",
+        )
         .all(),
       pendingRedemptions: this.workQueue("pending-redemptions"),
       incidents: this.db
         .prepare(
-          "SELECT i.*,j.status AS outcome,j.last_error AS error FROM incidents i LEFT JOIN jobs j ON j.id=i.job_id ORDER BY i.at DESC LIMIT 100",
+          `SELECT i.*,j.status AS outcome,j.last_error AS error,v.name AS viewerName,
+            CASE WHEN i.rule='manual' THEN NULL ELSE coalesce(json_extract(d.data,'$.name'),i.reason) END AS ruleName,
+            CASE WHEN ? THEN json_extract(r.payload,'$.message_id') END AS messageId
+          FROM incidents i LEFT JOIN jobs j ON j.id=i.job_id LEFT JOIN viewers v ON v.id=i.viewer
+          LEFT JOIN documents d ON d.id=i.rule
+          LEFT JOIN receipts r ON i.id GLOB 'moderation:*' AND r.id=substr(i.id,12)
+          ORDER BY i.at DESC LIMIT 100`,
         )
-        .all(),
+        // Message references are for acting on chat, so only moderation authority receives them.
+        .all(notesAllowed ? 1 : 0),
+      // Recent inspected chat lets moderators act on a message; it stays behind moderation authority.
+      recentChat: notesAllowed
+        ? this.db
+            .prepare(
+              `SELECT r.id,r.received_at AS at,json_extract(r.payload,'$.message_id') AS messageId,
+                json_extract(r.payload,'$.sender.user_id') AS userId,
+                coalesce(json_extract(r.payload,'$.sender.username'),'Viewer') AS name,
+                json_extract(r.payload,'$.content') AS text,
+                EXISTS(SELECT 1 FROM incidents i WHERE i.id='moderation:'||r.id) AS flagged,
+                EXISTS(SELECT 1 FROM settings s WHERE s.key='hidden_chat:'||json_extract(r.payload,'$.message_id')) AS removed
+              FROM receipts r WHERE r.event_type='chat.message.sent' AND r.payload IS NOT NULL
+              ORDER BY r.received_at DESC LIMIT 50`,
+            )
+            .all()
+        : [],
+      raffleWinners: this.list("raffle").flatMap((raffle) =>
+        raffle.data.winners.map((viewer) => ({
+          raffle: raffle.id,
+          viewer,
+          name: this.viewerName(viewer) ?? null,
+        })),
+      ),
+      timers: this.timerSchedules(),
+      stream: {
+        live: this.repository.setting("stream_is_live") ?? "unavailable",
+        startedAt: this.repository.setting("stream_started_at") || null,
+      },
       incidentMode: (() => {
         const mode = JSON.parse(this.repository.setting("incident_mode") ?? "null");
         return mode?.endsAt > Date.now() ? mode : null;

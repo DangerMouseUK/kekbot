@@ -1,10 +1,18 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
-import { ActionForm, Table, permitted, text, type Row } from "../ui";
+import { eventLabels } from "../messages";
+import { Table, formatBytes, permitted, text, type Row } from "../ui";
 import type { PanelProps } from "./types";
 
-export default function AlertsPanel({ snapshot: s, auth, run, busy, message }: PanelProps) {
+export default function AlertsPanel({
+  snapshot: s,
+  auth,
+  run,
+  busy,
+  message,
+  confirm,
+}: PanelProps) {
   const owner = auth.actor?.role === "owner",
     can = (permission: Parameters<typeof permitted>[1]) => permitted(auth.actor, permission);
   const [preview, setPreview] = useState<Row[]>();
@@ -12,26 +20,31 @@ export default function AlertsPanel({ snapshot: s, auth, run, busy, message }: P
     <>
       {can("operate") && (
         <>
-          <ActionForm
-            action="alert.manual"
-            fields={["reason"]}
-            button="Send manual alert"
-            run={run}
-            busy={busy}
-          />
+          <form
+            className="inline"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              const form = event.currentTarget;
+              const reason = String(new FormData(form).get("reason")).trim();
+              if (await run("alert.manual", { reason })) form.reset();
+            }}
+          >
+            <label>
+              Manual alert text
+              <input name="reason" required maxLength={500} placeholder="Thanks for the raid!" />
+            </label>
+            <button disabled={busy}>Send manual alert</button>
+          </form>
+          <p className="help">
+            Manual alerts show on your OBS alerts source using your enabled “Manual alert” settings.
+          </p>
           <label>
             Preview event
             <select id="preview-event">
-              {[
-                "channel.followed",
-                "channel.subscription.new",
-                "channel.subscription.renewal",
-                "channel.subscription.gifts",
-                "manual",
-                "goal",
-                "media",
-              ].map((event) => (
-                <option key={event}>{event}</option>
+              {Object.entries(eventLabels).map(([event, label]) => (
+                <option key={event} value={event}>
+                  {label}
+                </option>
               ))}
             </select>
           </label>
@@ -106,7 +119,8 @@ export default function AlertsPanel({ snapshot: s, auth, run, busy, message }: P
             reader.readAsDataURL(file);
           }}
         >
-          <h3>Upload image or sound</h3>
+          <h3>Images and sounds for alerts</h3>
+          <p className="help">PNG, JPEG, GIF, WebP, MP3, OGG or WAV, up to 8 MiB each.</p>
           <label>
             Asset file
             <input
@@ -117,17 +131,42 @@ export default function AlertsPanel({ snapshot: s, auth, run, busy, message }: P
             />
           </label>
           <button disabled={busy}>Upload</button>
-          <Table rows={s.assets ?? []} columns={["id", "name", "format", "bytes"]} />
-          {s.assets?.map((asset) => (
-            <button
-              key={String(asset.id)}
-              type="button"
-              className="secondary"
-              onClick={() => run("asset.delete", { id: asset.id })}
-            >
-              Delete {text(asset.name)}
-            </button>
-          ))}
+          <Table
+            caption="Uploaded files"
+            empty="No files uploaded yet."
+            rows={s.assets ?? []}
+            columns={[
+              "name",
+              { key: "format", label: "Type", render: (row) => String(row.format).toUpperCase() },
+              { key: "bytes", label: "Size", render: (row) => formatBytes(row.bytes) },
+              {
+                key: "actions",
+                label: "Actions",
+                render: (asset) => (
+                  <button
+                    type="button"
+                    className="secondary small"
+                    disabled={busy}
+                    onClick={async () => {
+                      if (
+                        await confirm({
+                          title: `Delete ${text(asset.name)}?`,
+                          body: (
+                            <p>Alerts that use it must be changed first. This cannot be undone.</p>
+                          ),
+                          confirm: "Delete file",
+                          danger: true,
+                        })
+                      )
+                        void run("asset.delete", { id: asset.id });
+                    }}
+                  >
+                    Delete {text(asset.name)}
+                  </button>
+                ),
+              },
+            ]}
+          />
         </form>
       )}
     </>
