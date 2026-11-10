@@ -216,8 +216,9 @@ export class AutomationService {
     ];
     for (const doc of this.state.list("command").filter(c => c.data.enabled).sort((a, b) => a.data.trigger.localeCompare(b.data.trigger))) {
       const key = doc.data.group.toLowerCase();
-      let group = groups.find(g => g.key === key || g.label.toLowerCase() === key);
-      if (!group) groups.push(group = { key, label: doc.data.group, commands: [] });
+      // Never merge into the moderator-only group: a custom "Mods" group stays separate and visible as configured.
+      let group = groups.find(g => (g.custom || g.key !== "mods") && (g.key === key || g.label.toLowerCase() === key));
+      if (!group) groups.push(group = { key, label: doc.data.group, commands: [], custom: true });
       group.commands.push({ trigger: doc.data.trigger });
     }
     return groups;

@@ -46,7 +46,7 @@ export function quoted(text: string | null | undefined, max = 80) {
   return `"${clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean}"`;
 }
 
-/** The public request number shared by chat, Discord and OBS. */
+/** The public request number (media.position) that chat shows and Discord accepts. */
 export function requestNumber(position: number) {
   return `#${position}`;
 }
@@ -238,7 +238,7 @@ export function entered(username: string | undefined, raffle: string) {
 
 // !commands ---------------------------------------------------------------------
 
-export type CommandGroup = { key: string; label: string; commands: { trigger: string; help?: string }[] };
+export type CommandGroup = { key: string; label: string; commands: { trigger: string; help?: string }[]; custom?: boolean };
 
 export function commandSummary(groups: CommandGroup[]) {
   const visible = groups.filter(group => group.commands.length);
@@ -260,7 +260,8 @@ export function commandDetail(groups: CommandGroup[], requested: string) {
   const matches = groups.filter(group => group.commands.length && (group.key === wanted || group.label.toLowerCase() === wanted));
   if (!matches.length) {
     const names = groups.filter(group => group.commands.length).map(group => group.key).join(", ");
-    return fit(`There's no command group called ${quoted(requested, 30)}. Try one of: ${names || "none available"}.`);
+    // Never repeat the viewer's argument: chat must not echo arbitrary viewer text.
+    return fit(`That isn't a command group. Try one of: ${names || "none available"}.`);
   }
   return fit(matches.map(group => `${group.label}: ${group.commands.map(command => command.help ? `${command.trigger} ${command.help}` : command.trigger).join(" · ")}`).join(" | "));
 }

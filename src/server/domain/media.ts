@@ -344,18 +344,22 @@ export class MediaService {
     this.state.db
       .transaction(() => {
         const current = this.state.db
-          .prepare("SELECT id FROM media WHERE status='approved'")
-          .all() as { id: string }[];
+          .prepare("SELECT id,position FROM media WHERE status='approved'")
+          .all() as { id: string; position: number }[];
         if (
           ids.length !== current.length ||
           new Set(ids).size !== ids.length ||
           current.some((row) => !ids.includes(row.id))
         )
           throw new AppError("queue_changed_reload", 409);
+        // Permute the items' existing positions instead of renumbering 1..k, so public "#N"
+        // numbers stay unique across the playing item and older rows. A reorder can still
+        // change which number an individual queued request has.
+        const positions = current.map((row) => row.position).sort((a, b) => a - b);
         for (const [index, id] of ids.entries())
           this.state.db
             .prepare("UPDATE media SET position=?,version=version+1 WHERE id=?")
-            .run(index + 1, id);
+            .run(positions[index], id);
         this.state.audit(actor.id, "media.reorder", "queue");
       })
       .immediate();

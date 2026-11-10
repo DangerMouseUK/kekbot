@@ -78,6 +78,25 @@ describe("Kick chat replies with real SQLite", () => {
     expectViewerSafe(sent, ["abcdefghijk:", "456", "789"]);
   });
 
+  it("keeps #N unique when a moderator reorders the queue behind a playing item", async () => {
+    const { bot, repo, owner, settings, say, sent } = await setup();
+    settings({ mediaEnabled: true, requestCooldown: 0 });
+    const ids = ["first", "second", "third", "fourth"];
+    for (const [index, id] of ids.entries()) {
+      bot.media.request(["abcdefghijk", "bcdefghijkl", "cdefghijklm", "defghijklmn"][index], "456", id, true);
+      await bot.media.validate(id, true);
+    }
+    bot.media.control(owner, "resume", bot.media.player.version);
+    expect(bot.media.item("first")!.status).toBe("playing");
+    bot.media.reorder(owner, ["fourth", "third", "second"]);
+    const rows = repo.store.sqlite.prepare("SELECT id,position FROM media ORDER BY position").all() as { id: string; position: number }[];
+    expect(new Set(rows.map(row => row.position)).size).toBe(rows.length);
+    expect(rows).toEqual([{ id: "first", position: 1 }, { id: "fourth", position: 2 }, { id: "third", position: 3 }, { id: "second", position: 4 }]);
+    expect(say("!queue")).toBe('Up next: #2 "Fixture video defghijklmn" (FixtureViewer) · #3 "Fixture video cdefghijklm" (FixtureViewer) · #4 "Fixture video bcdefghijkl" (FixtureViewer).');
+    expect(say("!skip", { id: 900, username: "ModViewer", moderator: true })).toBe('Skipped #1 "Fixture video abcdefghijk". Next: #2 "Fixture video defghijklmn".');
+    expectViewerSafe(sent);
+  });
+
   it("explains pending approval and validation rejections in plain words", async () => {
     const { bot, settings, say, mediaReply, sent } = await setup();
     settings({ mediaEnabled: true, requestCooldown: 0, maxDuration: 120, perUser: 5 });
@@ -212,12 +231,20 @@ describe("Kick chat replies with real SQLite", () => {
     expect(say("!commands", { id: 900, username: "ModViewer", moderator: true })).toContain("| Mods: !so !skip |");
     expect(say("!commands music")).toBe("Music: !sr <YouTube link> — request a song · !queue — next songs · !nowplaying — current song");
     expect(say("!commands fun")).toBe("Fun: !lurk");
-    expect(say("!commands nonsense")).toBe('There\'s no command group called "nonsense". Try one of: info, points, polls, music, fun.');
+    expect(say("!commands nonsense")).toBe("That isn't a command group. Try one of: info, points, polls, music, fun.");
+    // Viewer text is never echoed back, so the bot cannot be made to post mentions, links or abuse.
+    const echoed = say("!commands @victim https://spam.example")!;
+    expect(echoed).toBe("That isn't a command group. Try one of: info, points, polls, music, fun.");
+    expect(echoed).not.toMatch(/victim|spam/);
     for (let i = 0; i < 60; i++) bot.state.save(owner, "command", undefined, { name: `Extra ${i}`, trigger: `!extra${String(i).padStart(2, "0")}aaaaaaaaaaaa`, responses: ["x"] });
     const summary = say("!commands")!;
     expect(summary.length).toBeLessThanOrEqual(500);
     expect(summary).toMatch(/\| General: !extra00a+ !extra01a+ .* \+\d+ \| Fun: !lurk · Details: !commands <group>$/);
     expect(say("!commands general")!.length).toBeLessThanOrEqual(500);
+    // A custom "Mods" group never joins the moderator-only built-in group.
+    bot.state.save(owner, "command", undefined, { name: "Hype", trigger: "!hype", group: "Mods", responses: ["Hype!"] });
+    expect(say("!commands mods")).toBe("Mods: !hype");
+    expect(say("!commands mods", { id: 900, username: "ModViewer", moderator: true })).toBe("Mods: !so <username> — shoutout · !skip — skip the current song | Mods: !hype");
     expectViewerSafe(sent.filter(text => !text.includes("!extra")));
   });
 });
