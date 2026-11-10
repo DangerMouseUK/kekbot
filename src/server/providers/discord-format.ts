@@ -202,7 +202,7 @@ const errors: Record<string, string> = {
   request_limit: "That viewer already has the maximum number of requests queued.",
   request_cooldown: "That viewer is on a request cooldown.",
   invalid_youtube_url: "That isn't a supported YouTube link or video ID.",
-  player_changed_reload: "The player changed at the same moment. Try again.",
+  player_changed_reload: "The player changed after you sent the command. Try again.",
   player_has_no_current_item: "Nothing is playing, so there's nothing to skip.",
   youtube_key_missing: "The YouTube key isn't configured.",
   youtube_unavailable: "YouTube couldn't be reached.",
@@ -229,6 +229,10 @@ const errors: Record<string, string> = {
   no_eligible_entries: "There are no eligible entries left to draw.",
   poll_closed: "That poll is closed.",
   raffle_closed: "That raffle is closed.",
+  open_activity_limit:
+    "There are already 10 open polls and raffles. Close one before starting another.",
+  discord_commands_outdated:
+    "This is the old /kekbot command, which was replaced. Ask the owner to register commands again.",
   configuration_limit:
     "KekBot already has the maximum number of these. Remove old ones in the dashboard first.",
   configuration_changed_reload: "That changed at the same moment. Try again.",
@@ -238,6 +242,7 @@ const errors: Record<string, string> = {
   redemption_already_decided: "That redemption was already completed or refunded.",
   reward_not_found: "That reward no longer exists.",
   reward_disabled: "That reward or points are turned off.",
+  points_disabled: "Points are turned off, so reward and points commands are unavailable.",
   insufficient_points: "That viewer doesn't have enough points.",
   // Moderation and viewers
   viewer_not_found:
@@ -257,6 +262,8 @@ export const staleCodes = new Set([
   "close_raffle_before_draw",
   "goal_changed_reload",
   "activity_not_open",
+  "player_changed_reload",
+  "queue_changed_reload",
 ]);
 
 export function describeError(code: string) {

@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { Config } from "../config.ts";
 import type { Actor } from "../auth.ts";
@@ -148,7 +147,7 @@ export class BotService {
           : {}),
       };
     }
-    const extended = this.extended(actor, action, input);
+    const extended = this.extended(actor, action, input, id);
     if (extended !== undefined) return extended;
     if (action === "moderation.pause" || action === "moderation.resume") {
       this.state.assertActor(actor, "moderate");
@@ -280,7 +279,7 @@ export class BotService {
   }
 
   /** Queue views and engagement shortcuts used by Discord and the integration API. */
-  private extended(actor: Actor, action: string, input: Record<string, unknown>) {
+  private extended(actor: Actor, action: string, input: Record<string, unknown>, id: string) {
     const db = this.state.db;
     switch (action) {
       case "media.queue": {
@@ -376,18 +375,10 @@ export class BotService {
         const data = configSchemas[kind]
           .strict()
           .parse({ ...fields, endsAt: Date.now() + minutes * 60000 });
-        const id = randomUUID();
-        return db
-          .transaction(() => {
-            if (this.state.list(kind).length >= 500) throw new AppError("configuration_limit", 409);
-            db.prepare(
-              "INSERT INTO documents(id,kind,data,version,updated_at) VALUES(?,?,?,1,?)",
-            ).run(id, kind, JSON.stringify(data), Date.now());
-            this.state.audit(actor.id, `${kind}.create`, id);
-            this.state.emit(kind, { id });
-            return this.state.document(id)!;
-          })
-          .immediate();
+        // Derived from the request/interaction ID so a retried request cannot create a duplicate.
+        const document = this.state.createActivity(actor, kind, `${kind}-${id}`, data);
+        this.state.emit(kind, { id: document.id });
+        return document;
       }
       case "poll.results": {
         this.state.assertActor(actor, "engage");

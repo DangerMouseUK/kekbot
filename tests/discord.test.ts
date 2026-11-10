@@ -1,7 +1,8 @@
-import { generateKeyPairSync, sign } from "node:crypto";
+import { generateKeyPairSync, randomUUID, sign } from "node:crypto";
 import { readFileSync, rmSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Actor } from "../src/server/auth.ts";
+import { encrypt } from "../src/server/crypto.ts";
 import { BotService } from "../src/server/domain/bot.ts";
 import { seedFixture } from "../src/server/fixture-seed.ts";
 import { commandPaths, commandTree } from "../src/server/providers/discord-commands.ts";
@@ -320,10 +321,112 @@ describe("Discord notification buttons", () => {
     expect(fixtureRequest).not.toHaveBeenCalled();
   });
 
-  it("still runs interactions queued by the previous single-command tree", async () => {
-    const { bot } = await setup(), discord = new DiscordService(bot.state);
+  it("runs old single-command interactions only if they were queued before the upgrade", async () => {
+    const { bot, config } = await setup(), discord = new DiscordService(bot.state);
     const legacy = { ...command(["timers", "pause"]), data: { name: "kekbot", options: [{ name: "action", value: "timers.pause" }] } };
-    expect((await run(discord, bot, legacy)).reply.embeds![0].title).toBe("Done");
+    // Arriving now (old registration still in Discord): refused without acting.
+    const refused = await run(discord, bot, legacy);
+    expect(refused.reply.embeds![0].footer!.text).toBe("Code: discord_commands_outdated"); expect(bot.state.settings.timersPaused).toBe(false);
+    // Queued by the previous release: its payload has no format marker.
+    const queued = { ...legacy, id: String(sequence++) };
+    const job = { id: `discord:${queued.id}`, kind: "discord.interaction", payload: JSON.stringify({ encrypted: encrypt(JSON.stringify({ interaction: queued, expires: Date.now() + 60000 }), config.key, "discord.interaction") }) } as Job;
+    await discord.execute(job, (actor, name, input, id) => bot.action(actor, name, input, id));
+    expect(JSON.parse(bot.state.repository.setting(`discord_result:${queued.id}`)!).reply.embeds[0].title).toBe("Done");
     expect(bot.state.settings.timersPaused).toBe(true);
+  });
+});
+
+/** Submit a command now (intake), let something else happen, then run the deferred job. */
+async function deferred(discord: DiscordService, bot: BotService, interaction: { id: string }, between: () => void) {
+  const payload = signed(interaction);
+  discord.intake(payload.body, payload.headers, credentials);
+  between();
+  const job = bot.state.db.prepare("SELECT * FROM jobs WHERE id=?").get(`discord:${interaction.id}`) as Job;
+  await discord.execute(job, (actor, name, input, id) => bot.action(actor, name, input, id));
+  return JSON.parse(bot.state.repository.setting(`discord_result:${interaction.id}`)!) as { reply: Message };
+}
+
+describe("slash commands act on what the member submitted", () => {
+  it("replies This changed without acting when the target or player changed between intake and execution", async () => {
+    const { bot, owner } = await setup(), discord = new DiscordService(bot.state);
+    addMedia(bot, "song-a", 21);
+    const approve = await deferred(discord, bot, command(["media", "approve"], { request: "#21" }), () => bot.media.decide(owner, "song-a", 1, "reject"));
+    expect(approve.reply.embeds![0].title).toBe("This changed"); expect(media(bot, "song-a").status).toBe("rejected");
+    for (const [index, id] of ["one", "two", "three"].entries()) addMedia(bot, id, 30 + index, "approved");
+    const move = await deferred(discord, bot, command(["media", "move"], { request: "#32", position: 1 }), () => bot.media.reorder(owner, ["two", "three", "one"]));
+    expect(move.reply.embeds![0].title).toBe("This changed"); expect(media(bot, "three").position).toBe(2);
+    bot.media.control(owner, "resume", bot.media.player.version);
+    const pause = await deferred(discord, bot, command(["media", "pause"]), () => bot.media.control(owner, "volume", bot.media.player.version, 20));
+    expect(pause.reply.embeds![0].title).toBe("This changed"); expect(bot.media.player.state).toBe("playing");
+    const goal = await deferred(discord, bot, command(["goal", "add"], { goal: "Community goal", amount: 5 }), () => bot.presentation.adjustGoal(owner, "fixture-goal", 50, bot.state.document("fixture-goal")!.version));
+    expect(goal.reply.embeds![0].title).toBe("This changed"); expect(bot.state.document("fixture-goal")!.data.value).toBe(50);
+    const draw = bot.state.document("fixture-raffle")!; bot.engagement.enter(draw.id, "456", "viewer"); bot.engagement.close(owner, draw.id);
+    const drawn = await deferred(discord, bot, command(["raffle", "draw"], { raffle: "Community draw" }), () => bot.state.db.prepare("UPDATE documents SET version=version+1 WHERE id=?").run(draw.id));
+    expect(drawn.reply.embeds![0].title).toBe("This changed"); expect(bot.state.document(draw.id)!.data.status).toBe("closed");
+  });
+
+  it("resolves names at intake but reveals a missing target only to permitted members", async () => {
+    const { bot } = await setup(), discord = new DiscordService(bot.state);
+    const missing = await run(discord, bot, command(["media", "approve"], { request: "#404" }));
+    expect(missing.reply.embeds![0].footer!.text).toBe("Code: media_not_found");
+    const hidden = await run(discord, bot, command(["media", "approve"], { request: "#404" }, { roles: ["301"] }));
+    expect(hidden.reply.embeds![0].footer!.text).toBe("Code: discord_permission_denied");
+  });
+
+  it("refuses reward and points commands, buttons and suggestions while points are disabled", async () => {
+    const { bot, owner } = await setup(), discord = new DiscordService(bot.state);
+    bot.engagement.redeem("456", "fixture-reward", "redemption:off");
+    const settings = bot.state.document("instance")!;
+    bot.state.save(owner, "settings", "instance", { ...settings.data, pointsEnabled: false }, settings.version);
+    for (const interaction of [command(["reward", "pending"]), command(["points"], { viewer: "456" }), click("kb1:rc:0:redemption:off", ["301"])])
+      expect((await run(discord, bot, interaction)).reply.embeds![0].footer!.text).toBe("Code: points_disabled");
+    expect(bot.state.db.prepare("SELECT status FROM redemptions WHERE id='redemption:off'").get()).toEqual({ status: "pending" });
+    expect(suggest(discord, command(["reward", "complete"], { redemption: "" }, { focused: "redemption" })).data.choices).toEqual([]);
+  });
+});
+
+describe("engage can create polls and raffles (deliberate permission change)", () => {
+  const account = (bot: BotService, role: "moderator" | "readonly"): Actor => {
+    const id = randomUUID();
+    bot.state.db.prepare("INSERT INTO accounts(id,username,password,role,permissions,created_at) VALUES(?,?,?,?,'[]',?)").run(id, `${role}-${id.slice(0, 8)}`, "not-a-login-hash", role, Date.now());
+    return { id, role, permissions: [] };
+  };
+  const poll = { name: "Synthetic poll", options: ["A", "B"] };
+
+  it("allows Discord engage grants, moderators and engage API tokens, and refuses everyone else", async () => {
+    const { bot, owner } = await setup(), discord = new DiscordService(bot.state);
+    expect((await run(discord, bot, command(["poll", "create"], { question: "Engage poll", options: "A, B" }, { roles: ["301"] }))).reply.embeds![0].title).toBe("Poll started: Engage poll");
+    expect((await run(discord, bot, command(["raffle", "create"], { name: "Media raffle" }, { roles: ["300"] }))).reply.embeds![0].footer!.text).toBe("Code: discord_permission_denied");
+    expect((await bot.action(account(bot, "moderator"), "poll.create", poll, "moderator-request")) as { id: string }).toMatchObject({ id: "poll-moderator-request", kind: "poll" });
+    await expect(bot.action(account(bot, "readonly"), "raffle.create", { name: "Nope" }, "readonly-request")).rejects.toThrow("permission_denied");
+    const read = bot.presentation.issueToken(owner, "Reader", "api", ["read"]), engage = bot.presentation.issueToken(owner, "Engage", "api", ["engage"]);
+    await expect(bot.action({ ...owner, permissions: ["read" as never], capabilityId: read.id }, "raffle.create", { name: "Nope" }, "read-request")).rejects.toThrow("api_permission_revoked");
+    expect(await bot.action({ ...owner, permissions: ["engage"], capabilityId: engage.id }, "raffle.create", { name: "API raffle" }, "api-request")).toMatchObject({ id: "raffle-api-request" });
+    expect(bot.state.list("raffle").map((doc) => doc.data.name)).not.toContain("Media raffle");
+    // config.save still needs configure for these kinds.
+    expect(() => bot.state.save(account(bot, "moderator"), "poll", undefined, { ...poll, endsAt: Date.now() + 60000 })).toThrow("permission_denied");
+    expect(bot.state.db.prepare("SELECT count(*) AS n FROM audit WHERE action='poll.save' AND target='poll-moderator-request'").get()).toEqual({ n: 1 });
+  });
+
+  it("caps open polls and raffles, validates strictly and never duplicates on retry", async () => {
+    const { bot } = await setup(), discord = new DiscordService(bot.state), moderator = account(bot, "moderator");
+    const first = await bot.action(moderator, "poll.create", poll, "retry-me"), again = await bot.action(moderator, "poll.create", poll, "retry-me");
+    expect(again).toEqual(first);
+    await expect(bot.action(moderator, "poll.create", { ...poll, extra: true }, "strict")).resolves.toBeDefined();
+    expect(bot.state.document("poll-strict")!.data).not.toHaveProperty("extra");
+    await expect(bot.action(moderator, "poll.create", { name: "One option", options: ["Only"] }, "invalid")).rejects.toThrow();
+    // A Discord job retried after a crash (result not yet stored) returns the same poll.
+    const interaction = command(["poll", "create"], { question: "Crash safe", options: "A|B" }, { roles: ["301"] }), payload = signed(interaction);
+    discord.intake(payload.body, payload.headers, credentials);
+    const job = bot.state.db.prepare("SELECT * FROM jobs WHERE id=?").get(`discord:${interaction.id}`) as Job;
+    await discord.execute(job, (actor, name, input, id) => bot.action(actor, name, input, id));
+    bot.state.db.prepare("DELETE FROM settings WHERE key=?").run(`discord_result:${interaction.id}`);
+    await discord.execute(job, (actor, name, input, id) => bot.action(actor, name, input, id));
+    expect(bot.state.list("poll").filter((doc) => doc.data.name === "Crash safe")).toHaveLength(1);
+    const open = () => [...bot.state.list("poll"), ...bot.state.list("raffle")].filter((doc) => doc.data.status === "open").length;
+    for (let i = 0; open() < 10; i++) await bot.action(moderator, "raffle.create", { name: `Raffle ${i}` }, `fill-${i}`);
+    await expect(bot.action(moderator, "raffle.create", { name: "Eleventh" }, "eleventh")).rejects.toThrow("open_activity_limit");
+    expect((await run(discord, bot, command(["poll", "create"], { question: "Too many", options: "A,B" }))).reply.embeds![0].footer!.text).toBe("Code: open_activity_limit");
+    expect(await bot.action(moderator, "poll.create", poll, "retry-me")).toEqual(first);
   });
 });

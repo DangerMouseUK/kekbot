@@ -8,6 +8,8 @@ import type { MediaItem } from "../domain/media.ts";
 import type { Job } from "../storage/repository.ts";
 import {
   autocomplete,
+  prepare,
+  type Prepared,
   commandTree,
   runButton,
   runCommand,
@@ -58,6 +60,8 @@ const PING = 1,
   COMPONENT = 3,
   AUTOCOMPLETE = 4;
 const EPHEMERAL = 64;
+/** Interaction job payload format; absent on jobs queued by the single-command release. */
+const PAYLOAD_FORMAT = 2;
 
 /** Bot permissions the notification channel needs: View Channel, Send Messages, Embed Links. */
 export const DISCORD_BOT_PERMISSIONS = String((1 << 10) | (1 << 11) | (1 << 14));
@@ -193,10 +197,18 @@ export class DiscordService {
             "INSERT INTO receipts(id,event_type,payload,received_at) VALUES(?,'discord.interaction',NULL,?)",
           )
           .run(id, now);
+        // Capture what the member acted on now; the worker must not pick up newer state.
+        const prepared =
+          interaction.type === COMMAND ? prepare(this.state, interaction.data?.options) : undefined;
         // Interaction tokens are bearer credentials and expire after 15 minutes.
         this.state.effect(id, "discord.interaction", {
           encrypted: encrypt(
-            JSON.stringify({ interaction, expires: now + 14 * 60000 }),
+            JSON.stringify({
+              interaction,
+              expires: now + 14 * 60000,
+              format: PAYLOAD_FORMAT,
+              prepared,
+            }),
             this.state.config.key,
             "discord.interaction",
           ),
@@ -391,7 +403,7 @@ export class DiscordService {
     const raw = JSON.parse(job.payload) as { encrypted: string };
     const data = JSON.parse(
       decrypt(raw.encrypted, this.state.config.key, "discord.interaction"),
-    ) as { interaction: Interaction; expires: number };
+    ) as { interaction: Interaction; expires: number; format?: number; prepared?: Prepared };
     if (data.expires <= Date.now()) throw new AppError("discord_interaction_expired", 409);
     const interaction = data.interaction;
     // Recheck the route and grants at execution time, not only at intake.
@@ -400,12 +412,13 @@ export class DiscordService {
     let result = this.stored(key);
     if (!result) {
       let outcome: Outcome;
-      const ctx = { actor, state: this.state, action, id: interaction.id };
+      const ctx = { actor, state: this.state, action, id: interaction.id, prepared: data.prepared };
       try {
         outcome =
           interaction.type === COMPONENT
             ? await runButton(ctx, interaction.data?.custom_id ?? "")
-            : await runCommand(ctx, interaction.data?.options);
+            : // Payloads without a format marker were queued before the subcommand tree.
+              await runCommand(ctx, interaction.data?.options, data.format === undefined);
       } catch (error) {
         outcome = { reply: format.errorMessage(error) };
       }

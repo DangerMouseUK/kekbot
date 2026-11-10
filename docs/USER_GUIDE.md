@@ -168,7 +168,7 @@ Create an enabled raffle with a future **Entries close** time. Winners are shown
 
 ## Discord controls
 
-After the owner [connects Discord](PROVIDERS.md#discord), grants your role or user a permission and registers commands, type `/kekbot` in the configured channel. Replies are private to you. Options that name something offer suggestions as you type; pick one rather than typing IDs. A song request's number is its queue position, `#12`; you can type `#12` or `12`. You never type versions: if someone changed the item first, KekBot replies **This changed**, shows the current state and does nothing.
+After the owner [connects Discord](PROVIDERS.md#discord), grants your role or user a permission and registers commands, type `/kekbot` in the configured channel. Replies are private to you. Options that name something offer suggestions as you type; pick one rather than typing IDs. A song request's number is its queue position, `#12`; you can type `#12` or `12`. You never type versions: KekBot captures what you named when you send the command, and if it changed before the command runs (or someone acted first), it replies **This changed** and does nothing.
 
 | Command | What it does | Grant |
 | --- | --- | --- |
@@ -182,9 +182,9 @@ After the owner [connects Discord](PROVIDERS.md#discord), grants your role or us
 | `/kekbot goal list` | Goals with progress bars | `operate` |
 | `/kekbot goal add goal: amount:` | Add to a goal; a negative amount subtracts (never below 0) | `operate` |
 | `/kekbot goal set goal: value:` / `reset goal:` | Set the current value, or set it to 0 | `operate` |
-| `/kekbot poll create question: options: [minutes:] [allow_change:]` | Start a poll with 2–10 answers separated by commas or `\|`; it stays open 5 minutes unless you set 1–1440. Viewers use `!vote <number>` | `engage` |
+| `/kekbot poll create question: options: [minutes:] [allow_change:]` | Start a poll with 2–10 answers separated by commas or `\|`; it stays open 5 minutes unless you set 1–1440. Viewers use `!vote <number>`. At most 10 polls and raffles can be open at once | `engage` |
 | `/kekbot poll close poll:` / `results poll:` | Close a poll and show final results, or show current results | `engage` |
-| `/kekbot raffle create name: [minutes:] [min_points:]` | Start a raffle; viewers use `!enter` | `engage` |
+| `/kekbot raffle create name: [minutes:] [min_points:]` | Start a raffle; viewers use `!enter`. Counts toward the same limit of 10 open | `engage` |
 | `/kekbot raffle close raffle:` | Stop entries; the reply has a Draw winner button | `engage` |
 | `/kekbot raffle draw raffle:` / `reroll raffle:` | Draw a winner; reroll excludes earlier winners | `engage` |
 | `/kekbot reward pending` | Waiting redemptions with Complete/Refund buttons for the first five | `engage` |
@@ -199,7 +199,7 @@ After the owner [connects Discord](PROVIDERS.md#discord), grants your role or us
 | `/kekbot timers pause` / `resume` | Pause or resume chat timers without catch-up messages | `operate` |
 | `/kekbot alert send text:` | Show a manual alert in OBS | `operate` |
 
-The `media` group appears only when media is enabled, and `reward`/`points` only when points are enabled. Ask the owner to register commands again after changing either setting. Viewer suggestions list recently seen viewers by name; you can also type a name or a numeric Kick ID. Moderation replies mean the request was sent to Kick; Kick confirms separately, so check incidents and jobs in the dashboard if something did not happen.
+The `media` group appears only when media is enabled, and `reward`/`points` only when points are enabled; they also refuse to run while their module is off. `engage` lets you start polls and raffles as well as close and draw them. Ask the owner to register commands again after changing either setting. Viewer suggestions list recently seen viewers by name; you can also type a name or a numeric Kick ID. Moderation replies mean the request was sent to Kick; Kick confirms separately, so check incidents and jobs in the dashboard if something did not happen.
 
 Notification buttons work the same way: **Approve**/**Reject** on song requests, **Complete**/**Refund** on reward redemptions and **Draw winner** on raffle-close notices. After someone uses a button, the notice shows a disabled label such as **Approved**. An older button replies **This changed** instead of acting. Every error reply explains what went wrong in plain English and ends with a code, such as `Code: discord_permission_denied`, to share with the owner.
 

@@ -21,7 +21,12 @@ export type RawOption = {
   focused?: boolean;
   options?: RawOption[];
 };
-type Ctx = { actor: Actor; state: State; action: ActionFn; id: string };
+/** A target resolved when the member submitted the command, or the error that resolution hit. */
+export type Target =
+  { id: string; version: number; name?: string; value?: number; goal?: number } | { error: string };
+/** Everything a slash command acts on, captured at intake and stored in the encrypted job. */
+export type Prepared = { targets: Record<string, Target>; player: number };
+type Ctx = { actor: Actor; state: State; action: ActionFn; id: string; prepared?: Prepared };
 type Source =
   | "media-pending"
   | "media-decidable"
@@ -192,6 +197,77 @@ function viewerLabel(state: State, id: string) {
 function playerVersion(state: State) {
   return (JSON.parse(state.repository.setting("player") ?? '{"version":0}') as { version: number })
     .version;
+}
+
+const MEDIA_STATUSES: Partial<Record<Source, string[]>> = {
+  "media-pending": ["pending"],
+  "media-decidable": ["pending", "approved"],
+  "media-waiting": ["approved"],
+};
+const PREFERRED_STATUS: Partial<Record<Source, string>> = {
+  "poll-open": "open",
+  "poll-any": "open",
+  "raffle-open": "open",
+  "raffle-closed": "closed",
+  "raffle-drawn": "drawn",
+};
+function resolveTarget(state: State, source: Source, raw: Value): Target {
+  try {
+    const statuses = MEDIA_STATUSES[source];
+    if (statuses) {
+      const item = resolveMedia(state, raw, statuses);
+      return { id: item.id, version: item.version };
+    }
+    if (source === "goal") {
+      const goal = resolveDocument(state, "goal", raw);
+      return {
+        id: goal.id,
+        version: goal.version,
+        name: goal.data.name,
+        value: goal.data.value,
+        goal: goal.data.target,
+      };
+    }
+    if (source.startsWith("poll-") || source.startsWith("raffle-")) {
+      const kind = source.startsWith("poll-") ? "poll" : "raffle";
+      const doc = resolveDocument(
+        state,
+        kind,
+        raw,
+        (data) => data.status === PREFERRED_STATUS[source],
+      );
+      return { id: doc.id, version: doc.version, name: String(doc.data.name) };
+    }
+    if (source === "viewer") return { id: resolveViewer(state, raw), version: 0 };
+    return { id: str(raw), version: 0 };
+  } catch (error) {
+    if (isAppError(error)) return { error: error.code };
+    throw error;
+  }
+}
+
+/**
+ * Resolve a slash command's targets (ID plus version) and the player version when the member
+ * submits it, inside the 3-second intake path. The deferred job then acts on exactly these
+ * versions, so anything changed in between replies "This changed" instead of acting on newer
+ * state. Resolution errors are only revealed after the permission check at execution.
+ */
+export function prepare(state: State, options: RawOption[] = []): Prepared {
+  const { path, values } = invocation(options);
+  const targets: Record<string, Target> = {};
+  for (const option of lookup(path)?.spec.options ?? [])
+    if (option.source && option.source !== "message" && values[option.name] !== undefined)
+      targets[option.name] = resolveTarget(state, option.source, values[option.name]);
+  return { targets, player: playerVersion(state) };
+}
+function picked(ctx: Ctx, name: string) {
+  const resolved = ctx.prepared?.targets[name];
+  if (!resolved) throw new AppError("invalid_command_input", 400);
+  if ("error" in resolved) throw new AppError(resolved.error, 409);
+  return resolved;
+}
+function playerAtIntake(ctx: Ctx) {
+  return ctx.prepared?.player ?? playerVersion(ctx.state);
 }
 
 // ---- Shared action flows (slash commands and buttons) ----------------------------------
@@ -469,8 +545,8 @@ export const tree: Record<string, Entry> = {
         description: "Approve a waiting request",
         permission: "media",
         options: [request("media-pending")],
-        async run(ctx, o) {
-          const item = resolveMedia(ctx.state, o.request, ["pending"]);
+        async run(ctx) {
+          const item = picked(ctx, "request");
           return mediaDecision(ctx, "approve", item.id, item.version);
         },
       },
@@ -478,8 +554,8 @@ export const tree: Record<string, Entry> = {
         description: "Reject a waiting request",
         permission: "media",
         options: [request("media-pending")],
-        async run(ctx, o) {
-          const item = resolveMedia(ctx.state, o.request, ["pending"]);
+        async run(ctx) {
+          const item = picked(ctx, "request");
           return mediaDecision(ctx, "reject", item.id, item.version);
         },
       },
@@ -487,8 +563,8 @@ export const tree: Record<string, Entry> = {
         description: "Remove a queued or waiting request (use skip for the current song)",
         permission: "media",
         options: [request("media-decidable")],
-        async run(ctx, o) {
-          const item = resolveMedia(ctx.state, o.request, ["pending", "approved"]);
+        async run(ctx) {
+          const item = picked(ctx, "request");
           return mediaDecision(ctx, "remove", item.id, item.version);
         },
       },
@@ -507,7 +583,7 @@ export const tree: Record<string, Entry> = {
           },
         ],
         async run(ctx, o) {
-          const item = resolveMedia(ctx.state, o.request, ["approved"]);
+          const item = picked(ctx, "request");
           const result = (await ctx.action(
             ctx.actor,
             "media.move",
@@ -544,7 +620,7 @@ export const tree: Record<string, Entry> = {
           const player = (await ctx.action(
             ctx.actor,
             "player.skip",
-            { version: playerVersion(ctx.state) },
+            { version: playerAtIntake(ctx) },
             ctx.id,
           )) as { current: string | null };
           const next = player.current
@@ -563,12 +639,7 @@ export const tree: Record<string, Entry> = {
         description: "Pause the player",
         permission: "media",
         async run(ctx) {
-          await ctx.action(
-            ctx.actor,
-            "player.pause",
-            { version: playerVersion(ctx.state) },
-            ctx.id,
-          );
+          await ctx.action(ctx.actor, "player.pause", { version: playerAtIntake(ctx) }, ctx.id);
           return format.success("Player paused");
         },
       },
@@ -579,7 +650,7 @@ export const tree: Record<string, Entry> = {
           const player = (await ctx.action(
             ctx.actor,
             "player.resume",
-            { version: playerVersion(ctx.state) },
+            { version: playerAtIntake(ctx) },
             ctx.id,
           )) as { current: string | null };
           return format.success(
@@ -607,7 +678,7 @@ export const tree: Record<string, Entry> = {
           await ctx.action(
             ctx.actor,
             "player.volume",
-            { version: playerVersion(ctx.state), value: o.level },
+            { version: playerAtIntake(ctx), value: o.level },
             ctx.id,
           );
           return format.success(`Volume set to ${Number(o.level)}%`);
@@ -656,11 +727,11 @@ export const tree: Record<string, Entry> = {
           },
         ],
         async run(ctx, o) {
-          const goal = resolveDocument(ctx.state, "goal", o.goal);
+          const goal = picked(ctx, "goal");
           return setGoal(
             ctx,
             goal,
-            Math.min(1000000000, Math.max(0, goal.data.value + Number(o.amount))),
+            Math.min(1000000000, Math.max(0, (goal.value ?? 0) + Number(o.amount))),
           );
         },
       },
@@ -679,15 +750,15 @@ export const tree: Record<string, Entry> = {
           },
         ],
         async run(ctx, o) {
-          return setGoal(ctx, resolveDocument(ctx.state, "goal", o.goal), Number(o.value));
+          return setGoal(ctx, picked(ctx, "goal"), Number(o.value));
         },
       },
       reset: {
         description: "Reset a goal to zero",
         permission: "operate",
         options: [target("goal", "Goal name (pick from the list)", "goal")],
-        async run(ctx, o) {
-          return setGoal(ctx, resolveDocument(ctx.state, "goal", o.goal), 0);
+        async run(ctx) {
+          return setGoal(ctx, picked(ctx, "goal"), 0);
         },
       },
     },
@@ -763,8 +834,8 @@ export const tree: Record<string, Entry> = {
         description: "Close a poll and show the final results",
         permission: "engage",
         options: [target("poll", "Poll name (pick from the list)", "poll-open")],
-        async run(ctx, o) {
-          const poll = resolveDocument(ctx.state, "poll", o.poll, (data) => data.status === "open");
+        async run(ctx) {
+          const poll = picked(ctx, "poll");
           await ctx.action(ctx.actor, "activity.close", { target: poll.id }, ctx.id);
           return format.message([
             { title: "Poll closed", color: format.colors.success },
@@ -776,13 +847,8 @@ export const tree: Record<string, Entry> = {
         description: "Show a poll's current results",
         permission: "engage",
         options: [target("poll", "Poll name (pick from the list)", "poll-any")],
-        async run(ctx, o) {
-          return format.message([
-            await pollResults(
-              ctx,
-              resolveDocument(ctx.state, "poll", o.poll, (data) => data.status === "open").id,
-            ),
-          ]);
+        async run(ctx) {
+          return format.message([await pollResults(ctx, picked(ctx, "poll").id)]);
         },
       },
     },
@@ -831,13 +897,8 @@ export const tree: Record<string, Entry> = {
         description: "Stop raffle entries",
         permission: "engage",
         options: [target("raffle", "Raffle name (pick from the list)", "raffle-open")],
-        async run(ctx, o) {
-          const raffle = resolveDocument(
-            ctx.state,
-            "raffle",
-            o.raffle,
-            (data) => data.status === "open",
-          );
+        async run(ctx) {
+          const raffle = picked(ctx, "raffle");
           await ctx.action(ctx.actor, "activity.close", { target: raffle.id }, ctx.id);
           const closed = ctx.state.list("raffle").find((doc) => doc.id === raffle.id);
           const draw = closed
@@ -847,7 +908,7 @@ export const tree: Record<string, Entry> = {
             [
               {
                 ...raffleEmbed(ctx.state, raffle.id),
-                title: `Raffle closed: ${format.plain(raffle.data.name, "Raffle", 200)}`,
+                title: `Raffle closed: ${format.plain(raffle.name, "Raffle", 200)}`,
                 color: format.colors.success,
               },
             ],
@@ -859,28 +920,18 @@ export const tree: Record<string, Entry> = {
         description: "Draw a winner from a closed raffle",
         permission: "engage",
         options: [target("raffle", "Raffle name (pick from the list)", "raffle-closed")],
-        async run(ctx, o) {
-          const raffle = resolveDocument(
-            ctx.state,
-            "raffle",
-            o.raffle,
-            (data) => data.status === "closed",
-          );
-          return raffleDraw(ctx, raffle.id, false);
+        async run(ctx) {
+          const raffle = picked(ctx, "raffle");
+          return raffleDraw(ctx, raffle.id, false, raffle.version);
         },
       },
       reroll: {
         description: "Draw another winner, excluding earlier winners",
         permission: "engage",
         options: [target("raffle", "Raffle name (pick from the list)", "raffle-drawn")],
-        async run(ctx, o) {
-          const raffle = resolveDocument(
-            ctx.state,
-            "raffle",
-            o.raffle,
-            (data) => data.status === "drawn",
-          );
-          return raffleDraw(ctx, raffle.id, true);
+        async run(ctx) {
+          const raffle = picked(ctx, "raffle");
+          return raffleDraw(ctx, raffle.id, true, raffle.version);
         },
       },
     },
@@ -935,16 +986,16 @@ export const tree: Record<string, Entry> = {
         description: "Mark a redemption as fulfilled",
         permission: "engage",
         options: [target("redemption", "Pending redemption (pick from the list)", "redemption")],
-        async run(ctx, o) {
-          return rewardDecision(ctx, "complete", str(o.redemption));
+        async run(ctx) {
+          return rewardDecision(ctx, "complete", picked(ctx, "redemption").id);
         },
       },
       refund: {
         description: "Refund a redemption's points",
         permission: "engage",
         options: [target("redemption", "Pending redemption (pick from the list)", "redemption")],
-        async run(ctx, o) {
-          return rewardDecision(ctx, "reject", str(o.redemption));
+        async run(ctx) {
+          return rewardDecision(ctx, "reject", picked(ctx, "redemption").id);
         },
       },
     },
@@ -954,11 +1005,11 @@ export const tree: Record<string, Entry> = {
     module: "points",
     permission: "engage",
     options: [viewer],
-    async run(ctx, o) {
+    async run(ctx) {
       const result = (await ctx.action(
         ctx.actor,
         "points.lookup",
-        { viewer: resolveViewer(ctx.state, o.viewer) },
+        { viewer: picked(ctx, "viewer").id },
         ctx.id,
       )) as {
         viewer: string;
@@ -1138,9 +1189,10 @@ export const tree: Record<string, Entry> = {
 
 async function setGoal(
   ctx: Ctx,
-  goal: { id: string; version: number; data: { name: string; target: number } },
+  picked: { id: string; version: number; name?: string; goal?: number },
   value: number,
 ) {
+  const goal = { ...picked, data: { name: picked.name ?? "Goal", target: picked.goal ?? 0 } };
   await ctx.action(
     ctx.actor,
     "goal.adjust",
@@ -1158,7 +1210,7 @@ async function moderate(
   op: "warn" | "timeout" | "ban" | "delete",
   o: Record<string, Value>,
 ) {
-  const id = resolveViewer(ctx.state, o.viewer);
+  const id = picked(ctx, "viewer").id;
   await ctx.action(
     ctx.actor,
     `moderation.${op}`,
@@ -1279,11 +1331,26 @@ function permitted(state: State, actor: Actor, permission: Permission | "any") {
   } else state.assertActor(actor, permission);
 }
 
-/** Run a slash command. Permission is checked before any target is resolved, and again by the domain. */
-export async function runCommand(ctx: Ctx, options: RawOption[] = []): Promise<Outcome> {
+function moduleEnabled(state: State, module: "media" | "points" | undefined) {
+  if (module === "media" && !state.settings.mediaEnabled) throw new AppError("media_disabled", 409);
+  if (module === "points" && !state.settings.pointsEnabled)
+    throw new AppError("points_disabled", 409);
+}
+
+/**
+ * Run a slash command on the targets captured at intake. Permission is checked before any
+ * resolution result (including "not found") is revealed, and again by the domain.
+ * `legacy` is true only for jobs queued before this command tree existed.
+ */
+export async function runCommand(
+  ctx: Ctx,
+  options: RawOption[] = [],
+  legacy = false,
+): Promise<Outcome> {
   const { path, values } = invocation(options);
   if (!path.length && typeof values.action === "string") {
-    // Interactions queued by the previous single-command tree before an upgrade.
+    // Old single-command format: run only if it was queued before the upgrade.
+    if (!legacy) throw new AppError("discord_commands_outdated", 409);
     await ctx.action(ctx.actor, values.action, values, ctx.id);
     return outcome(
       format.success(
@@ -1294,11 +1361,23 @@ export async function runCommand(ctx: Ctx, options: RawOption[] = []): Promise<O
   }
   const found = lookup(path);
   if (!found) throw new AppError("unknown_operation", 400);
-  if (found.module === "media" && !ctx.state.settings.mediaEnabled)
-    throw new AppError("media_disabled", 409);
+  moduleEnabled(ctx.state, found.module);
   permitted(ctx.state, ctx.actor, found.spec.permission);
-  const result = await found.spec.run(ctx, values);
-  return "reply" in result ? { reply: result.reply } : { reply: result };
+  try {
+    const result = await found.spec.run(
+      { ...ctx, prepared: ctx.prepared ?? prepare(ctx.state, options) },
+      values,
+    );
+    return "reply" in result ? { reply: result.reply } : { reply: result };
+  } catch (error) {
+    if (!stale(error)) throw error;
+    return outcome(
+      format.changed(
+        undefined,
+        "This changed after you sent the command, so nothing was changed. Check the current state and try again.",
+      ),
+    );
+  }
 }
 
 /** Run a button click. The button's ID and version are used verbatim; never the newest state. */
@@ -1311,6 +1390,7 @@ export async function runButton(ctx: Ctx, customId: string): Promise<Outcome> {
     permitted(ctx.state, ctx.actor, "media");
     return mediaDecision(ctx, op === "ma" ? "approve" : "reject", id, version);
   }
+  if (op !== "rd") moduleEnabled(ctx.state, "points");
   permitted(ctx.state, ctx.actor, "engage");
   if (op === "rd") return raffleDraw(ctx, id, false, version);
   return rewardDecision(ctx, op === "rc" ? "complete" : "reject", id);
@@ -1330,8 +1410,8 @@ export function autocomplete(
   const found = lookup(path);
   const option = found?.spec.options?.find((spec) => spec.name === focused?.name);
   if (!found || !focused || !option?.source) return [];
-  if (found.module === "media" && !state.settings.mediaEnabled) return [];
   try {
+    moduleEnabled(state, found.module);
     permitted(state, actor, found.spec.permission);
   } catch {
     return [];
