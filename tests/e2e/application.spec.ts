@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { sign } from "node:crypto";
 import Database from "better-sqlite3";
-import { widgetKinds } from "../../src/server/domain/catalog.ts";
+import { widgetKinds, widgetThemes } from "../../src/server/domain/catalog.ts";
 const origin = "http://127.0.0.1:3137";
 const password = "a strong browser fixture password";
 function root() { return readFileSync("output/playwright/e2e-data-path.txt", "utf8"); }
@@ -65,7 +65,8 @@ test("owner setup, command editor, CSRF denial and read-only permissions work in
   await page.getByLabel("Name", { exact: true }).fill("Private source");
   await page.getByRole("button", { name: "Save widget" }).click();
   await page.getByRole("button", { name: "Create OBS source URL" }).click();
-  await expect(page.getByRole("status")).toContainText("Copy this private OBS");
+  await expect(page.getByLabel("OBS source URL", { exact: true })).toHaveValue(/\/widgets\/[^?]+\?token=/);
+  await expect(page.getByTitle("Live preview of Private source")).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
   await expect(page.locator("body")).not.toContainText("token=");
@@ -82,9 +83,9 @@ test("signed Discord approval reaches a fixture player and a duplicate completio
   const eventId = "01J00000000000000000000009", timestamp = new Date().toISOString();
   const signed = sign("RSA-SHA256", Buffer.from(`${eventId}.${timestamp}.${body}`), readFileSync(join(root(), "fixture/secrets/fixture-private.pem"))).toString("base64");
   expect((await request.post("/api/providers/kick/events", { headers: { "Content-Type": "application/json", "Kick-Event-Message-Id": eventId, "Kick-Event-Message-Timestamp": timestamp, "Kick-Event-Signature": signed, "Kick-Event-Type": "chat.message.sent", "Kick-Event-Version": "1" }, data: body })).ok()).toBe(true);
-  let pending: { id: string; version: number };
+  let pending: { id: string; version: number; position: number };
   await expect.poll(async () => { const state = await (await request.get("/api/control")).json(); pending = state.media.find((row: { status: string }) => row.status === "pending"); return Boolean(pending); }).toBe(true);
-  const interaction = Buffer.from(JSON.stringify({ id: "500", application_id: "900", type: 2, token: "fixture-interaction", guild_id: "100", channel_id: "200", member: { user: { id: "400" }, roles: ["300"] }, data: { name: "kekbot", options: [{ name: "action", value: "media.approve" }, { name: "target", value: pending!.id }, { name: "version", value: pending!.version }] } }));
+  const interaction = Buffer.from(JSON.stringify({ id: "500", application_id: "900", type: 2, token: "fixture-interaction", guild_id: "100", channel_id: "200", member: { user: { id: "400" }, roles: ["300"] }, data: { name: "kekbot", options: [{ type: 2, name: "media", options: [{ type: 1, name: "approve", options: [{ type: 3, name: "request", value: `#${pending!.position}` }] }] }] } }));
   const stamp = String(Math.floor(Date.now() / 1000));
   const headers = { "Content-Type": "application/json", "X-Signature-Timestamp": stamp, "X-Signature-Ed25519": sign(null, Buffer.concat([Buffer.from(stamp), interaction]), readFileSync(join(root(), "fixture/secrets/fixture-discord-private.pem"))).toString("hex") };
   expect((await (await request.post("/api/providers/discord/interactions", { headers, data: interaction })).json()).type).toBe(5);
@@ -116,18 +117,71 @@ test("signed Discord approval reaches a fixture player and a duplicate completio
 
 test("every widget family renders with scoped read access and an API token cannot exceed its scopes", async ({ request, page }) => {
   const csrf = await login(request);
+  const source = async (data: Record<string, unknown>) => {
+    const doc = await operation(request, csrf, "config.save", { kind: "widget", data });
+    const token = await operation(request, csrf, "token.create", { name: `Read ${String(data.name)}`, kind: "widget", scopes: [`widget:${doc.id}`] });
+    return { doc, url: `/widgets/${doc.id}?token=${token.token}`, token: token.token as string };
+  };
   for (const type of widgetKinds.filter(kind => kind !== "player")) {
-    const doc = await operation(request, csrf, "config.save", { kind: "widget", data: { name: `Fixture ${type}`, type } });
-    const token = await operation(request, csrf, "token.create", { name: `Read ${type}`, kind: "widget", scopes: [`widget:${doc.id}`] });
-    await page.goto(`/widgets/${doc.id}?token=${token.token}`);
+    const { url, token } = await source({ name: `Fixture ${type}`, type });
+    await page.goto(url);
     await expect(page.locator(".widget-root")).toHaveAttribute("data-theme", "mint");
-    expect((await request.get(`/api/widgets/wrong?token=${token.token}`)).status()).toBe(401);
+    await expect(page.locator(".widget-root")).toHaveAttribute("data-type", type);
+    expect((await request.get(`/api/widgets/wrong?token=${token}`)).status()).toBe(401);
   }
+  // Every built-in pack renders; presentation options never reach the page as markup.
+  for (const theme of widgetThemes) {
+    const { url } = await source({ name: `Theme ${theme}`, type: "counter", theme, accent: "gold", fontScale: 1.5, align: "end", backdrop: "solid", title: "<b>Deaths</b>" });
+    await page.goto(url);
+    await expect(page.locator(".widget-root")).toHaveAttribute("data-theme", theme);
+    await expect(page.locator(".widget-root")).toHaveAttribute("data-accent", "gold");
+    await expect(page.locator(".w-title")).toHaveText("<b>Deaths</b>");
+  }
+  const running = await source({ name: "Countdown", type: "countdown", text: "Stream starts", endsAt: Date.now() + 90061000 + 30000 });
+  await page.goto(running.url);
+  await expect(page.locator(".w-clock")).toHaveText(/^1d 01:01:[0-3]\d$/);
+  const finished = await source({ name: "Countdown done", type: "countdown", endsAt: 1, endText: "Starting now!" });
+  await page.goto(finished.url);
+  await expect(page.locator(".w-clock")).toHaveText("Starting now!");
+  // Supporter sources show human labels instead of provider event names.
+  const db = new Database(join(root(), "fixture/kekbot.sqlite"));
+  try {
+    db.prepare("INSERT INTO receipts(id,event_type,payload,received_at) VALUES(?,?,?,?)").run("browser-gift", "channel.subscription.gifts", JSON.stringify({ gifter: { user_id: 77, username: "generous_fixture" }, giftees: [1, 2, 3, 4, 5].map(id => ({ user_id: id })), broadcaster: { user_id: 123 } }), Date.now());
+  } finally { db.close(); }
+  const feed = await source({ name: "Feed labels", type: "eventfeed" });
+  await page.goto(feed.url);
+  await expect(page.locator(".widget-root")).toContainText("generous_fixture gifted 5 subs");
+  await expect(page.locator(".widget-root")).not.toContainText("channel.subscription.gifts");
+  // An OBS host whose clock runs ten minutes fast still shows an alert the server just started.
+  await operation(request, csrf, "config.save", { kind: "alert", data: { name: "Browser manual", event: "manual", template: "{text}", duration: 30 } });
+  const alerts = await source({ name: "Skewed alerts", type: "alerts" });
+  await page.clock.setFixedTime(Date.now() + 600000);
+  await page.goto(alerts.url);
+  await expect(page.locator(".widget-root")).toHaveAttribute("data-type", "alerts");
+  await operation(request, csrf, "alert.manual", { reason: "Clock skew check" });
+  await expect(page.locator(".w-alert")).toContainText("Clock skew check");
   const token = await operation(request, csrf, "token.create", { name: "Read API", kind: "api", scopes: ["read"] });
   expect((await request.get("/api/v1/control", { headers: { Authorization: `Bearer ${token.token}` } })).ok()).toBe(true);
   expect((await request.post("/api/v1/control", { headers: { Authorization: `Bearer ${token.token}` }, data: { action: "timers.pause" } })).status()).toBe(401);
   await operation(request, csrf, "token.revoke", { id: token.id });
   expect((await request.get("/api/v1/control", { headers: { Authorization: `Bearer ${token.token}` } })).status()).toBe(401);
+});
+
+
+test("an engage-scoped API token can create and read a poll and a read-only token cannot", async ({ request }) => {
+  const csrf = await login(request);
+  const read = await operation(request, csrf, "token.create", { name: "Read poll API", kind: "api", scopes: ["read"] });
+  const engage = await operation(request, csrf, "token.create", { name: "Engage poll API", kind: "api", scopes: ["engage"] });
+  const post = (token: string, action: string, input: Record<string, unknown>) => request.post("/api/v1/control", { headers: { Authorization: `Bearer ${token}` }, data: { action, input } });
+  const poll = { name: "API poll", options: ["Yes", "No"], minutes: 5 };
+  expect((await post(read.token, "poll.create", poll)).status()).toBe(401);
+  const created = await post(engage.token, "poll.create", poll);
+  expect(created.ok()).toBe(true);
+  const { result } = await created.json();
+  expect(result).toMatchObject({ kind: "poll", data: { name: "API poll", options: ["Yes", "No"], status: "open" } });
+  expect((await (await post(engage.token, "poll.results", { target: result.id })).json()).result).toMatchObject({ name: "API poll", options: [{ option: "Yes", votes: 0 }, { option: "No", votes: 0 }] });
+  const state = await (await request.get("/api/control")).json();
+  expect(state.documents.filter((doc: { data: { name: string } }) => doc.data.name === "API poll")).toHaveLength(1);
 });
 
 

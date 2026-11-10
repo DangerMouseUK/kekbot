@@ -41,9 +41,9 @@ The complete [account guide](ACCOUNTS.md) covers claim, invitation acceptance, t
 
 ## Find your way around
 
-**Control room** shows worker, Kick and player state plus recent activity. **Connections** holds owner-only provider configuration. Other panels cover Commands, Timers, Alerts, Media, Moderation, Goals, Points & rewards, Polls & raffles, Widgets, Analytics, Accounts and Maintenance. Available controls depend on your role.
+**Control room** opens with live status (stream, Kick, media player and background work), a **Needs attention** list with direct **Approve**/**Reject** and **Fulfilled**/**Refund** buttons, a **Setup checklist** whose **Set up** buttons open each step, and **Recent activity** written as sentences. **Connections** holds owner-only provider configuration. Other panels cover Commands, Timers, Alerts, Media, Moderation, Goals, Points & rewards, Polls & raffles, Widgets, Analytics, Accounts and Maintenance. Available controls depend on your role.
 
-Configuration cards display an **ID** and **Version**. Use IDs when another control asks for a target. A version conflict means someone changed that record; refresh and review it before retrying. Most edits take effect without restarting.
+Configuration cards describe each item in plain words, and the buttons on a card act on that item directly: you do not copy IDs or versions. If someone else changed the item first, KekBot reloads the latest state and says what changed; check it and try again. **Details** on a card shows its reference ID, which a widget target, Discord command or the API may still ask for. Problems appear as a sentence with a next step at the top of the page; the API keeps its error codes. Most edits take effect without restarting. On a phone, the panel list scrolls sideways under the KekBot name.
 
 The configuration editor groups each kind into short sections with help text, and only shows fields that apply to your choices (for example, a countdown widget shows **Count down to**; a link rule shows **Allowed websites**). Hidden fields keep their saved values. Dates use a date-time picker in your browser's timezone; durations have a unit selector; lists use numbered rows or tags (type a value and press Enter); Discord grants are ID/permission rows. Problems appear next to the field and in a summary at the top of the form when you save; select a summary entry to jump to the field. Field constraints/defaults are in the [field reference](CONFIGURATION_FIELDS.md).
 
@@ -106,17 +106,19 @@ The five-second guard applies per viewer and command, including error replies fo
 
 In **Timers → Add timer**, enter rotating messages and **Post every** (at least 1 minute). Configure **Chat messages needed in between**, **Only while live**, **Timezone** and optional **Quiet from**/**Quiet until** hours. The form previews the messages as you type; save, then preview again from the card.
 
-Use **Pause all timers** before disruptive work; **Resume timers** when ready. Offline, paused and restarted timers reschedule without sending missed reminders. Queued sends recheck current eligibility/version/schedule; superseded work is recorded as `timer_no_longer_eligible`. A send already accepted by Kick cannot be recalled.
+Each timer card shows its status (next send time, waiting for the stream or for chat messages, quiet hours, paused or off), when it last sent with the delivery result, and a **Timer on** switch (needs `configure`). The banner at the top of **Timers** shows whether all timers are paused. Use **Pause all timers** before disruptive work; **Resume timers** when ready. Offline, paused and restarted timers reschedule without sending missed reminders. Queued sends recheck current eligibility/version/schedule; superseded work is recorded as `timer_no_longer_eligible`. A send already accepted by Kick cannot be recalled.
 
 For a ten-minute reminder, use **Post every** `10` minutes, **Chat messages needed in between** `5`, **Only while live** on. A quiet window from `22:00` until `07:00` suppresses 22:00 through 06:59 in the selected timezone. Both endpoints are needed (the form warns when only one is set); equal endpoints suppress all hours. Leave both **Not set** for no quiet window. If not enough messages arrive by the due time, the timer waits another interval. A pure preview does not schedule a send. See [timer fields](CONFIGURATION_FIELDS.md#timer).
 
 ## Alerts, goals and presentation
 
-Configure event/manual alerts in **Alerts** and test **Preview without delivery** before sending a live manual alert. Use [OBS setup](OBS.md) for assets, sound and private Browser Sources.
+Configure event/manual alerts in **Alerts** and test **Preview without delivery** before sending a live manual alert with **Manual alert text → Send manual alert**. Use [OBS setup](OBS.md) for assets, sound and private Browser Sources.
 
-Create goals in **Goals** with metric, current value and target. Event goals update from observed events; manual changes/reset require the current version. Completion can create alerts/notifications if configured. Widgets have mint, midnight and paper themes plus reduced-motion settings. For goal, poll, raffle and counter widgets the editor lists your goals, polls, raffles or counting commands to choose from; the API stores the chosen document ID.
+In **Widgets**, each card shows the widget type, theme and the Browser Source width and height to use in OBS. Owners select **Create OBS source URL**: the private URL appears once with a **Copy** button and a live preview. A player widget instead shows an **OBS player source URL**, which includes the separate playback credential after `#player=`, and a **Display-only URL**; the dashboard does not preview players, so audio cannot play twice. Each card lists the URLs already issued with **Revoke**, and URLs left over from deleted widgets appear under **Source URLs for deleted widgets**. The panel also has a short **How to add a widget to OBS** guide.
 
-To make a manual goal, choose `manual`, set Target to `100` and Value to `0`, then save. Copy its card ID/version into **Adjust or reset goal**. Value is the **new absolute amount**, not an increment; use `25` to display 25/100 and `0` to reset. Reset below the target clears completion. Automatic follow/subscription/points/media goals start from observed events after configuration; they do not import historic provider totals. Completed automatic goals stop incrementing until reset. Configure an alert with Event `goal` and template `{name}: {value}/{target}` for completion presentation.
+Create goals in **Goals** with metric, current value and target. Event goals update from observed events; manual changes/reset require the current version. Completion can create alerts/notifications if configured. Widgets have seven built-in themes (`mint`, `midnight`, `paper`, `neon`, `ember`, `glass`, `contrast`), a fixed accent palette, text size/alignment/backdrop/layout options and reduced-motion settings; see [OBS themes](OBS.md#themes-and-presentation-options). For goal, poll, raffle and counter widgets the editor lists your goals, polls, raffles or counting commands to choose from; the API stores the chosen document ID.
+
+To make a manual goal, choose `manual`, set Target to `100` and Value to `0`, then save. Each goal card shows a progress bar. With `operate`, use **+1** or **+5**, **Add or subtract → Apply** for a relative change such as `-3`, **Set exactly → Set** for a new absolute amount such as `25`, or **Reset** (after a confirmation) to return to 0. Reset below the target clears completion. Automatic follow/subscription/points/media goals start from observed events after configuration; they do not import historic provider totals. Completed automatic goals stop incrementing until reset. Configure an alert with Event `goal` and template `{name}: {value}/{target}` for completion presentation.
 
 ## Media requests
 
@@ -124,7 +126,7 @@ Owners enable media and configure its rules in Maintenance after adding a YouTub
 
 Follow the [complete media walkthrough](OBS.md#youtube-request-and-approval-walkthrough) for OBS playback. Pause/resume/skip/volume use the current player version. Restart or player loss preserves the queue/current item, pauses, and requires moderator resume from the beginning. An error never silently advances.
 
-The request progresses through validating → pending (manual policy) or approved → playing → completed. Failed validation leaves a sanitized reason on the item. Pending requests offer approve/reject/remove; approved/failed items can be removed. Use **Move to top** for an approved waiting item. **Clear waiting items** also removes requests still validating; it preserves the current item. To stop the current item, use player pause/skip instead. A missing approval response can mean another moderator already decided it: reload before acting again.
+The request progresses through validating → pending (manual policy) or approved → playing → completed. Failed validation leaves a plain-English reason on the item. Requests show as `#position · title · requester · duration`. The **Player** section has **Pause** or **Resume**, **Skip** and a **Volume** slider that saves when you release it. **Requests and queue** groups requests into **Waiting for your approval** (**Approve**/**Reject**), **Up next** (drag a request, or use ↑, ↓ and **Move to top**; **Remove**) and **Being checked**. Add one yourself with **Add a YouTube video → Add request**. **Clear queue** asks for confirmation; it also removes requests still validating and keeps the current item. To stop the current item, use **Pause** or **Skip** instead. If another moderator acted first, KekBot reloads and says what changed.
 
 ## Moderation
 
@@ -132,13 +134,13 @@ Start with disabled rules. In **Moderation**, configure a link, phrase, repetiti
 
 Optional escalation is scoped to the matching rule and uses previous incident count, a time window and an escalation action. Reviewed temporary incident presets cover links, bursts (five messages in ten seconds), or both for 1–120 minutes. Presets warn, persist across restart, expire automatically, and leave saved rules intact.
 
-**Emergency pause** stops automatic actions while explicit permitted manual actions remain available. Ban/delete/bulk operations require acknowledgement. Check incident **delivery outcomes** as well as rule decisions; a match does not prove a provider action succeeded. Moderator viewer search covers the latest 100 observed viewers. Notes require moderation authority.
+**Emergency pause moderation** stops automatic actions while explicit permitted manual actions remain available; **Resume moderation** restarts them. The banner says which state you are in. Active incident mode shows a live countdown and **Stop incident mode**. Ban/delete/bulk operations require confirmation in a dialog. Check incident **delivery outcomes** as well as rule decisions; a match does not prove a provider action succeeded. Moderator viewer search covers the latest 100 observed viewers. Notes require moderation authority.
 
 ### Build and test a rule
 
 1. With `configure`, add a rule and leave it disabled. Choose a descriptive name and `warn` action first.
 2. Configure the relevant fields below; the form shows only the fields for the selected type (**What to look for**), and **Timeout length** only when an action is a timeout.
-3. Save, edit to enable, then use **Safe rule test → Evaluate without effects** with both matching and permitted messages. The test respects Enabled, role and schedule, so a disabled rule always reports no match. Pause automatic moderation while evaluating an enabled rule if necessary.
+3. Save, edit to enable, then in **Test a rule** choose the rule and sender role, type a **Sample message** and select **Test message**. Try both matching and permitted messages. The test respects Enabled, role and schedule, so a disabled rule always reports no match. Pause automatic moderation while evaluating an enabled rule if necessary.
 4. Test a trusted-role exception and an allowed domain. A test has no prior-message history; repetition/burst behavior needs a controlled fixture/live sequence as well.
 5. Enable normal processing only after reviewing results, current provider scopes and intended channel. Inspect incidents and actual provider outcomes.
 
@@ -154,7 +156,7 @@ Only the first matching saved rule acts; temporary presets follow saved rules. E
 
 ### Manual actions and notes
 
-Find a viewer in **Observed viewers** and copy their numeric ID. Use the manual action form with a clear reason. Timeout Value is minutes; delete additionally needs the exact message ID. Ban/delete and every bulk operation require deliberate acknowledgement. Bulk accepts at most 20 unique numeric viewer IDs. Review all targets before queueing; the bot cannot infer whom you intended.
+Select **Moderate** next to a message in **Recent chat** (moderators only; the latest inspected messages), an entry in **What happened**, or a person in **Observed viewers**. Choose **Warn**, **Time out** (1 minute to 1 week), **Ban** or **Delete message**, pick a reason or write your own, then select the action button. Delete is offered only for a chat message or a rule incident that recorded one. Ban, delete and bulk actions explain what will happen, and the dialog's action button is your acknowledgement. To act on several people, tick up to 20 in **Observed viewers** and select **Moderate selected**; review the list in the dialog first. For someone who is not listed, open **Act on someone who is not listed** and enter their numeric Kick user ID. **What happened** shows each action with Kick's result.
 
 Create a note with the viewer's numeric ID, a short internal name and bounded text. Notes are visible only to moderation authority and remain private. Do not put credentials or unnecessary personal details in notes. For a disruptive incident use **Emergency pause moderation**; separately stop an active temporary preset if it should not resume with moderation.
 
@@ -164,25 +166,62 @@ Enable points in Maintenance and configure award amount/cadence/recent-chat acti
 
 Add rewards in **Points & rewards** with cost, description and manual/alert fulfillment. A redemption debits atomically. Moderators complete a fulfilled redemption or reject it for a single refund. Point adjustments need a reason. Balances/decisions survive restart; neither privacy erasure nor retention silently rewrites economic history.
 
-For a first reward, configure Name `Choose a topic`, Cost `100`, Fulfillment `manual`. Viewers use `!redeem Choose a topic` or the reward ID. In **Pending redemptions**, perform the real promised action before **Mark fulfilled**. Choose **Reject and refund** when it cannot be fulfilled; repeat decisions are rejected. Alert fulfillment still needs moderator completion and uses enabled manual-alert configurations.
+For a first reward, configure Name `Choose a topic`, Cost `100`, Fulfillment `manual`. Viewers use `!redeem Choose a topic` or the reward ID. In **Pending redemptions**, each row names the viewer and reward, with a reference ID that matches Discord notices. Perform the real promised action before **Mark fulfilled**. Choose **Reject and refund** when it cannot be fulfilled; repeat decisions are rejected. Alert fulfillment still needs moderator completion and uses enabled manual-alert configurations.
 
 Pending redemptions are independent of **Recent redemptions**, which shows the latest 100 decisions/requests. The pending queue shows 50 waiting items per page; use **Older waiting items** until you reach the request, **Newest waiting items** to return, or **Refresh this page** to reload an older page. Fulfillment/refund refreshes that page. Older pending requests remain actionable even after hundreds of newer completed rewards. Read-only users can browse but cannot fulfill or refund.
 
-To correct a balance, enter the numeric viewer ID, signed Amount and Reason in **Adjust points**. A negative adjustment cannot make the balance negative. Accrual awards once per eligible cadence bucket while observed live; it does not backfill downtime or prove silent viewing. Watchtime advances in whole estimated minutes once per cadence bucket, even with points disabled. [Point settings](CONFIGURATION_FIELDS.md#settings).
+To correct a balance, use **Give or remove points**: search for an observed viewer by name or Kick user ID, choose them, enter Points and a Reason, then select **Add points** or **Remove points**. The new balance is shown. A removal cannot make the balance negative. The **Leaderboard** and **Recent redemptions** tables show viewer and reward names. Accrual awards once per eligible cadence bucket while observed live; it does not backfill downtime or prove silent viewing. Watchtime advances in whole estimated minutes once per cadence bucket, even with points disabled. [Point settings](CONFIGURATION_FIELDS.md#settings).
 
 ## Polls and raffles
 
 In **Polls & raffles**, add an activity with a future deadline. Polls have 2–10 options and optional vote changes; viewers use `!vote <number>`. Raffles can restrict roles and minimum points; viewers use `!enter`. One effective vote/entry per verified identity prevents duplicate delivery from adding another.
 
-Close before drawing a raffle. **Draw winner** and **Reroll** are audited; rerolls exclude previous winners. Deadlines persist through restart. Use poll/raffle widgets to show results without exposing operator controls.
+**Quick start** (needs `configure`) opens a poll with a question, 2–10 options, a duration from 2 minutes to 1 hour and optional vote changes, or a raffle with a name, duration and minimum points, without entering timestamps. Poll cards show live results with option numbers, percentages and vote counts, a closing countdown and **Close poll**; closed polls show the result. Raffle cards show the entry count, **Close entries**, **Draw winner** and **Reroll**, and list winners by name. Close before drawing a raffle. **Draw winner** and **Reroll** are audited; rerolls exclude previous winners. Deadlines persist through restart. Use poll/raffle widgets to show results without exposing operator controls.
 
 ### Run a poll
 
-Create an enabled poll, enter 2–10 **Choices** (one per row; **Add choice** adds another) and a future **Voting closes** date and time. Leave Status **Open for votes**. Announce option numbers starting at 1; viewers send `!vote 1`, for example. Enable **Let viewers change their vote** only if replacing a vote should be allowed. **Close** ends voting early; otherwise the deadline closes it. Repeating the same vote does not add another participant. A poll widget can select that poll so a later poll does not replace it on stream.
+Create an enabled poll, enter 2–10 **Choices** (one per row; **Add choice** adds another) and a future **Voting closes** date and time, or use **Quick start**. Leave Status **Open for votes**. Announce option numbers starting at 1; viewers send `!vote 1`, for example. Enable **Let viewers change their vote** only if replacing a vote should be allowed. **Close poll** ends voting early; otherwise the deadline closes it. Repeating the same vote does not add another participant. A poll widget can select that poll so a later poll does not replace it on stream.
 
 ### Run a raffle
 
 Create an enabled raffle with a future **Entries close** time. Winners are shown read-only in the form and change only through Draw/Reroll. Leaving every **Allowed roles** box unticked permits all observed chat roles; **Minimum points balance** is checked when entering and does not spend points. Viewers send `!enter`. Close or wait for expiry, then **Draw winner**. An empty eligible set produces an explicit error. **Reroll** records another winner excluding previous winners; it does not erase the original draw. Use a new raffle for a new round rather than editing winners by hand. Entry eligibility is based on observed verified identity and conditions when entering, not a complete provider follower roster.
+
+## Discord controls
+
+After the owner [connects Discord](PROVIDERS.md#discord), grants your role or user a permission and registers commands, type `/kekbot` in the configured channel. Replies are private to you. Options that name something offer suggestions as you type; pick one rather than typing IDs. A song request's number is its queue position, `#12`; you can type `#12` or `12`. You never type versions: KekBot captures what you named when you send the command, and if it changed before the command runs (or someone acted first), it replies **This changed** and does nothing.
+
+| Command | What it does | Grant |
+| --- | --- | --- |
+| `/kekbot status` | Stream, player, timers, auto-moderation, incident mode and waiting work | Any KekBot grant |
+| `/kekbot media queue` | The active queue by number, with Approve/Reject buttons for the first five waiting requests | `media` |
+| `/kekbot media approve request:` / `reject request:` | Decide a waiting request | `media` |
+| `/kekbot media remove request:` | Remove a waiting or queued request (use skip for the current song) | `media` |
+| `/kekbot media move request: position:` | Move an approved request; `position:1` plays it next. The approved queue is renumbered | `media` |
+| `/kekbot media clear confirm:True` | Remove every waiting and queued request; the current song keeps playing | `media` |
+| `/kekbot media skip` / `pause` / `resume` / `volume level:` | Player controls; volume is 0–100 | `media` |
+| `/kekbot goal list` | Goals with progress bars | `operate` |
+| `/kekbot goal add goal: amount:` | Add to a goal; a negative amount subtracts (never below 0) | `operate` |
+| `/kekbot goal set goal: value:` / `reset goal:` | Set the current value, or set it to 0 | `operate` |
+| `/kekbot poll create question: options: [minutes:] [allow_change:]` | Start a poll with 2–10 answers separated by commas or `\|`; it stays open 5 minutes unless you set 1–1440. Viewers use `!vote <number>`. At most 10 polls and raffles can be open at once | `engage` |
+| `/kekbot poll close poll:` / `results poll:` | Close a poll and show final results, or show current results | `engage` |
+| `/kekbot raffle create name: [minutes:] [min_points:]` | Start a raffle; viewers use `!enter`. Counts toward the same limit of 10 open | `engage` |
+| `/kekbot raffle close raffle:` | Stop entries; the reply has a Draw winner button | `engage` |
+| `/kekbot raffle draw raffle:` / `reroll raffle:` | Draw a winner; reroll excludes earlier winners | `engage` |
+| `/kekbot reward pending` | Waiting redemptions with Complete/Refund buttons for the first five | `engage` |
+| `/kekbot reward complete redemption:` / `refund redemption:` | Mark fulfilled, or refund the points once | `engage` |
+| `/kekbot points viewer:` | A viewer's points, estimated watchtime and when they were last seen | `engage` |
+| `/kekbot mod warn viewer: reason:` | Warn in Kick chat | `moderate` |
+| `/kekbot mod timeout viewer: reason: [minutes:]` | Time out; 10 minutes unless you set 1–10080 | `moderate` |
+| `/kekbot mod ban viewer: reason: confirm:True` | Ban on Kick | `moderate` |
+| `/kekbot mod delete viewer: message: reason: confirm:True` | Delete one chat message; `message:` suggests the viewer's recent retained messages | `moderate` |
+| `/kekbot mod pause` / `resume` | Pause or resume automatic moderation rules; manual actions still work | `moderate` |
+| `/kekbot mod incident-start preset: minutes: confirm:True` / `incident-stop` | Temporary link and/or burst warnings for 1–120 minutes | `moderate` |
+| `/kekbot timers pause` / `resume` | Pause or resume chat timers without catch-up messages | `operate` |
+| `/kekbot alert send text:` | Show a manual alert in OBS | `operate` |
+
+The `media` group appears only when media is enabled, and `reward`/`points` only when points are enabled; they also refuse to run while their module is off. `engage` lets you start polls and raffles as well as close and draw them. Ask the owner to register commands again after changing either setting. Viewer suggestions list recently seen viewers by name; you can also type a name or a numeric Kick ID. Moderation replies mean the request was sent to Kick; Kick confirms separately, so check incidents and jobs in the dashboard if something did not happen.
+
+Notification buttons work the same way: **Approve**/**Reject** on song requests, **Complete**/**Refund** on reward redemptions and **Draw winner** on raffle-close notices. After someone uses a button, the notice shows a disabled label such as **Approved**. An older button replies **This changed** instead of acting. Every error reply explains what went wrong in plain English and ends with a code, such as `Code: discord_permission_denied`, to share with the owner.
 
 ## Analytics and private data
 

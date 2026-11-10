@@ -116,14 +116,28 @@ Requires `configure`; generating access URLs is owner-only. [All 18 types and ta
 | `name` | Required | Display name, 1–80 characters |
 | `enabled` | `true` | Disabled widget renders empty |
 | `type` | Required | `alerts`, `chat`, `player`, `nowplaying`, `queue`, `eventfeed`, `supporter`, `goal`, `multigoal`, `status`, `counter`, `leaderboard`, `poll`, `raffle`, `countdown`, `shoutout`, `socials`, `activity` |
-| `theme` | `mint` | `mint`, `midnight`, `paper` |
+| `theme` | `mint` | Built-in pack: `mint`, `midnight`, `paper`, `neon`, `ember`, `glass`, `contrast`. Each sets typography, spacing, corner radius, panel translucency, accent and entrance motion; see [OBS themes](OBS.md#themes-and-presentation-options) |
 | `width` | `800` | Pixels, 200–3840; match OBS source width |
 | `height` | `400` | Pixels, 100–2160; match OBS source height |
 | `limit` | `10` | Result count where supported, 1–50 |
 | `target` | Empty | Target document ID, ≤100 characters; meaning depends on Type |
-| `text` | Empty | Countdown label, ≤500 characters |
+| `text` | Empty | Countdown label, ≤500 characters; blank uses Title, then Name |
 | `endsAt` | `null` | Countdown deadline, nonnegative Unix milliseconds |
-| `reducedMotion` | `false` | Boolean; reduce presentation motion |
+| `reducedMotion` | `false` | Boolean; removes entrance/exit animation and transitions. The viewer's operating-system reduced-motion preference does the same |
+| `accent` | `theme` | `theme` keeps the pack accent; otherwise a fixed palette colour: `mint`, `sky`, `violet`, `pink`, `red`, `orange`, `gold`, `white`. Arbitrary colours/CSS are rejected |
+| `fontScale` | `1` | Decimal 0.5–3; multiplies the pack's base text size (22 px) |
+| `align` | `auto` | `auto` (alerts, shoutout, countdown and counter centre; others start), `start`, `center`, `end` |
+| `backdrop` | `theme` | `theme` uses the pack's translucent panel, `solid` an opaque panel, `none` no panel with an outlined text halo |
+| `layout` | `card` | `card` or `compact` (tighter spacing; side-by-side alert image; chat without bubbles) |
+| `title` | Empty | Heading/kicker override, ≤80 characters, literal text; blank uses the type's heading such as "Up next" |
+| `showTitle` | `true` | Boolean; show headings and kickers |
+| `showDetails` | `true` | Boolean; show secondary lines such as requester, durations, vote counts, chat role badges and relative times |
+| `showEmpty` | `false` in schema | Dashboard starts a new widget with it on. Boolean; show a quiet placeholder such as `Queue is empty` when there is nothing to display. Off (and every source saved before this field existed) keeps an empty source fully transparent. Alerts and shoutouts never show a placeholder |
+| `showUptime` | `true` | Boolean; `status` shows uptime while live, or `Uptime unavailable` when the start time is unknown |
+| `showViewers` | `true` | Boolean; `status` shows the fresh viewer count, or `Viewers unavailable` when no recent sample exists. Counts are never guessed |
+| `endText` | Empty | Countdown end message, ≤120 characters; blank shows `Time's up!` |
+| `shoutoutSeconds` | `0` in schema | Dashboard starts a new widget at `20`. Seconds 0–3600 a `shoutout` card stays visible; `0` (and every source saved before this field existed) keeps it until the next shoutout |
+| `chatFadeSeconds` | `0` | Seconds 0–3600 before a `chat` message fades out; `0` never fades |
 
 ## rule
 

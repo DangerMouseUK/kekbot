@@ -20,6 +20,14 @@ const config: NextConfig = {
         { key: "Referrer-Policy", value: "no-referrer" },
         { key: "X-Frame-Options", value: "DENY" }
       ]
+    }, {
+      // The dashboard's Widgets panel previews OBS sources in a same-origin frame.
+      // Everything else, including the dashboard itself, stays unframeable.
+      source: "/widgets/:path*",
+      headers: [
+        { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        { key: "Content-Security-Policy", value: "frame-ancestors 'self'" }
+      ]
     }];
   }
 };

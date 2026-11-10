@@ -257,7 +257,7 @@ describe("shared module services with real SQLite", () => {
     const keys = generateKeyPairSync("ed25519"), publicKey = keys.publicKey.export({ format: "der", type: "spki" }).subarray(-32).toString("hex");
     const credentials = { applicationId: "900", publicKey, botToken: "fixture-only" };
     const discord = new DiscordService(bot.state);
-    const payload = { id: "500", application_id: "900", type: 2, token: "fixture-interaction", guild_id: "100", channel_id: "200", member: { user: { id: "400" }, roles: ["300"] }, data: { name: "kekbot", options: [{ name: "action", value: "status" }] } };
+    const payload = { id: "500", application_id: "900", type: 2, token: "fixture-interaction", guild_id: "100", channel_id: "200", member: { user: { id: "400" }, roles: ["300"] }, data: { name: "kekbot", options: [{ type: 1, name: "status" }] } };
     const body = Buffer.from(JSON.stringify(payload)), timestamp = String(Math.floor(Date.now() / 1000));
     const headers = new Headers({ "x-signature-timestamp": timestamp, "x-signature-ed25519": sign(null, Buffer.concat([Buffer.from(timestamp), body]), keys.privateKey).toString("hex") });
     expect(discord.intake(body, headers, credentials)).toMatchObject({ type: 5 });
