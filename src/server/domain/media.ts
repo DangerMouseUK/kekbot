@@ -4,6 +4,7 @@ import { AppError } from "../errors.ts";
 import type { Actor } from "../auth.ts";
 import { State } from "./state.ts";
 import { PresentationService } from "./presentation.ts";
+import { requestAwaitingApproval, requestQueued, requestRejected } from "./replies.ts";
 
 export type MediaItem = {
   id: string;
@@ -66,6 +67,27 @@ export class MediaService {
   }
   item(id: string) {
     return this.state.db.prepare("SELECT * FROM media WHERE id=?").get(id) as MediaItem | undefined;
+  }
+  /** 1-based place among approved items, in the same order the player advances. */
+  private placeInLine(item: MediaItem) {
+    return (
+      (
+        this.state.db
+          .prepare(
+            "SELECT count(*) AS n FROM media WHERE status='approved' AND id!=? AND (position<? OR (position=? AND (created_at<? OR (created_at=? AND id<?))))",
+          )
+          .get(
+            item.id,
+            item.position,
+            item.position,
+            item.created_at,
+            item.created_at,
+            item.id,
+          ) as {
+          n: number;
+        }
+      ).n + 1
+    );
   }
 
   history(input: { cursor?: string; limit?: string } = {}) {
@@ -153,6 +175,8 @@ export class MediaService {
   async validate(id: string, moderator: boolean, request: typeof fetch = fetch) {
     const item = this.item(id);
     if (!item || item.status !== "validating") return;
+    // Kept outside the try so a rejected length can be explained in chat.
+    let measured: number | undefined;
     try {
       let metadata: { title: string; uploader: string; duration: number };
       if (this.state.config.mode === "fixture")
@@ -213,6 +237,7 @@ export class MediaService {
         };
       }
       const settings = this.state.settings;
+      measured = metadata.duration;
       if (metadata.duration <= 0 || metadata.duration > settings.maxDuration)
         throw new AppError("video_duration_rejected", 422);
       if (
@@ -246,14 +271,23 @@ export class MediaService {
               { name: metadata.title, user: item.requester, title: metadata.title },
               `media:${id}`,
             );
-            if (!moderator)
+            if (!moderator) {
+              // Viewers see the public request number (#position), never the internal item ID.
+              const username = this.state.viewerName(item.requester);
+              const updated = this.item(id)!;
               this.state.effect(`media-result:${id}`, "kick.reply", {
                 requester: item.requester,
-                text: `Request ${id}: ${metadata.title} — ${status === "pending" ? "awaiting moderator approval" : "accepted into the queue"}.`.slice(
-                  0,
-                  500,
-                ),
+                text:
+                  status === "pending"
+                    ? requestAwaitingApproval(username, updated.position, metadata.title)
+                    : requestQueued(
+                        username,
+                        updated.position,
+                        metadata.title,
+                        this.placeInLine(updated),
+                      ),
               });
+            }
           }
         })
         .immediate();
@@ -271,7 +305,10 @@ export class MediaService {
             if (!moderator)
               this.state.effect(`media-result:${id}`, "kick.reply", {
                 requester: item.requester,
-                text: `Request ${id} rejected: ${code}.`,
+                text: requestRejected(this.state.viewerName(item.requester), item.position, code, {
+                  maxDuration: this.state.settings.maxDuration,
+                  duration: measured,
+                }),
               });
           }
         })
