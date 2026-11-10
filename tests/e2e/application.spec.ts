@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { sign } from "node:crypto";
 import Database from "better-sqlite3";
-import { widgetKinds } from "../../src/server/domain/catalog.ts";
+import { widgetKinds, widgetThemes } from "../../src/server/domain/catalog.ts";
 const origin = "http://127.0.0.1:3137";
 const password = "a strong browser fixture password";
 function root() { return readFileSync("output/playwright/e2e-data-path.txt", "utf8"); }
@@ -107,13 +107,49 @@ test("signed Discord approval reaches a fixture player and a duplicate completio
 
 test("every widget family renders with scoped read access and an API token cannot exceed its scopes", async ({ request, page }) => {
   const csrf = await login(request);
+  const source = async (data: Record<string, unknown>) => {
+    const doc = await operation(request, csrf, "config.save", { kind: "widget", data });
+    const token = await operation(request, csrf, "token.create", { name: `Read ${String(data.name)}`, kind: "widget", scopes: [`widget:${doc.id}`] });
+    return { doc, url: `/widgets/${doc.id}?token=${token.token}`, token: token.token as string };
+  };
   for (const type of widgetKinds.filter(kind => kind !== "player")) {
-    const doc = await operation(request, csrf, "config.save", { kind: "widget", data: { name: `Fixture ${type}`, type } });
-    const token = await operation(request, csrf, "token.create", { name: `Read ${type}`, kind: "widget", scopes: [`widget:${doc.id}`] });
-    await page.goto(`/widgets/${doc.id}?token=${token.token}`);
+    const { url, token } = await source({ name: `Fixture ${type}`, type });
+    await page.goto(url);
     await expect(page.locator(".widget-root")).toHaveAttribute("data-theme", "mint");
-    expect((await request.get(`/api/widgets/wrong?token=${token.token}`)).status()).toBe(401);
+    await expect(page.locator(".widget-root")).toHaveAttribute("data-type", type);
+    expect((await request.get(`/api/widgets/wrong?token=${token}`)).status()).toBe(401);
   }
+  // Every built-in pack renders; presentation options never reach the page as markup.
+  for (const theme of widgetThemes) {
+    const { url } = await source({ name: `Theme ${theme}`, type: "counter", theme, accent: "gold", fontScale: 1.5, align: "end", backdrop: "solid", title: "<b>Deaths</b>" });
+    await page.goto(url);
+    await expect(page.locator(".widget-root")).toHaveAttribute("data-theme", theme);
+    await expect(page.locator(".widget-root")).toHaveAttribute("data-accent", "gold");
+    await expect(page.locator(".w-title")).toHaveText("<b>Deaths</b>");
+  }
+  const running = await source({ name: "Countdown", type: "countdown", text: "Stream starts", endsAt: Date.now() + 90061000 + 30000 });
+  await page.goto(running.url);
+  await expect(page.locator(".w-clock")).toHaveText(/^1d 01:01:[0-3]\d$/);
+  const finished = await source({ name: "Countdown done", type: "countdown", endsAt: 1, endText: "Starting now!" });
+  await page.goto(finished.url);
+  await expect(page.locator(".w-clock")).toHaveText("Starting now!");
+  // Supporter sources show human labels instead of provider event names.
+  const db = new Database(join(root(), "fixture/kekbot.sqlite"));
+  try {
+    db.prepare("INSERT INTO receipts(id,event_type,payload,received_at) VALUES(?,?,?,?)").run("browser-gift", "channel.subscription.gifts", JSON.stringify({ gifter: { user_id: 77, username: "generous_fixture" }, giftees: [1, 2, 3, 4, 5].map(id => ({ user_id: id })), broadcaster: { user_id: 123 } }), Date.now());
+  } finally { db.close(); }
+  const feed = await source({ name: "Feed labels", type: "eventfeed" });
+  await page.goto(feed.url);
+  await expect(page.locator(".widget-root")).toContainText("generous_fixture gifted 5 subs");
+  await expect(page.locator(".widget-root")).not.toContainText("channel.subscription.gifts");
+  // An OBS host whose clock runs ten minutes fast still shows an alert the server just started.
+  await operation(request, csrf, "config.save", { kind: "alert", data: { name: "Browser manual", event: "manual", template: "{text}", duration: 30 } });
+  const alerts = await source({ name: "Skewed alerts", type: "alerts" });
+  await page.clock.setFixedTime(Date.now() + 600000);
+  await page.goto(alerts.url);
+  await expect(page.locator(".widget-root")).toHaveAttribute("data-type", "alerts");
+  await operation(request, csrf, "alert.manual", { reason: "Clock skew check" });
+  await expect(page.locator(".w-alert")).toContainText("Clock skew check");
   const token = await operation(request, csrf, "token.create", { name: "Read API", kind: "api", scopes: ["read"] });
   expect((await request.get("/api/v1/control", { headers: { Authorization: `Bearer ${token.token}` } })).ok()).toBe(true);
   expect((await request.post("/api/v1/control", { headers: { Authorization: `Bearer ${token.token}` }, data: { action: "timers.pause" } })).status()).toBe(401);

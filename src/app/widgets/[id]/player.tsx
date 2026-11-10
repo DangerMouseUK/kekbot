@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import type { WidgetConfig } from "./widget";
+import { formatDuration, humanCode } from "../format.ts";
 type PlayerState = { state: string; version: number; generation?: number; volume: number; error?: string };
-type Item = { id: string; video_id: string; title: string };
+type Item = { id: string; video_id: string; title: string; position?: number; duration?: number | null; requesterName?: string };
 type YouTubePlayer = { destroy: () => void; pauseVideo: () => void; playVideo: () => void; setVolume: (value: number) => void; getVideoData: () => { video_id: string } };
 type YouTubeApi = { Player: new (element: HTMLElement, options: Record<string, unknown>) => YouTubePlayer };
 const youtubeWindow = () => window as typeof window & { YT?: YouTubeApi; onYouTubeIframeAPIReady?: () => void };
@@ -16,7 +18,9 @@ function youtube() {
   return apiPromise;
 }
 
-export default function Player({ widget, item, state, fixture }: { widget: string; item: Item | null; state: PlayerState; fixture: boolean }) {
+const stateLabels: Record<string, string> = { playing: "Playing", paused: "Paused", blocked: "Autoplay blocked", error: "Playback error" };
+
+export default function Player({ widget, config, item, state, fixture }: { widget: string; config: WidgetConfig; item: Item | null; state: PlayerState; fixture: boolean }) {
   const host = useRef<HTMLDivElement>(null), iframe = useRef<YouTubePlayer | null>(null), lease = useRef<string | undefined>(undefined), latest = useRef({ item, state });
   const [status, setStatus] = useState("Connecting player…");
   useEffect(() => { latest.current = { item, state }; iframe.current?.setVolume(state.volume); if (state.state === "playing" && lease.current) iframe.current?.playVideo(); else iframe.current?.pauseVideo(); }, [item, state]);
@@ -54,5 +58,21 @@ export default function Player({ widget, item, state, fixture }: { widget: strin
     // An item owns its iframe callbacks; old item callbacks cannot acknowledge its successor.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item?.id, state.generation, fixture]);
-  return <section><h2>{item?.title ?? "Queue idle"}</h2><p className="widget-status" role="status">{state.error ?? status} · {state.state}</p>{!fixture && <div className="youtube-frame" ref={host} />}{fixture && item && <button disabled={state.state !== "playing"} onClick={() => post("ended").catch(error => setStatus(error.message))}>Finish fixture item</button>}</section>;
+  const duration = formatDuration(item?.duration), label = stateLabels[state.state] ?? state.state;
+  // Healthy live playback keeps its status line visually hidden (still announced); problems and fixture mode stay visible.
+  const quiet = !fixture && !state.error && status === "Player connected" && state.state !== "blocked" && state.state !== "error";
+  return <section className="w-player" data-state={state.state}>
+    {!fixture && <div className="youtube-frame" ref={host} />}
+    {fixture && <div className="w-player-screen" aria-hidden="true"><span className={`w-eq${state.state === "playing" ? " is-playing" : ""}`}><i /><i /><i /><i /></span><span>Simulated playback</span></div>}
+    <div className="w-panel w-media w-player-bar">
+      <div className="w-media-body">
+        {config.showTitle && <p className="w-kicker">{item ? "Now playing" : "Media player"}{item?.position ? <span className="w-pos">#{item.position}</span> : null}</p>}
+        <h2 className="w-media-title">{item?.title ?? "Queue idle"}</h2>
+        {config.showDetails && item && <p className="w-meta">Requested by {item.requesterName ?? "Requester unavailable"}{duration ? ` · ${duration}` : ""}</p>}
+      </div>
+      <span className="w-chip" data-state={state.state}>{label}</span>
+    </div>
+    <p className={`widget-status${quiet ? " w-sr" : ""}`} role="status">{humanCode(state.error ?? status)} · {label}</p>
+    {fixture && item && <button className="w-fixture-button" disabled={state.state !== "playing"} onClick={() => post("ended").catch(error => setStatus(error.message))}>Finish fixture item</button>}
+  </section>;
 }
