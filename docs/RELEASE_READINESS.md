@@ -32,6 +32,7 @@ The handbook additionally includes [first session](FIRST_SESSION.md), [accounts/
 - [Beginner setup follow-up](#beginner-setup-follow-up)
 - [Beta 4 candidate review](#beta-4-review)
 - [Beta 4 publication](#beta-4-publication--2026-10-10)
+- [Post-beta-4 dependency maintenance](#post-beta-4-dependency-maintenance--2026-11-10)
 <!-- contents:end -->
 
 ## Ownership, journeys and installation
@@ -313,3 +314,9 @@ The [completed soak](https://github.com/DangerMouseUK/kekbot/actions/runs/380564
 Published [v0.1.0-beta.4](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.4) at **2026-10-10 18:12:11 UTC**, with prerelease enabled and latest-stable promotion disabled. Its immutable tag resolves to frozen source `3e2f1f8015109f497d0cf75a11ec7cd01f818365`; the retained image remains `sha256:6a3b4f810c2e1b5bfe992236187a9ff113040bef8d361d42e31990efab93aa25`. All six uploaded/downloaded hashes match the [audited asset record](releases/v0.1.0-beta.4.md#candidate-assets). No rebuild was substituted. Beta 1/2/3 release identities, tags and asset hashes are unchanged.
 
 Anonymous HTTPS release discovery, source/image downloads, checksums, version/source identity and the standalone launcher hash passed using the actual public release. Recommended discovery offers beta 4 only as an explicit beta; strict latest-stable discovery correctly rejects it with no stable release available. Download verification did not execute management code. Anonymous Git transport from the published tag verified all nine allowlisted management/proxy resources against the frozen source and helper revision. [Published-release campaign 38074850763](https://github.com/DangerMouseUK/kekbot/actions/runs/38074850763) passed all six required jobs from helper source `e11a462b0c3367bae1ab303406db50ae99a688d3`. Its explicit published-release step completed at **2026-10-10 18:20:26 UTC**, selecting the frozen application source/image above. Actual source/image downloads, fixture image installation and signed intake, failed-update guards, separate-root rollback preserving the key/asset, published-source build, successful update, retained-data uninstall/resume and purge passed. Recommended setup used the verified image with simulated discovery; actual anonymous discovery was checked separately. Helper builds never replace released assets. All 33 stable live/reference/operator gates remain pending; no real older-beta upgrade, live installation, public certificate or independent-operator pass is claimed.
+
+## Post-beta-4 dependency maintenance — 2026-11-10
+
+Upstream drift made ordinary CI fail on unchanged source. The registry reported new advisories against the exact `next` and `zod` pins and against development tooling, and Alpine replaced the pinned proxy zlib package with a security update. A [deliberate maintenance change](DEPENDENCY_MAINTENANCE.md#maintenance-2026-11-10) on development `main` selects `next` 16.4.5, `zod` 4.6.6, an exact Vite 8.3.6 peer pin, a parent-scoped minimatch 11.0.5 override and proxy zlib 1.4-r0. It also records a source-based exposure assessment for published beta 4, which found no reachable unauthenticated path. No live or exploit testing was performed.
+
+This is not candidate evidence. Beta 4's tag, assets, image and four dependency passes remain bound to its frozen source/image. The next candidate needs new application, tooling, image and license reviews, including exact proxy image scans. The 33 stable live/reference/operator gates and `release-evidence.json` are unchanged.

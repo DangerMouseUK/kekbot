@@ -10,6 +10,6 @@ RUN go build -mod=readonly -trimpath -buildvcs=false -o /caddy .
 FROM caddy:2.11.4@sha256:0c994536bddb66445885237f1a5dcc1916bccea922661c76b4e9fc24061f9b52
 ARG TARGETARCH
 COPY --from=build /caddy /usr/bin/caddy
-RUN apk add --no-cache --upgrade zlib=1.3.2-r1 \
+RUN apk add --no-cache --upgrade zlib=1.4-r0 \
     && test "$TARGETARCH" = "amd64" \
     && caddy version | grep '^v2.11.6 '
