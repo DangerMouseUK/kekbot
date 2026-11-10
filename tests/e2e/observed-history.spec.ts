@@ -1,3 +1,4 @@
+// Runs after application.spec.ts (alphabetical order), which must claim the fresh installation itself.
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import { readFileSync } from "node:fs";

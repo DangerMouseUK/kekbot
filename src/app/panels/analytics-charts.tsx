@@ -277,10 +277,13 @@ export function BarChart({
   bars,
   formatValue,
   summary,
+  unknownLabel = "Unknown",
 }: {
   bars: Bar[];
   formatValue: (value: number) => string;
   summary: string;
+  /** Text for a `null` value, e.g. "Not sampled". */
+  unknownLabel?: string;
 }) {
   const [ref, width] = useWidth();
   const id = useId().replaceAll(":", "");
@@ -337,7 +340,7 @@ export function BarChart({
                   y={top + row / 2}
                   dy="0.32em"
                 >
-                  {bar.value === null ? "Unknown" : formatValue(bar.value)}
+                  {bar.value === null ? unknownLabel : formatValue(bar.value)}
                 </text>
               </g>
             );

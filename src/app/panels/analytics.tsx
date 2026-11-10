@@ -613,6 +613,7 @@ function StreamComparison({ data, chartMetric }: { data: AnalyticsResult; chartM
               };
             })}
             formatValue={(v) => formatNumber(v, info)}
+            unknownLabel={info.kind === "sample" ? "Not sampled" : "Unknown"}
             summary={`${info.label} for ${data.summaries.length} streams, newest first. The table below lists each value.`}
           />
         </figure>
