@@ -85,6 +85,8 @@ It is **not** a candidate review. [dependency-review.json](dependency-review.jso
 
 Other lockfile changes follow these selections: `@next/env` and `@next/swc-*` move to 16.4.5, `nanoid` to 3.3.20, and development-only Rolldown, `@oxc-project/types` and Vite's PostCSS refresh within existing ranges. Production PostCSS stays 8.5.23. Sharp stays 0.35.5, already the version GHSA-2464-fhr4-w9xw names as fixed, and remains excluded from standalone output and the image. Next's `license.md` is byte-identical at the v16.4.5 tag, so the reviewed `@next/*` notice fallback moves to that version. The [license inventory](DEPENDENCIES.md) was regenerated. Raw production and full-tooling audits now report zero findings.
 
+Next 16.4 also writes its build-generated draft-mode preview keys to a separate `.next/server/preview-props.json`, which duplicates the `preview` object already in `prerender-manifest.json`. The image Gitleaks audit flagged the two key lines. The [image audit](../scripts/image-audit.mjs) now accepts that file only when it holds exactly the three preview fields with values identical to the prerender manifest. Regression tests reject extra keys, differing values, other paths, other rules and a missing manifest. KekBot does not use draft mode. Provider and application secrets still have no exception.
+
 The braces advisory [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) was withdrawn upstream on 2026-10-23, and the registry no longer reports it. There is still no fixed braces release, so the local patch, its regressions and its exact verifier stay unchanged; `locallyPatched` is now empty because there is nothing to match. Removing the patch is a separate decision.
 
 #### Published beta 4 exposure

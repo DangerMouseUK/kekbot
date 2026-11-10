@@ -7,10 +7,18 @@ const run = (command, args) => execFileSync(command, args, { encoding: "utf8", w
 export function frameworkGeneratedFinding(finding, directory) {
   if (finding.RuleID !== "generic-api-key" || finding.StartLine !== finding.EndLine) return false;
   const path = resolve(finding.File), file = relative(resolve(directory), path).replaceAll("\\", "/");
-  if (![".next/prerender-manifest.json", ".next/server/server-reference-manifest.json"].includes(file)) return false;
+  if (![".next/prerender-manifest.json", ".next/server/preview-props.json", ".next/server/server-reference-manifest.json"].includes(file)) return false;
   try {
     const source = readFileSync(path, "utf8"), line = source.split(/\r?\n/)[finding.StartLine - 1], metadata = JSON.parse(source);
-    if (file === ".next/prerender-manifest.json") return /^\s*"previewMode(?:Signing|Encryption)Key": "[a-f0-9]{64}",?\s*$/.test(line) && Object.keys(metadata.preview).sort().join() === "previewModeEncryptionKey,previewModeId,previewModeSigningKey";
+    const previewKeys = "previewModeEncryptionKey,previewModeId,previewModeSigningKey", previewLine = /^\s*"previewMode(?:Signing|Encryption)Key": "[a-f0-9]{64}",?\s*$/;
+    if (file === ".next/prerender-manifest.json") return previewLine.test(line) && Object.keys(metadata.preview).sort().join() === previewKeys;
+    // Next 16.4 also writes the same build-generated preview props to their own
+    // manifest. Accept only an exact copy of the prerender manifest's values.
+    if (file === ".next/server/preview-props.json") {
+      const manifest = JSON.parse(readFileSync(join(resolve(directory), ".next/prerender-manifest.json"), "utf8")).preview;
+      return previewLine.test(line) && Object.keys(metadata).sort().join() === previewKeys && Object.keys(manifest).sort().join() === previewKeys &&
+        previewKeys.split(",").every(key => typeof metadata[key] === "string" && metadata[key] === manifest[key]);
+    }
     return /^\s*"encryptionKey": "[A-Za-z0-9+/]{43}=",?\s*$/.test(line) && Object.keys(metadata).sort().join() === "edge,encryptionKey,node" && !Object.keys(metadata.node).length && !Object.keys(metadata.edge).length;
   } catch { return false; }
 }
