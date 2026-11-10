@@ -4,7 +4,7 @@
 
 Every editable configuration kind is listed here. Runtime/environment settings are in [configuration](CONFIGURATION.md); task instructions are in the [user guide](USER_GUIDE.md). [All documentation](README.md).
 
-The field names below are the JSON names used by [the API](API.md). The dashboard inserts spaces and capitalizes the first word: `userCooldown` becomes **User cooldown**. Defaults apply when a field is omitted; required fields have no default. The editor may supply a starting value instead, notably disabled new moderation rules and an activity deadline one hour ahead. CI validates the [example files](examples/README.md) against [catalog.ts](../src/server/domain/catalog.ts) and checks every field has a reference row.
+The field names below are the JSON names used by [the API](API.md). The dashboard editor uses plain-English labels in grouped sections instead, for example `userCooldown` is **Cooldown per viewer** under **Who can use it and when**, and shows only the fields that apply to the chosen widget type, rule type or toggle. Hidden fields keep their saved values. Defaults apply when a field is omitted; required fields have no default. The editor may supply a starting value instead, notably disabled new moderation rules and an activity deadline one hour ahead. CI validates the [example files](examples/README.md) against [catalog.ts](../src/server/domain/catalog.ts) and checks every field has a reference row.
 
 <!-- contents:start -->
 **On this page**
@@ -29,13 +29,13 @@ The field names below are the JSON names used by [the API](API.md). The dashboar
 
 - All numeric fields are integers unless marked decimal. Bounds are inclusive.
 - Names are trimmed, 1–80 characters. Responses/templates are literal text, not executable code.
-- Ordinary lists use one value per line in the dashboard; JSON callers use arrays. Guild permission mappings use JSON even in the dashboard.
+- JSON callers use arrays. In the dashboard, ordered text lists (responses, timer messages, poll choices) are numbered rows with **Add**/**Remove** buttons; aliases, allowed websites, phrases and blocked media lists are tags you add with Enter; chat roles and Discord events are checkboxes; guild permission mappings are ID/permission rows.
 - IDs are strings unless specifically described otherwise. Numeric Kick/Discord identity strings are 1–24 digits; never round Discord IDs through a JavaScript number.
 - Chat roles are `viewer`, `subscriber`, `vip`, `moderator`, `broadcaster`. Matching uses the single observed role, prioritizing broadcaster → moderator → VIP → subscriber → viewer. Selecting `subscriber` alone does not automatically include moderators or the broadcaster.
-- Seconds, minutes, hours and days are stated explicitly. `startsAt`/`endsAt` use **Unix milliseconds**, not seconds. Blank optional timestamps mean `null`.
-- Edits/deletes require the current document version. Reload after a conflict rather than replacing another operator's changes blindly. There are at most 500 saved records per kind.
+- Seconds, minutes, hours and days are stated explicitly. In the API, `startsAt`/`endsAt` use **Unix milliseconds**, not seconds, and blank optional timestamps mean `null`. The dashboard shows a date-time picker in your browser's timezone (named under the field) and converts for you; **Clear** sets an optional time back to `null`. Durations are entered with a unit selector (seconds/minutes/hours/days) and saved in the unit listed below; the editor shows each field's allowed range.
+- Edits/deletes require the current document version. If someone else saved first, the editor says so and offers **Reload latest values**; review them and reapply your change rather than replacing another operator's changes blindly. There are at most 500 saved records per kind.
 
-To calculate a future activity deadline in a source setup with Node installed:
+The dashboard editor needs no calculation: choose the date and time, or use **In 1 hour**/**In 1 day**. For API callers, to calculate a future activity deadline in a source setup with Node installed:
 
 ```sh
 node -p "Date.now() + 60 * 60 * 1000"
@@ -47,7 +47,7 @@ On a container installation, use its normal maintenance shell and `dc` helper in
 dc run --rm --no-deps kekbot node -p "Date.now() + 60 * 60 * 1000"
 ```
 
-Paste the resulting number into **Ends at**. The examples use a fixed illustrative 2030 deadline; replace it before opening an activity.
+Send the resulting number as `endsAt`. The examples use a fixed illustrative 2030 deadline; replace it before opening an activity.
 
 ## command
 
@@ -105,7 +105,7 @@ Requires `configure`; manual delivery requires `operate`; the dashboard exposes 
 | `volume` | `0.5` | Decimal 0–1, separate from player volume |
 | `animation` | `fade` | `fade`, `slide`, `none` |
 
-Use `{user}`/`{name}` for supporters, `{count}` for available subscription/gift data, `{text}` for manual text and `{title}` for media titles. Values depend on the event; preview that event before delivery. An asset ID must already exist and match image/audio type. Provider event availability remains subject to live verification.
+Use `{user}`/`{name}` for supporters, `{count}` for available subscription/gift data, `{text}` for manual text and `{title}` for media titles. Values depend on the event; the editor's **Insert** buttons list the variables for the selected event and its preview renders sample values. An asset ID must already exist and match image/audio type. Owners pick uploaded files from the **Image**/**Sound** lists (filtered by type) or upload one from the form; other accounts see a plain file ID field. Provider event availability remains subject to live verification.
 
 ## widget
 

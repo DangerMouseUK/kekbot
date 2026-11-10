@@ -21,8 +21,17 @@ test("owner setup, command editor, CSRF denial and read-only permissions work in
   await page.getByLabel("Username", { exact: true }).fill("owner"); await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Create owner account" }).click(); await expect(page.getByRole("heading", { name: "Control room" })).toBeVisible();
   await page.getByRole("button", { name: "Commands", exact: true }).click(); await page.getByRole("button", { name: "Add command" }).click();
-  await page.getByLabel("Name", { exact: true }).fill("Browser greeting"); await page.getByLabel("Trigger", { exact: true }).fill("!greeting");
-  await page.getByLabel("Responses", { exact: true }).fill("Hello {user}"); await page.getByRole("button", { name: "Save command" }).click();
+  await page.getByLabel("Name", { exact: true }).fill("Browser greeting");
+  // Client-side checks mirror the server: built-in triggers are refused next to the field.
+  await page.getByLabel("Trigger", { exact: true }).fill("points"); await expect(page.getByLabel("Trigger", { exact: true })).toHaveValue("!points");
+  await page.getByRole("button", { name: "Save command" }).click();
+  await expect(page.locator(".editor").getByRole("alert")).toContainText("!points is a built-in command");
+  await page.getByLabel("Trigger", { exact: true }).fill("!greeting");
+  await page.getByLabel("Add alias").fill("Hey"); await page.getByLabel("Add alias").press("Enter");
+  await expect(page.getByRole("button", { name: "Remove !hey" })).toBeVisible();
+  await page.getByLabel("Response 1", { exact: true }).fill("Hello {user}");
+  await expect(page.getByRole("group", { name: "command preview" })).toContainText("Hello Preview viewer");
+  await page.getByRole("button", { name: "Save command" }).click();
   await expect(page.getByRole("heading", { name: "Browser greeting" })).toBeVisible();
   const csrf = await login(request);
   expect((await request.post("/api/control", { headers: { Origin: origin }, data: { action: "timers.pause" } })).status()).toBe(403);
