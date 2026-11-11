@@ -270,7 +270,8 @@ function RuleTest({ snapshot: s, run, busy }: PanelProps) {
             event.preventDefault();
             const outcome = await run(
               "moderation.test",
-              { rule: rule.data, content, role },
+              // Test a rule before turning it on: evaluate it as if it were enabled.
+              { rule: { ...rule.data, enabled: true }, content, role },
               { quiet: true },
             );
             if (outcome)
@@ -323,9 +324,9 @@ function RuleTest({ snapshot: s, run, busy }: PanelProps) {
           <p className={result.matched ? "problem" : "ok"}>
             {result.matched
               ? `Match: “${result.rule}” would ${String(actionLabels[result.action] ?? result.action).toLowerCase()} this sender.`
-              : result.enabled
-                ? `No match: “${result.rule}” would let this message through.`
-                : `No match because “${result.rule}” is turned off. Turn it on to test it.`}
+              : `No match: “${result.rule}” would let this message through.`}
+            {!result.enabled &&
+              " This rule is turned off, so it does nothing in chat until you turn it on."}
           </p>
         )}
       </div>

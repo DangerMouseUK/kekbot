@@ -549,6 +549,16 @@ export const eventLabels: Record<string, string> = {
   media: "Media request",
 };
 
+/** Signed Kick webhook types in plain English, e.g. for "Last verified event". */
+export const kickEventLabels: Record<string, string> = {
+  "chat.message.sent": "Chat message",
+  "channel.followed": "New follower",
+  "channel.subscription.new": "New subscription",
+  "channel.subscription.renewal": "Subscription renewal",
+  "channel.subscription.gifts": "Gifted subscriptions",
+  "livestream.status.updated": "Stream went live or offline",
+};
+
 export const jobKindLabels: Record<string, string> = {
   "kick.event": "Incoming Kick event",
   "kick.reply": "Kick chat message",
@@ -608,7 +618,10 @@ const successes: Record<string, string | ((result: Result) => string)> = {
   "raffle.reroll": (result) => `New winner: ${result.winnerName ?? "viewer name unavailable"}.`,
   "timers.pause": "All timers paused.",
   "timers.resume": "Timers resumed. Missed messages are not sent.",
-  "alert.manual": "Manual alert queued for your OBS alert source.",
+  "alert.manual": (result) =>
+    Number(result.queued) > 0
+      ? "Manual alert queued for your OBS alert source."
+      : "Nothing was shown: no enabled alert is set to “Manual alert”. Add one with Add alert first.",
   "moderation.warn": "Warning sent to Kick. Check the incident list for the result.",
   "moderation.timeout": "Timeout sent to Kick. Check the incident list for the result.",
   "moderation.ban": "Ban sent to Kick. Check the incident list for the result.",
@@ -628,7 +641,10 @@ const successes: Record<string, string | ((result: Result) => string)> = {
   "kick.refresh": "Kick connection refreshed.",
   "kick.subscribe": "Kick event subscriptions checked.",
   "kick.disconnect": "Kick disconnected.",
-  "discord.register": "Discord commands registered.",
+  "discord.register": (result) =>
+    result.fixture
+      ? "Command list checked. This fixture installation sends nothing to Discord."
+      : "Discord commands registered.",
   "job.resolve": "Delivery resolved. Nothing was resent.",
   "privacy.erase": "Viewer profile and chat erased.",
   "privacy.export": "Viewer history downloaded.",
@@ -663,7 +679,10 @@ export function auditSentence(row: Result, me?: string) {
   const action = String(row.action ?? ""),
     outcome = String(row.outcome ?? "");
   const actor = row.actor === me ? "You" : String(row.actorLabel ?? "Someone");
-  const who = actor.charAt(0).toUpperCase() + actor.slice(1);
+  // Capitalise descriptions ("the owner" → "The owner") but never a username such as "viewer_two".
+  const who = /^(the|a|an|someone)\b/.test(actor)
+    ? actor.charAt(0).toUpperCase() + actor.slice(1)
+    : actor;
   const named = row.targetName ?? row.mediaTitle ?? row.viewerName;
   const quote = named ? ` “${String(named)}”` : "";
   const [kind, verb] = [
@@ -702,7 +721,7 @@ export function auditSentence(row: Result, me?: string) {
     "moderation.resume": "resumed automatic moderation",
     "moderation.incident.start": "started incident mode",
     "moderation.incident.stop": "stopped incident mode",
-    "token.create": "created an access token",
+    "token.create": "created an access token or OBS source URL",
     "token.revoke": "revoked an access token",
     "account.invite": "created an invitation",
     "account.accept_invitation": "joined with an invitation",

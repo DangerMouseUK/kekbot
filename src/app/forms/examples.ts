@@ -98,7 +98,7 @@ export const examples: Record<Kind, Record<string, unknown>> = {
     name: "Community reward",
     enabled: true,
     cost: 100,
-    description: "Fulfilled by a moderator",
+    description: "A shout-out on stream",
     fulfillment: "manual",
   },
   poll: {

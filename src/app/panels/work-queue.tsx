@@ -56,22 +56,33 @@ export default function WorkQueue({
   const refresh = () => load(loaded?.cursor);
   return (
     <>
-      <p className="help">Everything still waiting, oldest included, 50 at a time. Newest first.</p>
-      <div className="actions">
-        <button disabled={loading} onClick={() => load()}>
-          Newest waiting items
-        </button>
-        {loaded && (
-          <button disabled={loading} onClick={refresh}>
-            Refresh this page
-          </button>
-        )}
-        {page.nextCursor && (
-          <button className="secondary" disabled={loading} onClick={() => load(page.nextCursor!)}>
-            Older waiting items
-          </button>
-        )}
-      </div>
+      {/* Paging controls appear only when there is more than one page to move between. */}
+      {(loaded || page.nextCursor) && (
+        <>
+          <p className="help">
+            Everything still waiting, oldest included, 50 at a time. Newest first.
+          </p>
+          <div className="actions">
+            <button disabled={loading} onClick={() => load()}>
+              Newest waiting items
+            </button>
+            {loaded && (
+              <button disabled={loading} onClick={refresh}>
+                Refresh this page
+              </button>
+            )}
+            {page.nextCursor && (
+              <button
+                className="secondary"
+                disabled={loading}
+                onClick={() => load(page.nextCursor!)}
+              >
+                Older waiting items
+              </button>
+            )}
+          </div>
+        </>
+      )}
       {loading && <p aria-live="polite">Loading waiting items…</p>}
       {error && <p role="alert">{error}</p>}
       <QueueItems items={page.items} renderItem={children} refresh={refresh} />

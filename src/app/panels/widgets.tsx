@@ -1,5 +1,6 @@
 "use client";
 import { relative, text } from "../ui";
+import { widgetTypes as typeOptions } from "../forms/layouts";
 import { scopes, widgetTypes } from "./cards";
 import type { PanelProps } from "./types";
 
@@ -52,7 +53,8 @@ export default function WidgetsPanel({ snapshot: s, auth, run, busy, confirm }: 
         <dl className="type-list">
           {Object.entries(widgetTypes).map(([type, description]) => (
             <div key={type}>
-              <dt>{type}</dt>
+              {/* The same names as the editor's "What it shows" list. */}
+              <dt>{typeOptions.find((option) => option.value === type)?.label ?? type}</dt>
               <dd>{description}</dd>
             </div>
           ))}
@@ -68,7 +70,11 @@ export default function WidgetsPanel({ snapshot: s, auth, run, busy, confirm }: 
             {orphans.map((token) => (
               <li key={String(token.id)}>
                 <span>
-                  {text(token.name)} · created {relative(Number(token.created_at))}
+                  {/* Older URLs were named "… read" / "… player". */}
+                  {text(token.name)
+                    .replace(/ read$/, " display URL")
+                    .replace(/ player$/, " playback credential")}{" "}
+                  · created {relative(Number(token.created_at))}
                 </span>
                 <button
                   className="secondary small"

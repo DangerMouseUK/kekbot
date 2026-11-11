@@ -173,6 +173,9 @@ describe("Kick chat replies with real SQLite", () => {
     bot.operations.eraseViewer(owner, "789");
     expect(repo.store.sqlite.prepare("SELECT count(*) AS n FROM jobs WHERE kind='kick.reply' AND payload LIKE '%OtherViewer%'").get()).toEqual({ n: 0 });
     expect(say("!top")).toBe("Top points: 1. FixtureViewer 1,250 · 2. a viewer 1");
+    settings({ pointsEnabled: false });
+    expect(say("!top")).toBe("Points aren't enabled on this channel.");
+    settings({ pointsEnabled: true });
     expect(say("!goal")).toBe("There are no active goals right now.");
     bot.state.save(owner, "goal", undefined, { name: "Follower goal", metric: "manual", target: 200, value: 50 });
     vi.setSystemTime(Date.now() + 1000);
@@ -190,7 +193,8 @@ describe("Kick chat replies with real SQLite", () => {
     bot.state.save(owner, "reward", undefined, { name: "Hydrate", cost: 25 });
     expect(say("!redeem Choose a topic")).toBe("@FixtureViewer, points aren't enabled on this channel.");
     settings({ pointsEnabled: true });
-    expect(say("!redeem")).toBe("@FixtureViewer, that reward doesn't exist. Try !redeem with one of: Hydrate (25 points) · Choose a topic (100 points).");
+    expect(say("!redeem")).toBe("Redeem with !redeem <reward>: Hydrate (25 points) · Choose a topic (100 points)");
+    expect(say("!redeem nothing")).toBe("@FixtureViewer, that reward doesn't exist. Try !redeem with one of: Hydrate (25 points) · Choose a topic (100 points).");
     expect(say("!redeem Choose a topic")).toBe('@FixtureViewer, "Choose a topic" costs 100 points and you have 0 points.');
     bot.engagement.adjust(owner, "456", 150, "fixture grant");
     expect(say("!redeem choose a topic")).toBe('@FixtureViewer, you redeemed "Choose a topic" for 100 points. New balance: 50 points. A moderator will take care of it soon.');
@@ -218,6 +222,11 @@ describe("Kick chat replies with real SQLite", () => {
     vi.setSystemTime(Date.now() + 3600000);
     expect(say("!vote")).toBe("@FixtureViewer, that poll has already closed.");
     expectViewerSafe(sent, [poll.id, raffle.id]);
+  });
+
+  it("answers !kekbot with a friendly check-in instead of developer jargon", async () => {
+    const { say } = await setup();
+    expect(say("!kekbot")).toBe("KekBot is online and listening. Type !commands to see what you can use.");
   });
 
   it("groups !commands by enabled module within 500 characters and explains a group on request", async () => {

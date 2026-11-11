@@ -227,7 +227,9 @@ export function crossChecks(
     const trigger = String(data.trigger ?? "");
     const aliases = Array.isArray(data.aliases) ? data.aliases.map(String) : [];
     if (reservedTriggers.includes(trigger))
-      errors.trigger = `${trigger} is a built-in command. Choose a different trigger.`;
+      errors.trigger = ["!rules", "!discord", "!socials"].includes(trigger)
+        ? `${trigger} is a built-in command. Set its reply in Maintenance → Edit settings, or choose a different trigger.`
+        : `${trigger} is a built-in command. Choose a different trigger.`;
     const reservedAlias = aliases.find((alias) => reservedTriggers.includes(alias));
     if (reservedAlias) errors.aliases = `${reservedAlias} is a built-in command. Remove it.`;
     if (aliases.includes(trigger)) errors.aliases = `${trigger} is already the main trigger.`;

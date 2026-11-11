@@ -17,22 +17,28 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
     ((s.diagnostics.jobs as Row[]) ?? []).map((row) => [String(row.status), Number(row.count)]),
   );
   const heartbeat = Number(s.diagnostics.workerHeartbeat ?? 0);
+  // Fixture installations simulate YouTube and Discord, so they never need those credentials.
+  const fixture = s.mode === "fixture";
+  const youtube = Boolean(s.integrations.youtube) || fixture;
+  const discordReady = Boolean(s.integrations.discord) || fixture;
   const sourceIssued = (s.tokens ?? []).some((token) =>
     scopes(token).some((scope) => scope.startsWith("widget:")),
   );
   const steps: Step[] = [
     {
       label: "Connect Kick",
-      done: Boolean(s.kick.authorized),
+      done: Boolean(s.kick.authorized) || fixture,
       detail: s.kick.authorized
         ? `Connected as ${text(s.kick.authorizedUsername)}.`
-        : "Save your Kick app settings, then authorize your channel.",
+        : fixture
+          ? "Simulated in this fixture installation. A live installation connects a real channel."
+          : "Save your Kick app settings, then authorize your channel.",
       panel: "Connections",
     },
     {
       label: "Add a chat command",
       done: has("command"),
-      detail: "Try !discord or !welcome. Preview it before you go live.",
+      detail: "Try !welcome or !lurk. Preview it before you go live.",
       panel: "Commands",
     },
     {
@@ -58,17 +64,19 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
     },
     {
       label: "Turn on media requests",
-      done: Boolean(s.settings.mediaEnabled) && Boolean(s.integrations.youtube),
-      detail: s.integrations.youtube
+      done: Boolean(s.settings.mediaEnabled) && youtube,
+      detail: youtube
         ? "Turn on media requests in Maintenance → Edit settings."
         : "Add a YouTube API key in Connections, then turn media on.",
-      panel: s.integrations.youtube ? "Maintenance" : "Connections",
+      panel: youtube ? "Maintenance" : "Connections",
       optional: true,
     },
     {
       label: "Connect Discord",
-      done: Boolean(s.integrations.discord),
-      detail: "Post go-live notices and let mods act from Discord.",
+      done: discordReady && has("guild"),
+      detail: discordReady
+        ? "Add your server under Connections → Discord servers, then register commands."
+        : "Save your Discord app settings, then add your server. Posts go-live notices and lets mods act from Discord.",
       panel: "Connections",
       optional: true,
     },
@@ -224,7 +232,7 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
                         disabled={busy}
                         onClick={() => run("reward.complete", { target: row.id })}
                       >
-                        Fulfilled
+                        Mark fulfilled
                         <span className="visually-hidden">
                           {" "}
                           {text(row.rewardName)} for {text(row.viewerName)}
@@ -235,7 +243,7 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
                         disabled={busy}
                         onClick={() => run("reward.reject", { target: row.id })}
                       >
-                        Refund
+                        Reject and refund
                         <span className="visually-hidden">
                           {" "}
                           {text(row.rewardName)} for {text(row.viewerName)}
@@ -272,11 +280,16 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
         <div className="section-title">
           <h2 id="setup-heading">Setup checklist</h2>
           <span className="badge muted">
-            {doneCount} of {steps.length} done
+            {/* "Claim this installation" is always shown and always done, so it counts too. */}
+            {doneCount + 1} of {steps.length + 1} done
           </span>
         </div>
         {required.every((step) => step.done) && (
-          <p className="help">The essentials are done. The remaining steps are optional.</p>
+          <p className="help">
+            {steps.every((step) => step.done)
+              ? "Everything on this list is set up."
+              : "The essentials are done. The remaining steps are optional."}
+          </p>
         )}
         <ol className="checklist">
           <li className="done">

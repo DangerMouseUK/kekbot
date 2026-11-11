@@ -67,6 +67,7 @@ meter { width: 100%; }
 :where(.app-shell) button:hover:not(:disabled) { filter: brightness(1.08); }
 :where(.app-shell) button:disabled { opacity: .45; cursor: default; }
 :where(.app-shell) .help { font-size: 13px; color: #b3c3b8; }
+:where(.app-shell) .field-help { display: block; font-weight: 400; margin: 2px 0 6px; }
 :where(.app-shell) button, :where(.app-shell) .button { min-height: 42px; }
 :where(.app-shell) button.small { min-height: 34px; padding: 6px 10px; font-size: 14px; }
 :where(.app-shell) button.danger { background: #ff9b8f; border-color: #ff9b8f; color: #2b0d09; }
@@ -115,6 +116,8 @@ meter { width: 100%; }
 :where(.app-shell) .cards article { margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 :where(.app-shell) .cards article h3 { margin: 0; }
 :where(.app-shell) .cards article > .actions { margin-top: auto; padding-top: 8px; }
+/* A second action row (e.g. a widget's source button, then Edit/Delete) stays with the first. */
+:where(.app-shell) .cards article > .actions + .actions { margin-top: 0; }
 :where(.app-shell) .card.off { border-style: dashed; }
 :where(.app-shell) .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
 :where(.app-shell) .summary { margin: 0; color: #c1d8c8; }
