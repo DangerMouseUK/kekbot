@@ -143,8 +143,9 @@ test("destructive confirmations open on Cancel, removing a grant row keeps keybo
   await page.getByRole("button", { name: "Connections", exact: true }).click();
   await page.getByRole("button", { name: "Add Discord server" }).click();
   const add = page.getByRole("button", { name: "Add role grant" });
-  await add.click(); await page.keyboard.type("111");
-  await add.click(); await page.keyboard.type("222");
+  // Add focuses the new row after a frame; wait for it so keystrokes never land on the button.
+  await add.click(); await expect(page.getByLabel("Role ID 1")).toBeFocused(); await page.keyboard.type("111");
+  await add.click(); await expect(page.getByLabel("Role ID 2")).toBeFocused(); await page.keyboard.type("222");
   await page.getByRole("button", { name: "Remove role grant 1" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByPlaceholder("Role ID")).toHaveCount(1);
