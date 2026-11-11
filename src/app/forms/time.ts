@@ -24,6 +24,8 @@ export function localInputToMs(value: string): number | null {
   ];
   const second = match[6] ? Number(match[6]) : 0;
   if (hour > 23 || minute > 59 || second > 59) return null;
+  // Partially typed years arrive as 0002, 0020, 0202…; only commit a plausible year.
+  if (year < 1970 || year > 9999) return null;
   const date = new Date(year, month - 1, day, hour, minute, second, 0);
   // Reject rollovers such as 31 February; DST gaps may shift forward and are accepted.
   if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day)

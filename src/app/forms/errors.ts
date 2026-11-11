@@ -24,7 +24,31 @@ const nouns: Record<string, string> = {
   settings: "settings",
 };
 
-export function describeServerError(message: string, kind: string): ServerProblem {
+/**
+ * Turns whatever `save` threw into a form problem. The dashboard's `call()` throws a
+ * `ControlError` whose message is already plain English and whose `code`/`fields` carry the
+ * AppError contract; older callers threw `Error("code: field, field")`. Both are handled.
+ */
+export function problemFromError(error: unknown, kind: string): ServerProblem {
+  const shaped = error as { code?: unknown; fields?: unknown; message?: unknown } | null;
+  const plain = error instanceof Error ? error.message : "";
+  if (shaped && typeof shaped.code === "string" && /^[a-z0-9_]+$/.test(shaped.code)) {
+    const fields = Array.isArray(shaped.fields) ? shaped.fields.map(String) : [];
+    return describeServerError(
+      fields.length ? `${shaped.code}: ${fields.join(", ")}` : shaped.code,
+      kind,
+      plain || undefined,
+    );
+  }
+  return describeServerError(plain, kind);
+}
+
+export function describeServerError(
+  message: string,
+  kind: string,
+  /** Plain-English text from the caller, used for codes this form has no special handling for. */
+  fallback?: string,
+): ServerProblem {
   const match = /^([a-z0-9_]+)(?::\s*(.*))?$/.exec(message.trim());
   const noun = nouns[kind] ?? "item";
   if (!match)
@@ -83,7 +107,7 @@ export function describeServerError(message: string, kind: string): ServerProble
       summary = "KekBot could not save right now. Wait a moment and try again.";
       break;
     default:
-      summary = `Saving failed (${code.replaceAll("_", " ")}).`;
+      summary = fallback ?? `Saving failed (${code.replaceAll("_", " ")}).`;
   }
   return { code, summary, fields, conflict: false };
 }

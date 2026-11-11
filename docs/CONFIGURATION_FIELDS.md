@@ -29,7 +29,7 @@ The field names below are the JSON names used by [the API](API.md). The dashboar
 
 - All numeric fields are integers unless marked decimal. Bounds are inclusive.
 - Names are trimmed, 1–80 characters. Responses/templates are literal text, not executable code.
-- JSON callers use arrays. In the dashboard, ordered text lists (responses, timer messages, poll choices) are numbered rows with **Add**/**Remove** buttons; aliases, allowed websites, phrases and blocked media lists are tags you add with Enter; chat roles and Discord events are checkboxes; guild permission mappings are ID/permission rows.
+- JSON callers use arrays. In the dashboard, ordered text lists (responses, timer messages, poll choices) are numbered rows with **Add**/**Remove** buttons; aliases, allowed websites, phrases and blocked media lists are tags you add with Enter or **Add** (commas are kept as part of a tag; pasting several lines adds one tag per line); chat roles and Discord events are checkboxes; guild permission mappings are ID/permission rows.
 - IDs are strings unless specifically described otherwise. Numeric Kick/Discord identity strings are 1–24 digits; never round Discord IDs through a JavaScript number.
 - Chat roles are `viewer`, `subscriber`, `vip`, `moderator`, `broadcaster`. Matching uses the single observed role, prioritizing broadcaster → moderator → VIP → subscriber → viewer. Selecting `subscriber` alone does not automatically include moderators or the broadcaster.
 - Seconds, minutes, hours and days are stated explicitly. In the API, `startsAt`/`endsAt` use **Unix milliseconds**, not seconds, and blank optional timestamps mean `null`. The dashboard shows a date-time picker in your browser's timezone (named under the field) and converts for you; **Clear** sets an optional time back to `null`. Durations are entered with a unit selector (seconds/minutes/hours/days) and saved in the unit listed below; the editor shows each field's allowed range.
@@ -239,7 +239,7 @@ Owner-only. [Discord setup](PROVIDERS.md#discord) · [JSON example](examples/gui
 | `roles` | `[]` | Up to 30 `{ "id": "ROLE_ID", "permission": "media" }` mappings |
 | `users` | `[]` | Up to 30 `{ "id": "USER_ID", "permission": "media" }` mappings |
 
-Mapping permissions are `operate`, `moderate`, `media`, `engage`. Repeat an ID with a different permission to grant several capabilities. Empty mappings allow notifications but grant no command authority. Use a deliberate route per intended channel and keep mappings consistent; the command actor uses the matching route. A Discord Administrator role does not bypass KekBot's mappings.
+Mapping permissions are `operate`, `moderate`, `media`, `engage`. If a stored mapping has any other permission, the dashboard shows it read-only with a warning and never converts it; remove that row to save. Repeat an ID with a different permission to grant several capabilities. Empty mappings allow notifications but grant no command authority. Use a deliberate route per intended channel and keep mappings consistent; the command actor uses the matching route. A Discord Administrator role does not bypass KekBot's mappings.
 
 ## settings
 

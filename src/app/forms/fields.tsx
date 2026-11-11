@@ -53,12 +53,7 @@ export function FieldShell({
         </p>
       )}
       {children}
-      {error && (
-        <p className="kf-error" id={`${id}-error`}>
-          <span aria-hidden="true">⚠ </span>
-          {error}
-        </p>
-      )}
+      <LiveError id={`${id}-error`} message={error} />
       {!error && warning && (
         <p className="kf-warning" id={`${id}-warning`}>
           {warning}
@@ -88,12 +83,7 @@ export function FieldShell({
             {help}
           </p>
         )}
-        {error && (
-          <p className="kf-error" id={`${id}-error`}>
-            <span aria-hidden="true">⚠ </span>
-            {error}
-          </p>
-        )}
+        <LiveError id={`${id}-error`} message={error} />
       </div>
     );
   return (
@@ -102,6 +92,33 @@ export function FieldShell({
         {label}
       </label>
       {notes}
+    </div>
+  );
+}
+
+/**
+ * An inline error inside a polite live region that is always rendered, so screen readers
+ * announce a message when it appears or changes, not only when the field is revisited.
+ */
+export function LiveError({
+  id,
+  message,
+  className,
+  icon = true,
+}: {
+  id: string;
+  message?: string;
+  className?: string;
+  icon?: boolean;
+}) {
+  return (
+    <div className={`kf-live${className ? ` ${className}` : ""}`} aria-live="polite">
+      {message && (
+        <p className="kf-error" id={id}>
+          {icon && <span aria-hidden="true">⚠ </span>}
+          {message}
+        </p>
+      )}
     </div>
   );
 }
@@ -150,8 +167,10 @@ export function TextInput({
       list={list}
       autoComplete="off"
       spellCheck={mono ? false : undefined}
-      // Normalise while typing so Enter-to-save never submits an unnormalised value.
-      onChange={(event) => set(normalize ? normalize(event.target.value) : event.target.value)}
+      // Normalise on blur; the editor also normalises before validating and saving, so
+      // Enter-to-save never submits an unnormalised value.
+      onChange={(event) => set(event.target.value)}
+      onBlur={(event) => normalize && set(normalize(event.target.value))}
     />
   );
 }
@@ -372,13 +391,36 @@ export function DateTimeInput({
 }) {
   const ms = typeof value === "number" && value > 0 ? value : null;
   const [now] = useState(() => Date.now());
+  // Keep the browser's raw text while someone types: Chromium reports intermediate years such
+  // as 0002 → 0020 → 0202 while a year is typed, and rebuilding the value from milliseconds
+  // would clear the field. Only a sensible complete date is committed.
+  const [text, setText] = useState(() => msToLocalInput(ms));
+  const [synced, setSynced] = useState(ms);
+  if (ms !== synced) {
+    // The stored value changed elsewhere (preset, Clear, reload, or our own commit).
+    setSynced(ms);
+    setText(msToLocalInput(ms));
+  }
+  const commit = (input: HTMLInputElement, final: boolean) => {
+    const parsed = localInputToMs(input.value);
+    if (parsed !== null) {
+      if (parsed !== ms) set(parsed);
+    } else if (input.value === "" && !input.validity.badInput) {
+      // Every part was deleted: an intentional clear.
+      if (ms !== null) set(null);
+    } else if (final) setText(msToLocalInput(ms)); // incomplete on leaving: restore saved value
+  };
   return (
     <>
       <input
         {...aria(d)}
         type="datetime-local"
-        value={msToLocalInput(ms)}
-        onChange={(event) => set(localInputToMs(event.target.value))}
+        value={text}
+        onChange={(event) => {
+          setText(event.target.value);
+          commit(event.target, false);
+        }}
+        onBlur={(event) => commit(event.target, true)}
       />
       <p className="kf-count">
         {ms ? `${formatDateTime(ms)} · ${relativeTime(ms, now)}` : optional ? "Not set" : ""}
@@ -532,16 +574,33 @@ export function Chips({
   const [problem, setProblem] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const full = maxItems !== undefined && items.length >= maxItems;
-  const add = () => {
-    const next = (normalize ?? ((text: string) => text))(draft.trim());
-    if (!next) return;
-    if (items.includes(next)) return setProblem(`${next} is already in the list.`);
-    const checked = schema?.safeParse(next);
-    if (checked && !checked.success) return setProblem(explain(checked.error.issues[0]!));
-    set([...items, next]);
-    setDraft("");
-    setProblem("");
+  /** Adds each candidate that passes the item schema; reports the first one skipped. */
+  const addAll = (candidates: string[]) => {
+    const added: string[] = [];
+    let skipped = "";
+    for (const candidate of candidates) {
+      const next = (normalize ?? ((text: string) => text))(candidate.trim());
+      if (!next) continue;
+      let reason = "";
+      if (items.includes(next) || added.includes(next)) reason = `${next} is already in the list.`;
+      else if (maxItems !== undefined && items.length + added.length >= maxItems)
+        reason = `Maximum of ${maxItems} reached; ${next} was not added.`;
+      else {
+        const checked = schema?.safeParse(next);
+        if (checked && !checked.success) reason = explain(checked.error.issues[0]!);
+      }
+      if (reason) skipped ||= reason;
+      else added.push(next);
+    }
+    if (added.length) set([...items, ...added]);
+    setDraft(candidates.length === 1 && skipped ? candidates[0]! : "");
+    setProblem(
+      skipped && candidates.length > 1 && added.length
+        ? `Added ${added.length}. Skipped: ${skipped}`
+        : skipped,
+    );
   };
+  const add = () => addAll([draft]);
   const inputId = `${d.id}-new`;
   return (
     <>
@@ -586,10 +645,23 @@ export function Chips({
             setProblem("");
           }}
           onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === ",") {
+            // Enter adds; commas are ordinary characters so phrases may contain them.
+            if (event.key === "Enter") {
               event.preventDefault();
               add();
             }
+          }}
+          onPaste={(event) => {
+            const pasted = event.clipboardData.getData("text");
+            if (!/[\r\n]/.test(pasted)) return;
+            // One tag per pasted line.
+            event.preventDefault();
+            addAll(
+              pasted
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter(Boolean),
+            );
           }}
           onBlur={() => draft.trim() && add()}
         />
@@ -597,11 +669,7 @@ export function Chips({
           Add
         </button>
       </div>
-      {problem && (
-        <p className="kf-error" id={`${inputId}-problem`}>
-          {problem}
-        </p>
-      )}
+      <LiveError id={`${inputId}-problem`} message={problem} icon={false} />
       {full && <p className="kf-count">Maximum of {maxItems} reached.</p>}
     </>
   );

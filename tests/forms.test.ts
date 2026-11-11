@@ -7,7 +7,8 @@ import {
 } from "../src/server/domain/catalog.ts";
 import { renderTemplate as serverRender } from "../src/server/domain/presentation.ts";
 import { examples } from "../src/app/forms/examples.ts";
-import { describeServerError } from "../src/app/forms/errors.ts";
+import { describeServerError, problemFromError } from "../src/app/forms/errors.ts";
+import { ControlError } from "../src/app/ui.tsx";
 import { grantRowErrors, grantsToRows, rowsToGrants } from "../src/app/forms/grants.ts";
 import { layouts, normalizeDomain, normalizeTrigger } from "../src/app/forms/layouts.ts";
 import { bounds, crossChecks, validate } from "../src/app/forms/schema.ts";
@@ -44,6 +45,12 @@ describe("date-time conversion", () => {
       expect(msToLocalInput(value)).toBe("");
     for (const value of ["", "tomorrow", "2030-02-31T10:00", "2030-01-01T25:00", "2030-01-01"])
       expect(localInputToMs(value)).toBeNull();
+  });
+
+  it("ignores the partial years Chromium reports while a year is typed digit by digit", () => {
+    for (const year of ["0002", "0020", "0203", "1969"])
+      expect(localInputToMs(`${year}-06-15T10:30`)).toBeNull();
+    expect(localInputToMs("2031-06-15T10:30")).toBe(new Date(2031, 5, 15, 10, 30).getTime());
   });
 
   it("produces values the poll and rule schemas accept", () => {
@@ -123,10 +130,36 @@ describe("Discord grant rows", () => {
     ).toMatch(/1–24 digits/);
   });
 
-  it("keeps unknown permissions visible as an editable row instead of losing them", () => {
-    expect(grantsToRows([{ id: 7, permission: "nope" }], key)).toEqual([
-      { key: expect.any(String), id: "7", permission: "operate" },
+  it("keeps unknown permissions exactly as stored instead of converting them", () => {
+    const stored = [
+      { id: "300", permission: "admin" },
+      { id: "", permission: 5 },
+      { id: "301", permission: "media" },
+    ];
+    const rows = grantsToRows(stored, key);
+    expect(rows.map((row) => row.permission)).toEqual(["admin", 5, "media"]);
+    // Editing another row never rewrites the unknown ones, and blank-ID unknown rows are kept.
+    const edited = rows.map((row) =>
+      row.id === "301" ? { ...row, permission: "engage" as const } : row,
+    );
+    expect(rowsToGrants(edited)).toEqual([
+      { id: "300", permission: "admin" },
+      { id: "", permission: 5 },
+      { id: "301", permission: "engage" },
     ]);
+    const errors = grantRowErrors(rows, "role");
+    expect(errors[rows[0]!.key]).toMatch(/does not recognise \(“admin”\)/);
+    expect(errors[rows[1]!.key]).toMatch(/\(5\)/);
+    expect(errors[rows[2]!.key]).toBeUndefined();
+    // Saving stays blocked by the schema until the person removes the row.
+    expect(
+      validate("guild", {
+        ...examples.guild,
+        guildId: "1",
+        channelId: "2",
+        roles: rowsToGrants(rows),
+      }).roles,
+    ).toMatch(/does not recognise/);
   });
 });
 
@@ -272,7 +305,8 @@ describe("schema-driven validation", () => {
 
   it("normalises triggers and website names as people type them", () => {
     expect(normalizeTrigger(" Welcome Back")).toBe("!welcome_back");
-    expect(normalizeTrigger("welcome ")).toBe("!welcome_");
+    expect(normalizeTrigger("welcome ")).toBe("!welcome");
+    expect(normalizeTrigger("  ")).toBe("");
     expect(normalizeTrigger("!hi")).toBe("!hi");
     expect(normalizeDomain("https://www.YouTube.com/watch?v=x")).toBe("youtube.com");
   });
@@ -305,5 +339,33 @@ describe("previews and server errors", () => {
     expect(describeServerError("something_new", "widget").summary).toBe(
       "Saving failed (something new).",
     );
+  });
+
+  it("reads the code and fields from the dashboard's ControlError, not its plain-English message", () => {
+    const conflict = problemFromError(
+      new ControlError("configuration_changed_reload", [], 409),
+      "command",
+    );
+    expect(conflict.conflict).toBe(true);
+    expect(conflict.summary).toMatch(/Reload the latest values/);
+    expect(
+      problemFromError(new ControlError("invalid_input", ["trigger", "aliases.1"]), "command")
+        .fields,
+    ).toEqual({
+      trigger: expect.any(String),
+      aliases: expect.any(String),
+    });
+    expect(
+      problemFromError(new ControlError("command_trigger_conflict", [], 409), "command").fields
+        .trigger,
+    ).toBeTruthy();
+    // Codes the form has no special handling for keep the dashboard's own wording.
+    const other = new ControlError("runtime_unavailable", [], 503);
+    expect(problemFromError(other, "widget").summary).toBe(other.message);
+    // Plain errors (e.g. a discarded result after a session change) pass through unchanged.
+    expect(
+      problemFromError(new Error("Your session changed, so this result was discarded."), "command")
+        .summary,
+    ).toBe("Your session changed, so this result was discarded.");
   });
 });
