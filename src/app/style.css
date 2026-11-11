@@ -185,6 +185,7 @@ meter { width: 100%; }
 :where(.app-shell) .checklist .done .check { background: #83db9d; border-color: #83db9d; }
 :where(.app-shell) .checklist .help { display: block; margin: 2px 0 0; }
 :where(.app-shell) .checklist .badge { margin-left: 8px; }
+:where(.app-shell) .checklist.tasks li { grid-template-columns: minmax(0, 1fr) auto; }
 :where(.app-shell) .activity li { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; border-bottom: 1px solid #2a372f; }
 :where(.app-shell) .activity time { flex-shrink: 0; font-size: 13px; color: #b3c3b8; }
 :where(.app-shell) .work-list li, :where(.app-shell) .chat-list li, :where(.app-shell) .incident-list li, :where(.app-shell) .viewer-list li, :where(.app-shell) .token-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #2a372f; }
@@ -243,3 +244,8 @@ meter { width: 100%; }
 @media (max-width: 480px) { :where(.app-shell) .identity span { display: none; } :where(.app-shell) .copy-row { flex-wrap: wrap; } :where(.app-shell) .copy-row button { flex: 1; } }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+.claim-help { margin: 0 0 16px; }
+.claim-help summary { cursor: pointer; }
+.claim-help dt { margin-top: 10px; font-weight: 700; }
+.claim-help dd { margin: 4px 0 0; }
+.claim-help code { overflow-wrap: anywhere; }

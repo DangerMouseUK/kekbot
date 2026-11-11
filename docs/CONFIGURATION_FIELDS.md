@@ -29,7 +29,7 @@ The field names below are the JSON names used by [the API](API.md). The dashboar
 
 - All numeric fields are integers unless marked decimal. Bounds are inclusive.
 - Names are trimmed, 1–80 characters. Responses/templates are literal text, not executable code.
-- JSON callers use arrays. In the dashboard, ordered text lists (responses, timer messages, poll choices) are numbered rows with **Add**/**Remove** buttons; aliases, allowed websites, phrases and blocked media lists are tags you add with Enter or **Add** (commas are kept as part of a tag; pasting several lines adds one tag per line); chat roles and Discord events are checkboxes; guild permission mappings are ID/permission rows.
+- JSON callers use arrays. In the dashboard, ordered text lists (responses, timer messages, poll options) are numbered rows with **Add**/**Remove** buttons; aliases, allowed websites, phrases and blocked media lists are tags you add with Enter or **Add** (commas are kept as part of a tag; pasting several lines adds one tag per line); chat roles and Discord events are checkboxes; guild permission mappings are ID/permission rows.
 - IDs are strings unless specifically described otherwise. Numeric Kick/Discord identity strings are 1–24 digits; never round Discord IDs through a JavaScript number.
 - Chat roles are `viewer`, `subscriber`, `vip`, `moderator`, `broadcaster`. Matching uses the single observed role, prioritizing broadcaster → moderator → VIP → subscriber → viewer. Selecting `subscriber` alone does not automatically include moderators or the broadcaster.
 - Seconds, minutes, hours and days are stated explicitly. In the API, `startsAt`/`endsAt` use **Unix milliseconds**, not seconds, and blank optional timestamps mean `null`. The dashboard shows a date-time picker in your browser's timezone (named under the field) and converts for you; **Clear** sets an optional time back to `null`. Durations are entered with a unit selector (seconds/minutes/hours/days) and saved in the unit listed below; the editor shows each field's allowed range.
@@ -64,9 +64,11 @@ Requires `configure`. [Workflow](USER_GUIDE.md#commands) · [JSON example](examp
 | `roles` | `[]` | Up to 5 chat roles; empty allows all observed roles |
 | `cooldown` | `10` | Channel-wide seconds, 0–3600 |
 | `userCooldown` | `30` | Per-viewer seconds, 0–86400 |
-| `streamOnly` | `false` | Requires observed live state |
-| `condition` | `always` | `always`, `live`, `offline`; combines with Stream only |
+| `streamOnly` | `false` | Older live-only switch: requires observed live state, applied together with `condition`. The editor no longer shows it separately (see below) |
+| `condition` | `always` | `always`, `live`, `offline`; shown in the editor as **When it works** |
 | `counter` | `false` | Increment a persistent counter on an allowed invocation |
+
+**When it works** is one dashboard choice for both stored fields: **Any time**, **Only while live** or **Only while offline**. Choosing one saves `condition` with `streamOnly: false`. A saved command with `streamOnly: true` shows as **Only while live**, unless its `condition` is `offline`: that pair can never run, so the editor shows **Never (live and offline at once)** until you choose another option. API callers may still send either field; the runtime applies both.
 
 Variables: `{user}`, `{args}` (up to 200 argument characters), `{channel}` (instance name), `{counter}`, `{points}`. An unknown/unavailable variable renders as `[variable unavailable]`. Rendered output is capped at 500 characters. Aliases share the command's counter/cooldowns. [Reserved built-ins](USER_GUIDE.md#commands) cannot be overwritten.
 
@@ -193,9 +195,9 @@ Requires `configure`; close requires `engage`. [Workflow](USER_GUIDE.md#polls-an
 
 | Field | Default | Bounds and meaning |
 | --- | --- | --- |
-| `name` | Required | Activity name, 1–80 characters |
+| `name` | Required | The poll question (editor label **Question**), 1–80 characters |
 | `enabled` | `true` | Boolean |
-| `options` | Required | 2–10 options, each 1–80 trimmed characters; chat numbers start at 1 |
+| `options` | Required | 2–10 **Options**, each 1–80 trimmed characters; chat numbers start at 1 |
 | `status` | `open` | `open` or `closed` |
 | `endsAt` | Required | Positive Unix milliseconds; choose a future deadline |
 | `allowChange` | `false` | Permit replacing a previous vote before close |

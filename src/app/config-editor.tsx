@@ -32,6 +32,12 @@ import {
 } from "./forms/pickers.tsx";
 import { TemplatePreview } from "./forms/preview.tsx";
 import { problemFromError, type ServerProblem } from "./forms/errors.ts";
+import {
+  availabilityFields,
+  availabilityOptions,
+  commandAvailability,
+  type Availability,
+} from "./forms/availability.ts";
 import { helpOf, labelOf, layouts, type Data, type FieldSpec } from "./forms/layouts.ts";
 import {
   bounds,
@@ -106,7 +112,12 @@ export default function ConfigEditor({
 
   const sections = layouts[kind];
   const covered = useMemo(
-    () => new Set(sections.flatMap((section) => section.fields.map((field) => field.key))),
+    () =>
+      new Set(
+        sections.flatMap((section) =>
+          section.fields.flatMap((field) => [field.key, ...(field.also ?? [])]),
+        ),
+      ),
     [sections],
   );
   // Fields added to the schema later still appear, with a generic control.
@@ -248,6 +259,22 @@ export default function ConfigEditor({
       case "select":
         input = <Select d={d} value={value} set={set} options={c.options} />;
         break;
+      case "availability": {
+        const current = commandAvailability(data);
+        input = (
+          <Select
+            d={d}
+            value={current}
+            options={availabilityOptions(current)}
+            set={(choice) => {
+              const next = availabilityFields(choice as Availability, data);
+              update("condition", next.condition);
+              update("streamOnly", next.streamOnly);
+            }}
+          />
+        );
+        break;
+      }
       case "number":
         input = (
           <NumberInput d={d} value={value} set={set} bounds={b} suffix={c.suffix} step={c.step} />

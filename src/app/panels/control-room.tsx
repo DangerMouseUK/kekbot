@@ -5,8 +5,16 @@ import { scopes } from "./cards";
 import type { PanelProps } from "./types";
 
 type Step = { label: string; done: boolean; detail: string; panel: string; optional?: boolean };
+type Task = { label: string; detail: string; panel: string };
 
-export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: PanelProps) {
+export default function ControlRoom({
+  snapshot: s,
+  auth,
+  run,
+  busy,
+  navigate,
+  confirm,
+}: PanelProps) {
   const now = useNow(30000);
   const owner = auth.actor?.role === "owner";
   const has = (kind: string) => s.documents.some((doc) => doc.kind === kind);
@@ -94,7 +102,70 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
   const redemptions = s.pendingRedemptions.items;
   const uncertain = s.uncertainJobs.items;
   const canMedia = permitted(auth.actor, "media"),
-    canEngage = permitted(auth.actor, "engage");
+    canEngage = permitted(auth.actor, "engage"),
+    canOperate = permitted(auth.actor, "operate"),
+    canModerate = permitted(auth.actor, "moderate"),
+    // The setup checklist is about configuration; accounts that cannot configure see what
+    // they can do instead. The server still checks every action.
+    canConfigure = permitted(auth.actor, "configure");
+  const tasks: Task[] = [
+    ...(canMedia
+      ? [
+          {
+            label: "Media requests",
+            detail: "Approve, reject and reorder requests, and control the player.",
+            panel: "Media",
+          },
+        ]
+      : []),
+    ...(canEngage
+      ? [
+          {
+            label: "Rewards",
+            detail: "Fulfil or refund redemptions and adjust a viewer's points.",
+            panel: "Points & rewards",
+          },
+          {
+            label: "Polls and raffles",
+            detail: "Close a poll early, or draw and reroll raffle winners.",
+            panel: "Polls & raffles",
+          },
+        ]
+      : []),
+    ...(canModerate
+      ? [
+          {
+            label: "Moderation",
+            detail:
+              "Time out or ban viewers, test rules, keep private notes and pause automatic moderation.",
+            panel: "Moderation",
+          },
+        ]
+      : []),
+    ...(canOperate
+      ? [
+          {
+            label: "Timers",
+            detail: "Pause or resume every timer at once.",
+            panel: "Timers",
+          },
+          { label: "Alerts", detail: "Play a manual alert on stream.", panel: "Alerts" },
+          { label: "Goals", detail: "Nudge a goal's progress up or down.", panel: "Goals" },
+        ]
+      : []),
+    ...(permitted(auth.actor, "invite")
+      ? [
+          {
+            label: "Accounts",
+            detail: "Invite another operator to this installation.",
+            panel: "Accounts",
+          },
+        ]
+      : []),
+  ];
+  const refund = async (row: Row) => {
+    if (await confirmRefund(confirm, row)) await run("reward.reject", { target: row.id });
+  };
   const waiting = pendingMedia.length + redemptions.length + (owner ? uncertain.length : 0);
   return (
     <>
@@ -207,6 +278,7 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
                 </li>
               ))}
             </ul>
+            {!canMedia && <p className="help">A moderator or the owner approves media requests.</p>}
             {pendingMedia.length > 5 && (
               <button className="link" onClick={() => navigate("Media")}>
                 See all {pendingMedia.length} in Media
@@ -241,7 +313,7 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
                       <button
                         className="secondary"
                         disabled={busy}
-                        onClick={() => run("reward.reject", { target: row.id })}
+                        onClick={() => void refund(row)}
                       >
                         Reject and refund
                         <span className="visually-hidden">
@@ -254,6 +326,9 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
                 </li>
               ))}
             </ul>
+            {!canEngage && (
+              <p className="help">A moderator or the owner fulfils or refunds redemptions.</p>
+            )}
             {redemptions.length > 5 && (
               <button className="link" onClick={() => navigate("Points & rewards")}>
                 See all waiting redemptions
@@ -276,56 +351,89 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
         )}
       </section>
 
-      <section aria-labelledby="setup-heading">
-        <div className="section-title">
-          <h2 id="setup-heading">Setup checklist</h2>
-          <span className="badge muted">
-            {/* "Claim this installation" is always shown and always done, so it counts too. */}
-            {doneCount + 1} of {steps.length + 1} done
-          </span>
-        </div>
-        {required.every((step) => step.done) && (
-          <p className="help">
-            {steps.every((step) => step.done)
-              ? "Everything on this list is set up."
-              : "The essentials are done. The remaining steps are optional."}
-          </p>
-        )}
-        <ol className="checklist">
-          <li className="done">
-            <span className="check" aria-hidden="true">
-              ✓
+      {canConfigure ? (
+        <section aria-labelledby="setup-heading">
+          <div className="section-title">
+            <h2 id="setup-heading">Setup checklist</h2>
+            <span className="badge muted">
+              {/* "Claim this installation" is always shown and always done, so it counts too. */}
+              {doneCount + 1} of {steps.length + 1} done
             </span>
-            <span>
-              <strong>Claim this installation</strong>
-              <span className="visually-hidden"> (done)</span>
-              <span className="help">Your owner account exists.</span>
-            </span>
-          </li>
-          {steps.map((step) => (
-            <li key={step.label} className={step.done ? "done" : undefined}>
+          </div>
+          {required.every((step) => step.done) && (
+            <p className="help">
+              {steps.every((step) => step.done)
+                ? "Everything on this list is set up."
+                : "The essentials are done. The remaining steps are optional."}
+            </p>
+          )}
+          <ol className="checklist">
+            <li className="done">
               <span className="check" aria-hidden="true">
-                {step.done ? "✓" : ""}
+                ✓
               </span>
               <span>
-                <strong>{step.label}</strong>
-                {step.optional && <span className="badge muted">Optional</span>}
-                <span className="visually-hidden">{step.done ? " (done)" : " (not done)"}</span>
-                <span className="help">{step.detail}</span>
+                <strong>Claim this installation</strong>
+                <span className="visually-hidden"> (done)</span>
+                <span className="help">Your owner account exists.</span>
               </span>
-              {(owner || !["Connections", "Accounts"].includes(step.panel)) && (
-                <button
-                  className={step.done ? "secondary small" : "small"}
-                  onClick={() => navigate(step.panel)}
-                >
-                  {step.done ? "Review" : "Set up"}
-                  <span className="visually-hidden"> {step.label.toLowerCase()}</span>
-                </button>
-              )}
             </li>
-          ))}
-        </ol>
-      </section>
+            {steps.map((step) => (
+              <li key={step.label} className={step.done ? "done" : undefined}>
+                <span className="check" aria-hidden="true">
+                  {step.done ? "✓" : ""}
+                </span>
+                <span>
+                  <strong>{step.label}</strong>
+                  {step.optional && <span className="badge muted">Optional</span>}
+                  <span className="visually-hidden">{step.done ? " (done)" : " (not done)"}</span>
+                  <span className="help">{step.detail}</span>
+                </span>
+                {(owner || !["Connections", "Accounts"].includes(step.panel)) && (
+                  <button
+                    className={step.done ? "secondary small" : "small"}
+                    onClick={() => navigate(step.panel)}
+                  >
+                    {step.done ? "Review" : "Set up"}
+                    <span className="visually-hidden"> {step.label.toLowerCase()}</span>
+                  </button>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : (
+        <section aria-labelledby="tasks-heading">
+          <h2 id="tasks-heading">What you can do</h2>
+          {tasks.length ? (
+            <>
+              <ul className="checklist tasks">
+                {tasks.map((task) => (
+                  <li key={task.label}>
+                    <span>
+                      <strong>{task.label}</strong>
+                      <span className="help">{task.detail}</span>
+                    </span>
+                    <button className="secondary small" onClick={() => navigate(task.panel)}>
+                      Open<span className="visually-hidden"> {task.panel}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <p className="help">
+                The owner sets up commands, alerts, widgets and connections. Ask them if something
+                needs changing.
+              </p>
+            </>
+          ) : (
+            <p className="empty">
+              Waiting requests and redemptions appear under Needs attention as they arrive, and
+              Analytics shows how streams went. To approve requests or moderate chat, ask the owner
+              for a moderator account.
+            </p>
+          )}
+        </section>
+      )}
 
       <section aria-labelledby="activity-heading">
         <h2 id="activity-heading">Recent activity</h2>
@@ -354,4 +462,19 @@ export default function ControlRoom({ snapshot: s, auth, run, busy, navigate }: 
       </section>
     </>
   );
+}
+
+/** "Reject and refund" is final: ask first, with Cancel focused. */
+export function confirmRefund(confirm: PanelProps["confirm"], row: Row) {
+  return confirm({
+    title: "Reject and refund this redemption?",
+    body: (
+      <p>
+        {text(row.viewerName ?? "The viewer")} gets {Number(row.cost).toLocaleString()} points back
+        for {text(row.rewardName ?? "the reward")}. This cannot be undone.
+      </p>
+    ),
+    confirm: "Reject and refund",
+    danger: true,
+  });
 }

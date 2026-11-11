@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Table, ViewerPicker, formatTime, permitted, relative, text, type Viewer } from "../ui";
+import { confirmRefund } from "./control-room";
 import type { PanelProps } from "./types";
 import WorkQueue from "./work-queue";
 
@@ -79,7 +80,7 @@ function PointsAdjust({ run, busy, expired }: PanelProps) {
 }
 
 export default function RewardsPanel(props: PanelProps) {
-  const { snapshot: s, auth, run, busy, expired } = props;
+  const { snapshot: s, auth, run, busy, expired, confirm } = props;
   const can = permitted(auth.actor, "engage");
   return (
     <>
@@ -120,6 +121,7 @@ export default function RewardsPanel(props: PanelProps) {
                     disabled={busy}
                     aria-describedby={`redemption-${String(row.id).replace(/\W/g, "")}`}
                     onClick={async () => {
+                      if (!(await confirmRefund(confirm, row))) return;
                       await run("reward.reject", { target: row.id });
                       await refresh();
                     }}

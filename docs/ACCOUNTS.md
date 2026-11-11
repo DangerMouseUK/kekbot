@@ -24,7 +24,7 @@ There is one owner per installation. There is no public registration, email veri
 
 ## Claim the installation
 
-After `init`, read the setup-token file privately at the path it reports. Open the configured HTTPS origin and complete **Claim this installation** with that token, a username and a password. A username is 3–32 characters, starts with a letter/number, and otherwise permits letters/numbers, `_`, `-` and `.`. It is normalized to lowercase. Passwords must be 12–256 characters.
+After `init`, read the setup-token file privately at the path it reports. The claim screen's **Where is my setup token?** lists the usual location for installer/launcher, manual Docker Compose and source installs. Open the configured HTTPS origin and complete **Claim this installation** with that token, a username and a password. A username is 3–32 characters, starts with a letter/number, and otherwise permits letters/numbers, `_`, `-` and `.`. It is normalized to lowercase. Passwords must be 12–256 characters.
 
 The token expires after one hour and can claim only an unowned installation. If it expires before claim, stop the application, rerun `init` and start it again. This renews setup eligibility without replacing the encryption key. After claim, use owner recovery instead. Never send the setup token to a prospective moderator.
 

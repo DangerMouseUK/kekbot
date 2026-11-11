@@ -347,12 +347,7 @@ export default function Dashboard() {
               ? "Accept invitation"
               : "Welcome back"}
         </h2>
-        {!auth.claimed && (
-          <p>
-            Run <code>pnpm kekbot init</code> on the host, then read the setup-token file reported
-            by the command. The token expires after one hour.
-          </p>
-        )}
+        {!auth.claimed && <SetupTokenHelp />}
         <form
           onSubmit={async (event) => {
             event.preventDefault();
@@ -513,7 +508,11 @@ export default function Dashboard() {
                 : "Self-hosted installation"}
             </p>
             <h1>{panel}</h1>
-            <p className="intro">{intros[panel]}</p>
+            <p className="intro">
+              {panel === "Control room" && !permitted(auth.actor, "configure")
+                ? "What needs attention now, live status, and what your account can do."
+                : intros[panel]}
+            </p>
             {auth.actor.role === "readonly" && (
               <p className="help">
                 You have read-only access: you can look at everything here but not change it.
@@ -702,5 +701,53 @@ export default function Dashboard() {
         )}
       </main>
     </div>
+  );
+}
+
+/**
+ * Where the one-hour setup token lives for each install path. Paths and commands follow
+ * docs/GETTING_STARTED.md, docs/INSTALLATION.md and docs/QUICKSTART.md; the screen never
+ * shows the token or this host's real paths.
+ */
+function SetupTokenHelp() {
+  return (
+    <>
+      <p>
+        Your setup token is in a private file on the computer that runs KekBot. Read it there, paste
+        it below and choose your owner login. It expires one hour after it was created.
+      </p>
+      <details className="claim-help">
+        <summary>Where is my setup token?</summary>
+        <dl>
+          <dt>KekBot installer or launcher</dt>
+          <dd>
+            The installer&apos;s final message shows the file&apos;s path. For a default live
+            install, run <code>sudo cat /srv/kekbot/data/live/secrets/setup.token</code> on the
+            server.
+          </dd>
+          <dt>Docker Compose set up by hand</dt>
+          <dd>
+            The <code>node src/cli.ts init</code> step you ran in the container prints the path. The
+            usual host location is <code>/srv/kekbot/data/live/secrets/setup.token</code>.
+          </dd>
+          <dt>Running from source with pnpm</dt>
+          <dd>
+            Run <code>pnpm kekbot init</code> in the checkout, then open{" "}
+            <code>data/live/secrets/setup.token</code> (or <code>data/fixture/…</code> for a
+            fixture).
+          </dd>
+        </dl>
+        <p>
+          Token expired? Stop KekBot, run the same <code>init</code> step again, then start it.{" "}
+          <a
+            href="https://github.com/DangerMouseUK/kekbot/blob/main/docs/ACCOUNTS.md#claim-the-installation"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Owner setup guide
+          </a>
+        </p>
+      </details>
+    </>
   );
 }
