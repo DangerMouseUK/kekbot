@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Table, ViewerPicker, formatTime, permitted, relative, text, type Viewer } from "../ui";
-import { confirmRefund } from "./control-room";
+import { confirmRefund } from "./refund";
 import type { PanelProps } from "./types";
 import WorkQueue from "./work-queue";
 

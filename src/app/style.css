@@ -249,3 +249,4 @@ meter { width: 100%; }
 .claim-help dt { margin-top: 10px; font-weight: 700; }
 .claim-help dd { margin: 4px 0 0; }
 .claim-help code { overflow-wrap: anywhere; }
+.claim-help dd + dd { margin-top: 6px; }

@@ -704,10 +704,12 @@ export default function Dashboard() {
   );
 }
 
+const guide = "https://github.com/DangerMouseUK/kekbot/blob/main/docs/";
+
 /**
- * Where the one-hour setup token lives for each install path. Paths and commands follow
- * docs/GETTING_STARTED.md, docs/INSTALLATION.md and docs/QUICKSTART.md; the screen never
- * shows the token or this host's real paths.
+ * Where the one-hour setup token lives, and how to renew it, for each install path. Paths and
+ * commands follow docs/GETTING_STARTED.md, docs/ACCOUNTS.md, docs/CLI.md, docs/INSTALLATION.md
+ * and docs/QUICKSTART.md; the screen never shows the token or this host's real paths.
  */
 function SetupTokenHelp() {
   return (
@@ -725,10 +727,32 @@ function SetupTokenHelp() {
             install, run <code>sudo cat /srv/kekbot/data/live/secrets/setup.token</code> on the
             server.
           </dd>
+          <dd>
+            Expired? On the server, stop KekBot and renew the token with the recorded Compose
+            project and file (<code>kekbot</code> and <code>/srv/kekbot/compose.json</code> by
+            default):{" "}
+            <code>
+              sudo docker compose -p kekbot -f /srv/kekbot/compose.json run --rm --no-deps kekbot
+              node src/cli.ts init
+            </code>
+            , then start KekBot again.{" "}
+            <a
+              href={`${guide}ACCOUNTS.md#if-the-token-expired-before-your-first-login`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Step-by-step renewal
+            </a>
+          </dd>
           <dt>Docker Compose set up by hand</dt>
           <dd>
-            The <code>node src/cli.ts init</code> step you ran in the container prints the path. The
-            usual host location is <code>/srv/kekbot/data/live/secrets/setup.token</code>.
+            Your <code>node src/cli.ts init</code> step prints the path inside the container, such
+            as <code>/data/live/secrets/setup.token</code>. Read the matching file in your host data
+            directory, usually <code>/srv/kekbot/data/live/secrets/setup.token</code>.
+          </dd>
+          <dd>
+            Expired? Stop the <code>kekbot</code> service, run that same <code>init</code> step
+            again, then start it.
           </dd>
           <dt>Running from source with pnpm</dt>
           <dd>
@@ -736,14 +760,12 @@ function SetupTokenHelp() {
             <code>data/live/secrets/setup.token</code> (or <code>data/fixture/…</code> for a
             fixture).
           </dd>
+          <dd>
+            Expired? Stop the server, run <code>pnpm kekbot init</code> again, then start it.
+          </dd>
         </dl>
         <p>
-          Token expired? Stop KekBot, run the same <code>init</code> step again, then start it.{" "}
-          <a
-            href="https://github.com/DangerMouseUK/kekbot/blob/main/docs/ACCOUNTS.md#claim-the-installation"
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a href={`${guide}ACCOUNTS.md#claim-the-installation`} target="_blank" rel="noreferrer">
             Owner setup guide
           </a>
         </p>

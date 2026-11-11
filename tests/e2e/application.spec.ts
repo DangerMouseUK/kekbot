@@ -20,6 +20,7 @@ test("owner setup, command editor, CSRF denial and read-only permissions work in
   // Token instructions cover every install path, not only a source checkout.
   await page.getByText("Where is my setup token?").click();
   for (const path of ["KekBot installer or launcher", "Docker Compose set up by hand", "Running from source with pnpm"]) await expect(page.getByText(path, { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Step-by-step renewal" })).toHaveAttribute("href", /ACCOUNTS\.md#if-the-token-expired-before-your-first-login$/);
   await page.getByLabel("Setup token").fill(readFileSync(join(root(), "fixture/secrets/setup.token"), "utf8").trim());
   await page.getByLabel("Username", { exact: true }).fill("owner"); await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Create owner account" }).click(); await expect(page.getByRole("heading", { name: "Control room" })).toBeVisible();

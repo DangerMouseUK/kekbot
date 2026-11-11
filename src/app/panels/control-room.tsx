@@ -2,6 +2,7 @@
 import { auditSentence, statusLabel } from "../messages";
 import { formatDuration, permitted, relative, text, useNow, type Row } from "../ui";
 import { scopes } from "./cards";
+import { confirmRefund } from "./refund";
 import type { PanelProps } from "./types";
 
 type Step = { label: string; done: boolean; detail: string; panel: string; optional?: boolean };
@@ -278,7 +279,12 @@ export default function ControlRoom({
                 </li>
               ))}
             </ul>
-            {!canMedia && <p className="help">A moderator or the owner approves media requests.</p>}
+            {!canMedia && (
+              <p className="help">
+                Someone with media permission (moderators, the owner, or admins granted it) approves
+                media requests.
+              </p>
+            )}
             {pendingMedia.length > 5 && (
               <button className="link" onClick={() => navigate("Media")}>
                 See all {pendingMedia.length} in Media
@@ -327,7 +333,10 @@ export default function ControlRoom({
               ))}
             </ul>
             {!canEngage && (
-              <p className="help">A moderator or the owner fulfils or refunds redemptions.</p>
+              <p className="help">
+                Someone with engage permission (moderators, the owner, or admins granted it) fulfils
+                or refunds redemptions.
+              </p>
             )}
             {redemptions.length > 5 && (
               <button className="link" onClick={() => navigate("Points & rewards")}>
@@ -462,19 +471,4 @@ export default function ControlRoom({
       </section>
     </>
   );
-}
-
-/** "Reject and refund" is final: ask first, with Cancel focused. */
-export function confirmRefund(confirm: PanelProps["confirm"], row: Row) {
-  return confirm({
-    title: "Reject and refund this redemption?",
-    body: (
-      <p>
-        {text(row.viewerName ?? "The viewer")} gets {Number(row.cost).toLocaleString()} points back
-        for {text(row.rewardName ?? "the reward")}. This cannot be undone.
-      </p>
-    ),
-    confirm: "Reject and refund",
-    danger: true,
-  });
 }
