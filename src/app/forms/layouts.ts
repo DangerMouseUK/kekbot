@@ -1246,6 +1246,28 @@ export const layouts: Record<Kind, Section[]> = {
       ],
     },
     {
+      title: "Chat announcements",
+      description:
+        "Short KekBot messages in your Kick chat that mention the viewer they are about. Each one is sent at most once.",
+      fields: [
+        {
+          key: "mediaDecisionReplies",
+          label: "Tell viewers when their request is approved or rejected",
+          help: 'Example: @name, your request #4 "Song title" was approved and is 2nd in line. Only for requests that waited for a moderator; reordering the queue sends nothing.',
+          control: { type: "toggle" },
+          visible: (data) => data.mediaEnabled === true,
+          wide: true,
+        },
+        {
+          key: "raffleChatAnnouncements",
+          label: "Announce raffle winners in chat",
+          help: 'Example: Congratulations @name, you won the "Giveaway" raffle! Sent when you draw or redraw a winner.',
+          control: { type: "toggle" },
+          wide: true,
+        },
+      ],
+    },
+    {
       title: "Emergency pauses",
       fields: [
         {

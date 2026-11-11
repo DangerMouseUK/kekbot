@@ -9,7 +9,7 @@ import { seedFixture } from "../src/server/fixture-seed.ts";
 import { BotService } from "../src/server/domain/bot.ts";
 import { configSchemas } from "../src/server/domain/catalog.ts";
 import { evaluateRule } from "../src/server/domain/moderation.ts";
-import { DiscordService } from "../src/server/providers/discord.ts";
+import { DiscordService, UNROUTED } from "../src/server/providers/discord.ts";
 import { KickService } from "../src/server/providers/kick.ts";
 import { Runtime } from "../src/server/runtime.ts";
 import { environment, repository } from "./helpers.ts";
@@ -36,12 +36,40 @@ describe("assembled provider and authority boundaries", () => {
     const { bot, owner, repo } = await setup(); guild(bot, owner); const discord = new DiscordService(bot.state);
     const ping = signed({ id: "701", application_id: "900", type: 1, token: "synthetic" });
     expect(discord.intake(ping.body, ping.headers, credentials)).toEqual({ type: 1 });
-    for (const [patch, code] of [[{ application_id: "999" }, "wrong_discord_application"], [{ guild_id: "999" }, "discord_guild_or_channel_not_allowed"], [{ channel_id: "999" }, "discord_guild_or_channel_not_allowed"]] as const) {
-      const payload = signed({ ...interaction, ...patch }); expect(() => discord.intake(payload.body, payload.headers, credentials)).toThrow(code);
+    const wrongApp = signed({ ...interaction, application_id: "999" }); expect(() => discord.intake(wrongApp.body, wrongApp.headers, credentials)).toThrow("wrong_discord_application");
+    // Verified commands from an unrouted server or channel get a private explanation, not a failure.
+    for (const patch of [{ guild_id: "999" }, { channel_id: "999" }]) {
+      const payload = signed({ ...interaction, ...patch }); expect(discord.intake(payload.body, payload.headers, credentials)).toEqual({ type: 4, data: { flags: 64, content: UNROUTED, allowed_mentions: { parse: [] } } });
     }
     for (const offset of [-301000, 301000]) { const payload = signed(interaction, String(Math.floor((Date.now() + offset) / 1000))); expect(() => discord.intake(payload.body, payload.headers, credentials)).toThrow("invalid_discord_signature"); }
     const invalid = signed("{bad-json"); expect(() => discord.intake(invalid.body, invalid.headers, credentials)).toThrow("invalid_discord_json");
     expect(repo.store.sqlite.prepare("SELECT count(*) AS n FROM receipts").get()).toEqual({ n: 0 });
+  });
+
+  it("answers verified interactions from unrouted servers and channels privately without queueing work", async () => {
+    const { bot, owner, repo } = await setup(); guild(bot, owner); const discord = new DiscordService(bot.state);
+    const count = () => repo.store.sqlite.prepare("SELECT (SELECT count(*) FROM jobs) AS jobs, (SELECT count(*) FROM receipts) AS receipts").get();
+    const before = count();
+    const explained = { type: 4, data: { flags: 64, content: UNROUTED, allowed_mentions: { parse: [] } } };
+    const unrouted = { ...interaction, id: "710", guild_id: "999" };
+    const command = signed(unrouted); expect(discord.intake(command.body, command.headers, credentials)).toEqual(explained);
+    const button = signed({ ...unrouted, id: "711", type: 3, message: { id: "800" }, data: { custom_id: "kb1:ma:1:song-a", component_type: 2 } });
+    expect(discord.intake(button.body, button.headers, credentials)).toEqual(explained);
+    // A direct message has no server or member at all.
+    const direct: Partial<typeof interaction> = { ...interaction, id: "712" }; delete direct.guild_id; delete direct.member;
+    const dm = signed(direct); expect(discord.intake(dm.body, dm.headers, credentials)).toEqual(explained);
+    const focused = signed({ ...unrouted, id: "713", type: 4, data: { name: "kekbot", options: [{ type: 2, name: "media", options: [{ type: 1, name: "approve", options: [{ name: "request", type: 3, value: "", focused: true }] }] }] } });
+    expect(discord.intake(focused.body, focused.headers, credentials)).toEqual({ type: 8, data: { choices: [] } });
+    // The explanation says nothing about what is configured, and nothing was recorded or queued.
+    expect(UNROUTED).not.toMatch(/\d{3}|Allowed guild|boundary-guild/);
+    expect(count()).toEqual(before); expect(bot.state.settings.timersPaused).toBe(false);
+    // Forged, unsigned and wrong-application requests are still rejected before any routing answer.
+    const forged = signed(unrouted); const tampered = Buffer.from(forged.body.toString().replace("710", "719"));
+    expect(() => discord.intake(tampered, forged.headers, credentials)).toThrow("invalid_discord_signature");
+    expect(() => discord.intake(command.body, new Headers(), credentials)).toThrow("invalid_discord_signature");
+    const wrongApp = signed({ ...unrouted, id: "714", application_id: "999" }); expect(() => discord.intake(wrongApp.body, wrongApp.headers, credentials)).toThrow("wrong_discord_application");
+    const unknown = signed({ ...unrouted, id: "715", data: { name: "other" } }); expect(() => discord.intake(unknown.body, unknown.headers, credentials)).toThrow("unsupported_discord_interaction");
+    expect(count()).toEqual(before);
   });
 
   it("bounds declared and streamed request bodies without buffering oversized input", async () => {
@@ -79,7 +107,7 @@ describe("assembled provider and authority boundaries", () => {
     const { bot, repo, owner } = await setup(); guild(bot, owner); const discord = new DiscordService(bot.state);
     const payload = signed({ ...interaction, member: { ...interaction.member, roles: [] } }); discord.intake(payload.body, payload.headers, credentials);
     await discord.execute(repo.claim()!, (actor, name, input, id) => bot.action(actor, name, input, id));
-    expect(repo.setting("discord_result:700")).toContain("Code: discord_permission_denied"); expect(bot.state.settings.timersPaused).toBe(false);
+    expect(JSON.parse(repo.setting("discord_result:700")!)).toMatchObject({ code: "discord_permission_denied" }); expect(repo.setting("discord_result:700")).not.toContain("Code:"); expect(bot.state.settings.timersPaused).toBe(false);
   });
 
   it("routes notifications only to configured events and cancels queued sends after route removal", async () => {

@@ -359,6 +359,10 @@ const messages: Record<string, [string, string?]> = {
     "A timer message was skipped because the timer changed, was paused or the stream went offline.",
     "Nothing else is needed.",
   ],
+  chat_announcement_turned_off: [
+    "A chat announcement was skipped because it was turned off in settings before it was sent.",
+    "Nothing else is needed.",
+  ],
   job_lease_lost: [
     "A delivery was taken over after a restart.",
     "Check its final result before retrying.",
