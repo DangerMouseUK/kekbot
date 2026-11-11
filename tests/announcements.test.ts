@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Actor } from "../src/server/auth.ts";
 import { seedFixture } from "../src/server/fixture-seed.ts";
 import { Runtime } from "../src/server/runtime.ts";
+import { examples } from "../src/app/forms/examples.ts";
+import { layouts } from "../src/app/forms/layouts.ts";
 import { environment } from "./helpers.ts";
 
 // Optional chat announcements about moderator decisions and raffle winners, with real SQLite
@@ -46,7 +48,12 @@ async function setup() {
 describe("moderator decision replies", () => {
   it("stays silent by default so existing installations keep their behaviour", async () => {
     const { bot, owner, addMedia, version, replies } = await setup();
-    expect(bot.state.settings.mediaDecisionReplies).toBe(false);
+    expect(bot.state.settings).toMatchObject({ mediaDecisionReplies: false, raffleChatAnnouncements: false });
+    // The editor starts them off too, and the request switch sits beside the media switch that reveals it.
+    expect(examples.settings).toMatchObject({ mediaDecisionReplies: false, raffleChatAnnouncements: false });
+    const section = (key: string) => layouts.settings.find((group) => group.fields.some((field) => field.key === key))?.title;
+    expect(section("mediaDecisionReplies")).toBe(section("mediaEnabled"));
+    expect(section("raffleChatAnnouncements")).toBe("Chat announcements");
     addMedia("song-a", 1, "501"); addMedia("song-b", 2, "501");
     bot.media.decide(owner, "song-a", version("song-a"), "approve");
     bot.media.decide(owner, "song-b", version("song-b"), "reject");

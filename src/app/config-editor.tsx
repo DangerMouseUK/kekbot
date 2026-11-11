@@ -63,12 +63,7 @@ const nouns: Record<Kind, string> = {
 };
 
 function initial(kind: Kind, document?: ConfigDocument): Data {
-  // Saved settings show what is in effect: a switch added after they were saved is at its
-  // schema default, not at the starting value offered to new installations.
-  const data: Data = {
-    ...(kind === "settings" && document ? defaults : examples[kind]),
-    ...document?.data,
-  };
+  const data: Data = { ...examples[kind], ...document?.data };
   if (!document && ["poll", "raffle"].includes(kind))
     data.endsAt = Math.ceil((Date.now() + 3600000) / 60000) * 60000;
   return data;

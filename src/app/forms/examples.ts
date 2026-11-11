@@ -128,7 +128,5 @@ export const examples: Record<Kind, Record<string, unknown>> = {
     roles: [],
     users: [],
   },
-  // New installations start with viewer-facing announcements on; the schema defaults (off)
-  // keep installations whose settings were saved before these switches existed unchanged.
-  settings: { ...defaults, mediaDecisionReplies: true, raffleChatAnnouncements: true },
+  settings: defaults,
 };
