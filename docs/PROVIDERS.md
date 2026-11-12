@@ -102,7 +102,7 @@ Use `sudoedit` again to remove the three temporary lookup entries if you will us
 ### 4. Authorize and subscribe
 
 1. Sign into KekBot as owner at the final HTTPS origin. Open **Connections**.
-2. Save the Kick `clientId`, `clientSecret` and numeric `broadcasterId`.
+2. In **Connections → Kick application settings**, enter **Client ID**, **Client secret** and your numeric **Channel user ID**, then select **Save Kick settings**. (API callers send these as `clientId`, `clientSecret` and `broadcasterId`.) **Authorize Kick with moderation** stays unavailable until these are saved; **Subscribe to events** and **Refresh connection** stay unavailable until Kick is authorized.
 3. In the same browser, make sure Kick is signed into that creator. Select **Authorize Kick with moderation** and approve consent.
 4. Return to Connections; inspect the saved authorization/creator/scopes, then select **Subscribe to events**. Repeated reconciliation repairs missing subscriptions rather than intentionally creating duplicates.
 5. In **that creator's Kick channel chat**, send `!kekbot`. Confirm the real reply and its visible sender. Check **Maintenance → Delivery outcomes** if it is missing. Repeat a configured custom command.
@@ -118,11 +118,11 @@ A successful reauthorization supersedes any refresh already in flight for the ol
 Discord is optional. It uses signed HTTP interactions, with no Gateway connection or message-content intent. Real acknowledgement timing, bot permissions and multi-guild delivery remain live acceptance scenarios.
 
 1. Open the [Discord Developer Portal](https://discord.com/developers/applications) and create your own application. Under **General Information**, copy **Application ID** and **Public Key**. Under **Bot**, generate/reset a bot token and store it privately. See [Discord's setup guide](https://docs.discord.com/developers/quick-start/getting-started) for portal controls.
-2. In KekBot **Connections**, save `applicationId`, `publicKey` and `botToken` **before** setting the endpoint, so KekBot can verify Discord's test request.
+2. In KekBot **Connections → Discord application settings**, save **Application ID**, **Public key** and **Bot token** (API fields `applicationId`, `publicKey`, `botToken`) **before** setting the endpoint, so KekBot can verify Discord's test request.
 3. In Discord's app settings, save the Interactions Endpoint URL from the table above. It must pass Discord's signed PING validation with trusted HTTPS.
 4. Configure a **Guild Install** with the `bot` and `applications.commands` scopes. Give the bot **View Channel**, **Send Messages** and **Embed Links** in each intended normal text channel (permission integer `19456` if your install link asks for one). Embed Links lets notifications show request details; without it Discord hides the details and only the one-line headline remains. Install it using your app's install link. Administrator permission is unnecessary. Thread-only channels need additional provider permissions and their own testing.
 5. In Discord user settings, enable **Advanced → Developer Mode**. Copy the server, text-channel and relevant role/user IDs via their context menus.
-6. In KekBot **Connections**, select **Add guild**. Enter the guild/channel IDs and selected events (`live`, `offline`, `alert`, `media`, `goal`, `moderation`, `engagement`). Create additional routes deliberately; only selected events go to each configured channel.
+6. In KekBot **Connections → Discord servers**, select **Add Discord server**. Enter a **Name**, the **Server ID** and **Channel ID**, and tick what to post under **Post to this channel when** (**You go live**, **Your stream ends**, **An alert is shown**, **Media requests change**, **A goal completes**, **A moderation action is taken**, **Polls, raffles and rewards update**; API values `live`, `offline`, `alert`, `media`, `goal`, `moderation`, `engagement`). Select **Save Discord route**. Create additional routes deliberately; only selected events go to each configured channel.
 7. Add role/user permission mappings under **Who can use /kekbot commands**: select **Add role grant** or **Add user grant**, paste the role/user ID and choose a permission. API callers send the same mappings as JSON. For example, with your moderator role ID in place of the synthetic one:
 
 ```json
@@ -131,7 +131,7 @@ Discord is optional. It uses signed HTTP interactions, with no Gateway connectio
 
 Supported permissions are `operate`, `moderate`, `media`, `engage`; repeat a mapping with another permission when needed. Empty mappings grant no controls. Local dashboard roles do not grant Discord authority.
 
-8. Select **Register Discord commands in allowed guilds** after saving routes. Repeat after changing the guild set, enabling or disabling media, or enabling or disabling points, because the registered command list only includes enabled modules. Registering replaces the earlier single `/kekbot action:…` command. Until you register, members still see the old command; KekBot refuses it with `discord_commands_outdated` and acts only on old-format commands that were already queued when you upgraded.
+8. Select **Register Discord commands in your servers** after saving routes. Repeat after changing the guild set, enabling or disabling media, or enabling or disabling points, because the registered command list only includes enabled modules. Registering replaces the earlier single `/kekbot action:…` command. Until you register, members still see the old command; KekBot refuses it with `discord_commands_outdated` and acts only on old-format commands that were already queued when you upgraded.
 9. In the configured channel run `/kekbot status`. Test with both a mapped moderator and an unmapped member; the latter must get a private "Not allowed" reply. Verify a deliberately triggered notification reaches only its configured route.
 
 ### Using Discord controls
@@ -167,7 +167,7 @@ YouTube is optional and needed for real media metadata validation/playback.
 2. Enable **YouTube Data API v3** in **APIs & Services → Library**.
 3. Create an API key in **Credentials**. Restrict its API access to YouTube Data API v3 and its application usage to the intended server, for example the server's outbound IP where appropriate. A browser-referrer restriction does not fit KekBot's server-side metadata requests. Follow [Google's setup guidance](https://developers.google.com/youtube/v3/getting-started) and [key restriction guidance](https://docs.cloud.google.com/docs/authentication/api-keys-best-practices).
 4. In KekBot **Connections**, save the key in the YouTube form. A user OAuth grant is unnecessary for public video metadata.
-5. In **Maintenance → Edit settings**, enable **Media enabled**. Review approval policy, maximum duration, queue capacity, per-user limit, cooldown and blocked uploaders/titles. Keep auto approval off for the first trial.
+5. In **Maintenance → Edit settings**, turn on **Allow media requests**. Review **Approve viewer requests automatically**, **Longest video allowed**, **Queue size**, **Requests per viewer**, **Wait between a viewer's requests**, **Blocked channels** and **Blocked title words**. Keep automatic approval off for the first trial.
 6. Complete the [request → approval → OBS playback walkthrough](OBS.md#youtube-request-and-approval-walkthrough). If using Discord, register commands again after enabling media.
 
 Metadata uses the official [videos.list API](https://developers.google.com/youtube/v3/docs/videos/list). Missing/private/unavailable videos, quota/key errors and rule failures have explicit outcomes. Validation cannot guarantee browser autoplay or playback availability. The player must remain visible and comply with [YouTube's player requirements](https://developers.google.com/youtube/terms/required-minimum-functionality); downloading and audio extraction are not provided.

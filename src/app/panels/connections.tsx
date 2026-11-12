@@ -3,18 +3,29 @@ import { describeError, errorText } from "../messages";
 import { ControlError, formatTime, text, type Row } from "../ui";
 import type { PanelProps } from "./types";
 
-const fields: Record<string, { label: string; help?: string }[]> = {
+// `name` is the API field; `label` and `help` are what people read.
+const fields: Record<string, { name: string; label: string; help: string }[]> = {
   kick: [
-    { label: "clientId", help: "Client ID from your Kick developer app" },
-    { label: "clientSecret", help: "Client secret from the same app" },
-    { label: "broadcasterId", help: "Your channel's numeric Kick user ID" },
+    { name: "clientId", label: "Client ID", help: "From your Kick developer app." },
+    { name: "clientSecret", label: "Client secret", help: "From the same Kick app." },
+    {
+      name: "broadcasterId",
+      label: "Channel user ID",
+      help: "Your channel's numeric Kick user ID.",
+    },
   ],
   discord: [
-    { label: "applicationId", help: "Application ID from the Discord developer portal" },
-    { label: "publicKey", help: "Public key from the same page" },
-    { label: "botToken", help: "Bot token from the Bot page" },
+    {
+      name: "applicationId",
+      label: "Application ID",
+      help: "From the Discord developer portal, General Information.",
+    },
+    { name: "publicKey", label: "Public key", help: "From the same page." },
+    { name: "botToken", label: "Bot token", help: "From the Bot page." },
   ],
-  youtube: [{ label: "key", help: "YouTube Data API key, used to check requested videos" }],
+  youtube: [
+    { name: "key", label: "YouTube Data API key", help: "Used to check requested videos." },
+  ],
 };
 const names: Record<string, string> = { kick: "Kick", discord: "Discord", youtube: "YouTube" };
 
@@ -29,6 +40,13 @@ export default function ConnectionsPanel({
   const owner = auth.actor?.role === "owner";
   if (!owner) return null;
   const kick = s.kick;
+  const fixture = s.mode === "fixture";
+  // Say why a button cannot be used yet instead of letting it fail.
+  const kickBlocked = fixture
+    ? "Live provider actions are turned off in this fixture installation."
+    : !s.integrations.kick
+      ? "Save your Kick application settings below first."
+      : undefined;
   const facts: [string, unknown][] = kick.authorized
     ? [
         ["Channel", kick.authorizedUsername],
@@ -72,9 +90,15 @@ export default function ConnectionsPanel({
             your channel.
           </p>
         )}
+        {kickBlocked && !kick.authorized && !kick.error && (
+          <p className="help" id="kick-blocked">
+            {kickBlocked}
+          </p>
+        )}
         <div className="actions">
           <button
-            disabled={busy}
+            disabled={busy || Boolean(kickBlocked)}
+            aria-describedby={kickBlocked ? "kick-blocked" : undefined}
             onClick={async () => {
               try {
                 const response = await fetch("/api/connections/kick?moderation=1", {
@@ -92,10 +116,20 @@ export default function ConnectionsPanel({
           >
             Authorize Kick with moderation
           </button>
-          <button className="secondary" disabled={busy} onClick={() => run("kick.subscribe")}>
+          <button
+            className="secondary"
+            disabled={busy || !kick.authorized}
+            title={kick.authorized ? undefined : "Authorize Kick first."}
+            onClick={() => run("kick.subscribe")}
+          >
             Subscribe to events
           </button>
-          <button className="secondary" disabled={busy} onClick={() => run("kick.refresh")}>
+          <button
+            className="secondary"
+            disabled={busy || !kick.authorized}
+            title={kick.authorized ? undefined : "Authorize Kick first."}
+            onClick={() => run("kick.refresh")}
+          >
             Refresh connection
           </button>
           <button
@@ -140,36 +174,46 @@ export default function ConnectionsPanel({
             </span>
           </div>
           <p className="help">
-            Encrypted on the host and never shown again. Saving replaces the previous values.
-            {s.mode === "fixture"
-              ? " This fixture installation cannot store real credentials."
-              : ""}
+            {fixture
+              ? "This fixture installation simulates this provider and cannot store real credentials."
+              : "Encrypted on the host and never shown again. Saving replaces the previous values."}
           </p>
           <div className="fields">
-            {fields[provider].map(({ label, help }) => (
-              <label key={label}>
-                {help} ({label})
+            {fields[provider].map(({ name, label, help }) => (
+              <label key={name}>
+                {label}
+                <span className="help field-help">{help}</span>
                 <input
-                  name={label}
-                  type={/secret|token|key/i.test(label) ? "password" : "text"}
-                  inputMode={label === "broadcasterId" ? "numeric" : undefined}
+                  name={name}
+                  type={/secret|token|key/i.test(name) ? "password" : "text"}
+                  inputMode={name === "broadcasterId" ? "numeric" : undefined}
                   autoComplete="off"
                   required
+                  disabled={fixture}
                 />
               </label>
             ))}
           </div>
-          <button disabled={busy}>Save {names[provider]} settings</button>
+          <button disabled={busy || fixture}>Save {names[provider]} settings</button>
         </form>
       ))}
       <section aria-labelledby="discord-commands">
         <h2 id="discord-commands">Discord commands</h2>
         <p className="help">
           After adding Discord servers below, register KekBot&apos;s slash commands in them. Repeat
-          after changing servers or turning on media.
+          after changing servers or turning media requests or points on or off.
         </p>
-        <button disabled={busy} onClick={() => run("discord.register")}>
-          Register Discord commands in allowed guilds
+        {!fixture && !s.integrations.discord && (
+          <p className="help" id="discord-blocked">
+            Save your Discord application settings above first.
+          </p>
+        )}
+        <button
+          disabled={busy || (!fixture && !s.integrations.discord)}
+          aria-describedby={!fixture && !s.integrations.discord ? "discord-blocked" : undefined}
+          onClick={() => run("discord.register")}
+        >
+          Register Discord commands in your servers
         </button>
       </section>
     </>

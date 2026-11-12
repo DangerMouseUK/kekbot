@@ -93,7 +93,7 @@ export class AutomationService {
       const last = Number(this.state.repository.setting("proof_last_reply_decision_at") ?? 0);
       if (Date.now() - last < 10000) return undefined;
       this.state.repository.set("proof_last_reply_decision_at", String(Date.now()));
-      return "KekBot foundation proof: verified event, durable receipt, real reply.";
+      return "KekBot is online and listening. Type !commands to see what you can use.";
     }
     if (command === "!commands") {
       const groups = this.commandGroups(role);
@@ -143,11 +143,14 @@ export class AutomationService {
       return replies.watchtime(username, row?.watch_minutes ?? 0);
     }
     if (command === "!top") {
+      if (!settings.pointsEnabled) return replies.balance(undefined, false, 0);
       const rows = this.state.db.prepare("SELECT l.viewer AS viewer,v.name AS name,sum(l.amount) AS balance FROM ledger l LEFT JOIN viewers v ON l.viewer=v.id GROUP BY l.viewer ORDER BY balance DESC LIMIT 5").all() as { viewer: string; name: string | null; balance: number }[];
       return { text: replies.leaderboard(rows), viewers: rows.map(row => row.viewer) };
     }
     if (command === "!redeem") {
       const rewards = this.state.list("reward");
+      // A bare !redeem asks what there is: list the rewards instead of saying "that reward doesn't exist".
+      if (!args.length) return replies.rewardsAvailable(rewards.filter(r => r.data.enabled).map(r => ({ name: r.data.name, cost: r.data.cost })), settings.pointsEnabled);
       const reward = rewards.find(r => r.id === args[0] || r.data.name.toLowerCase() === args.join(" ").toLowerCase());
       if (!reward) throw annotateError(new AppError("reward_not_found", 404), { rewards: rewards.filter(r => r.data.enabled).map(r => ({ name: r.data.name, cost: r.data.cost })), pointsEnabled: settings.pointsEnabled });
       annotate(() => this.engagement.redeem(viewer, reward.id, `redemption:${receipt}`), () => ({ rewardName: reward.data.name, cost: reward.data.cost, balance: this.engagement.balance(viewer), pointsEnabled: settings.pointsEnabled }));

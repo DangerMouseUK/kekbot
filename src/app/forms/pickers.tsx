@@ -349,6 +349,7 @@ export function GrantRows({
 }) {
   const [rows, setRows] = useState<GrantRow[]>(() => grantsToRows(value, nextKey));
   const refs = useRef<Record<string, HTMLInputElement | null>>({});
+  const addButton = useRef<HTMLButtonElement>(null);
   const errors = grantRowErrors(rows, noun);
   const update = (next: GrantRow[]) => {
     setRows(next);
@@ -436,7 +437,16 @@ export function GrantRows({
                 type="button"
                 className="secondary kf-small"
                 aria-label={`Remove ${noun} grant ${index + 1}`}
-                onClick={() => update(rows.filter((item) => item.key !== row.key))}
+                onClick={() => {
+                  const next = rows.filter((item) => item.key !== row.key);
+                  update(next);
+                  // Keep keyboard users in the list: focus the row that took this place, the
+                  // one before it, or the Add button once the list is empty.
+                  const target = next[index] ?? next[index - 1];
+                  requestAnimationFrame(() =>
+                    (target ? refs.current[target.key] : addButton.current)?.focus(),
+                  );
+                }}
               >
                 Remove
               </button>
@@ -451,6 +461,7 @@ export function GrantRows({
         })}
       </ol>
       <button
+        ref={addButton}
         type="button"
         className="secondary"
         disabled={rows.length >= maxGrants}

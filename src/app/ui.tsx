@@ -158,7 +158,8 @@ export function formatBytes(value: unknown) {
   if (!Number.isFinite(bytes)) return "—";
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  if (bytes < 1024 ** 3) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
 }
 
 /** Re-renders every `interval` ms so countdowns and relative times stay current. */
@@ -345,7 +346,13 @@ export function useConfirm() {
         >
           {request.confirm}
         </button>
-        <button type="button" className="secondary" onClick={() => finish(false)}>
+        <button
+          type="button"
+          className="secondary"
+          // A stray Enter must never delete or erase: destructive dialogs open on Cancel.
+          data-autofocus={request.danger ? "" : undefined}
+          onClick={() => finish(false)}
+        >
           Cancel
         </button>
       </div>
@@ -374,6 +381,7 @@ export function Dialog({
     if (!dialog) return;
     const opener = document.activeElement as HTMLElement | null;
     if (!dialog.open) dialog.showModal();
+    dialog.querySelector<HTMLElement>("[data-autofocus]")?.focus();
     const cancel = (event: Event) => {
       event.preventDefault();
       close.current();

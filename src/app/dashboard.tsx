@@ -67,7 +67,8 @@ const controlsFirst = [
 const intros: Record<string, string> = {
   "Control room": "What needs attention now, live status, and what to set up next.",
   Connections: "Connect Kick, Discord and YouTube. Only the owner sees this page.",
-  Commands: "Chat commands viewers can type, such as !discord. Changes apply immediately.",
+  Commands:
+    "Your own chat commands, such as !welcome. Built-in replies like !discord and !rules are set in Maintenance → Edit settings.",
   Timers: "Messages KekBot posts in chat on a schedule while you stream.",
   Alerts: "On-stream alerts for follows, subscriptions and manual call-outs.",
   Media: "YouTube requests from chat: approve them, put them in order and control playback.",
@@ -136,7 +137,7 @@ export default function Dashboard() {
   const [auth, setAuth] = useState<Session>(),
     [snapshot, setSnapshot] = useState<Snapshot>();
   const snapshotRef = useRef<Snapshot | undefined>(undefined);
-  const [panel, setPanel] = useState("Control room"),
+  const [selectedPanel, setPanel] = useState("Control room"),
     [editor, setEditor] = useState<{ kind: Kind; document?: ConfigDocument }>();
   const [notice, setNotice] = useState<Notice>(),
     [message, setMessage] = useState(""),
@@ -224,7 +225,7 @@ export default function Dashboard() {
     document
       .querySelector("nav [aria-current=page]")
       ?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [panel]);
+  }, [selectedPanel]);
   useEffect(() => {
     if (notice?.tone !== "success") return;
     const timer = setTimeout(
@@ -323,6 +324,9 @@ export default function Dashboard() {
     snapshotRef.current = undefined;
     setSnapshot(undefined);
     setNotice(undefined);
+    // The next person to sign in may have fewer panels: start them in the Control room.
+    setPanel("Control room");
+    setEditor(undefined);
   }
   if (!auth)
     return (
@@ -416,10 +420,22 @@ export default function Dashboard() {
           </button>
         )}
         {message && <p role="alert">{message}</p>}
-        <p className="help">Use at least 12 characters. Recovery requires host access.</p>
+        <p className="help">
+          {!auth.claimed || loginMode === "invite"
+            ? "Choose a password of at least 12 characters. Recovery requires host access."
+            : "Forgot your password? Ask the owner for a new invitation. Owner recovery needs host access."}
+        </p>
       </main>
     );
   const owner = auth.actor.role === "owner";
+  const visiblePanels = panels.filter(
+    (name) =>
+      owner ||
+      (name === "Accounts" && permitted(auth.actor, "invite")) ||
+      !["Accounts", "Connections"].includes(name),
+  );
+  // A panel chosen in an earlier session may be hidden from this account.
+  const panel = visiblePanels.includes(selectedPanel) ? selectedPanel : "Control room";
   const counts: Record<string, number> = snapshot
     ? {
         Media: snapshot.media.filter((row) => row.status === "pending").length,
@@ -463,28 +479,21 @@ export default function Dashboard() {
           </div>
         </div>
         <nav aria-label="Main navigation">
-          {panels
-            .filter(
-              (name) =>
-                owner ||
-                (name === "Accounts" && permitted(auth.actor, "invite")) ||
-                !["Accounts", "Connections"].includes(name),
-            )
-            .map((name) => (
-              <button
-                key={name}
-                aria-current={panel === name ? "page" : undefined}
-                aria-describedby={counts[name] ? `count-${name.replace(/\W/g, "")}` : undefined}
-                onClick={() => navigate(name)}
-              >
-                {name}
-                {counts[name] > 0 && (
-                  <span className="count" aria-hidden="true">
-                    {counts[name] >= 50 ? "50+" : counts[name]}
-                  </span>
-                )}
-              </button>
-            ))}
+          {visiblePanels.map((name) => (
+            <button
+              key={name}
+              aria-current={panel === name ? "page" : undefined}
+              aria-describedby={counts[name] ? `count-${name.replace(/\W/g, "")}` : undefined}
+              onClick={() => navigate(name)}
+            >
+              {name}
+              {counts[name] > 0 && (
+                <span className="count" aria-hidden="true">
+                  {counts[name] >= 50 ? "50+" : counts[name]}
+                </span>
+              )}
+            </button>
+          ))}
           {/* Descriptions live outside the buttons so each button's name stays the panel name. */}
           {Object.entries(counts)
             .filter(([, count]) => count > 0)
@@ -505,9 +514,17 @@ export default function Dashboard() {
             </p>
             <h1>{panel}</h1>
             <p className="intro">{intros[panel]}</p>
+            {auth.actor.role === "readonly" && (
+              <p className="help">
+                You have read-only access: you can look at everything here but not change it.
+              </p>
+            )}
           </div>
-          <span className={`connection ${connected ? "connected" : ""}`}>
-            {connected ? "Live connection" : "Reconnecting…"}
+          <span
+            className={`connection ${connected ? "connected" : ""}`}
+            title="Whether this page is receiving live updates from KekBot"
+          >
+            {connected ? "Page updating live" : "Reconnecting…"}
           </span>
         </header>
         {notice && (
@@ -671,7 +688,8 @@ export default function Dashboard() {
                 </div>
                 {!snapshot.documents.some((doc) => doc.kind === kind) && (
                   <p className="empty">
-                    No {kindTitle(kind).toLowerCase()} yet.
+                    {/* "Discord" is a name and keeps its capital. */}
+                    No {kind === "guild" ? kindTitle(kind) : kindTitle(kind).toLowerCase()} yet.
                     {canEdit(kind) && kind !== "settings"
                       ? ` Select “${addLabels[kind] ?? `Add ${kind}`}” to create one.`
                       : ""}

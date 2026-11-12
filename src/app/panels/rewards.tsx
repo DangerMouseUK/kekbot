@@ -94,7 +94,8 @@ export default function RewardsPanel(props: PanelProps) {
         <WorkQueue firstPage={s.pendingRedemptions} view="pending-redemptions" expired={expired}>
           {(row, refresh) => (
             <article key={String(row.id)} className="work-item">
-              <p>
+              {/* Screen readers hear which redemption each button acts on. */}
+              <p id={`redemption-${String(row.id).replace(/\W/g, "")}`}>
                 <strong>{text(row.viewerName ?? "A viewer")}</strong> redeemed{" "}
                 <strong>{text(row.rewardName ?? "a deleted reward")}</strong> ·{" "}
                 {Number(row.cost).toLocaleString()} points · {relative(Number(row.createdAt))}
@@ -106,6 +107,7 @@ export default function RewardsPanel(props: PanelProps) {
                 <div className="actions">
                   <button
                     disabled={busy}
+                    aria-describedby={`redemption-${String(row.id).replace(/\W/g, "")}`}
                     onClick={async () => {
                       await run("reward.complete", { target: row.id });
                       await refresh();
@@ -116,6 +118,7 @@ export default function RewardsPanel(props: PanelProps) {
                   <button
                     className="secondary"
                     disabled={busy}
+                    aria-describedby={`redemption-${String(row.id).replace(/\W/g, "")}`}
                     onClick={async () => {
                       await run("reward.reject", { target: row.id });
                       await refresh();

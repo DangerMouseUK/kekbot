@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ConfigDocument, Kind } from "../../server/domain/catalog.ts";
+import { widgetThemeOptions } from "../forms/layouts";
 import { eventLabels, statusLabel } from "../messages";
 import {
   CopyField,
@@ -50,6 +51,20 @@ export const widgetTypes: Record<string, string> = {
   socials: "Your social links from settings",
   activity: "Recent supporter activity",
 };
+/** Short theme names for cards, e.g. "Mint" from "Mint (green)". */
+const themeNames: Record<string, string> = Object.fromEntries(
+  widgetThemeOptions.map((option) => [option.value, option.label.replace(/ \(.*\)$/, "")]),
+);
+/** What a Discord route posts, in the words its editor uses. */
+const guildEvents: Record<string, string> = {
+  live: "go-live",
+  offline: "stream end",
+  alert: "alerts",
+  media: "media requests",
+  goal: "goals",
+  moderation: "moderation",
+  engagement: "polls, raffles and rewards",
+};
 const ruleTypes: Record<string, string> = {
   link: "Links",
   phrase: "Blocked phrases",
@@ -95,7 +110,7 @@ export function cardSummary(kind: Kind, doc: ConfigDocument, snapshot: Snapshot)
     case "alert":
       return `${eventLabels[String(d.event)] ?? d.event} · ${quote(d.template)} · ${d.duration} s`;
     case "widget":
-      return `${widgetTypes[String(d.type)] ?? d.type} · ${d.theme} theme · ${d.width} × ${d.height}`;
+      return `${widgetTypes[String(d.type)] ?? d.type} · ${themeNames[String(d.theme)] ?? d.theme} theme · ${d.width} × ${d.height}`;
     case "rule":
       return `${ruleTypes[String(d.type)] ?? d.type} · ${actionLabels[String(d.action)] ?? d.action}${d.action === "timeout" ? ` for ${d.duration} min` : ""}${d.escalation ? ` · escalates to ${String(actionLabels[String(d.escalationAction)] ?? d.escalationAction).toLowerCase()}` : ""}`;
     case "goal":
@@ -103,15 +118,19 @@ export function cardSummary(kind: Kind, doc: ConfigDocument, snapshot: Snapshot)
     case "reward":
       return `${Number(d.cost).toLocaleString()} points · ${d.fulfillment === "alert" ? "shows an alert when fulfilled" : "fulfilled by a moderator"}${d.description ? ` · ${d.description}` : ""}`;
     case "poll":
-      return `${list(d.options).length} options · viewers type !vote and a number`;
+      return `${list(d.options).length} options${d.status === "open" ? " · viewers type !vote and a number" : ""}`;
     case "raffle":
-      return `Viewers type !enter${Number(d.minPoints) ? ` · needs ${d.minPoints} points` : ""}${list(d.roles).length ? ` · only ${list(d.roles).join(", ")}` : ""}`;
+      return `${d.status === "open" ? "Viewers type !enter" : "Entries closed"}${Number(d.minPoints) ? ` · needs ${d.minPoints} points` : ""}${list(d.roles).length ? ` · only ${list(d.roles).join(", ")}` : ""}`;
     case "note": {
       const viewer = snapshot.viewers.find((row) => row.id === d.viewer);
       return `About ${viewer ? String(viewer.name) : `Kick user ${d.viewer}`}: ${d.text}`;
     }
     case "guild":
-      return `Server ${d.guildId} · channel ${d.channelId} · posts ${list(d.events).join(", ") || "nothing yet"} · ${list(d.roles).length + list(d.users).length} permission mappings`;
+      return `Server ${d.guildId} · channel ${d.channelId} · posts ${
+        list(d.events)
+          .map((event) => guildEvents[String(event)] ?? event)
+          .join(", ") || "nothing yet"
+      } · ${list(d.roles).length + list(d.users).length} permission grants`;
     case "settings":
       return `Channel name ${quote(d.name)} · media requests ${onOff(d.mediaEnabled)} · points ${onOff(d.pointsEnabled)} · timers ${d.timersPaused ? "paused" : "running"} · automatic moderation ${d.moderationPaused ? "paused" : "running"}`;
   }
@@ -499,7 +518,7 @@ function WidgetSource({ doc, snapshot, auth, run, busy, confirm }: CardProps) {
   async function addPlayer(display: string, readId: string) {
     const player = await run(
       "token.create",
-      { kind: "player", name: `${label} player`, scopes: [`widget:${doc.id}`] },
+      { kind: "player", name: `${label} playback credential`, scopes: [`widget:${doc.id}`] },
       { quiet: true },
     );
     setUrls({
@@ -511,7 +530,7 @@ function WidgetSource({ doc, snapshot, auth, run, busy, confirm }: CardProps) {
   async function create() {
     const read = await run(
       "token.create",
-      { kind: "widget", name: `${label} read`, scopes: [`widget:${doc.id}`] },
+      { kind: "widget", name: `${label} display URL`, scopes: [`widget:${doc.id}`] },
       { quiet: true },
     );
     if (!read) return;
@@ -631,7 +650,11 @@ function WidgetSource({ doc, snapshot, auth, run, busy, confirm }: CardProps) {
                       void run("token.revoke", { id: token.id });
                   }}
                 >
-                  Revoke<span className="visually-hidden"> {String(token.name)}</span>
+                  Revoke
+                  <span className="visually-hidden">
+                    {" "}
+                    {token.kind === "player" ? "playback credential" : "display URL"} for {name}
+                  </span>
                 </button>
               </li>
             ))}

@@ -121,7 +121,7 @@ const catalogue: Record<string, Omit<MetricInfo, "id" | "known">> = {
   },
   "goals.increments": {
     label: "Goal progress added",
-    unit: "progress",
+    unit: "updates",
     kind: "count",
     group: "Alerts & goals",
   },

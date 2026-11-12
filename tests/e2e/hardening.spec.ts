@@ -126,3 +126,39 @@ test("all dashboard panels pass axe checks, keyboard navigation and responsive l
   expect(errors).toEqual([]); expect(external).toEqual([]);
   await page.screenshot({ path: "output/playwright/campaign-desktop.png", fullPage: true });
 });
+
+test("destructive confirmations open on Cancel, removing a grant row keeps keyboard focus and sign-in starts in Control room", async ({ page, request }) => {
+  const { csrf, cookie } = await login(request);
+  expect((await operation(request, csrf, "config.save", { kind: "command", data: { name: "Focus check", trigger: "!focus_check", responses: ["Hi"] } })).ok()).toBe(true);
+  await page.context().addCookies([{ name: "kekbot_session", value: cookie.split("=")[1], url: origin, httpOnly: true, sameSite: "Lax" }]);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Commands", exact: true }).click();
+  await page.getByRole("button", { name: "Delete Focus check" }).click();
+  const dialog = page.getByRole("dialog", { name: "Delete Focus check?" });
+  await expect(dialog.getByRole("button", { name: "Cancel" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Focus check" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Connections", exact: true }).click();
+  await page.getByRole("button", { name: "Add Discord server" }).click();
+  const add = page.getByRole("button", { name: "Add role grant" });
+  // Add focuses the new row after a frame; wait for it so keystrokes never land on the button.
+  await add.click(); await expect(page.getByLabel("Role ID 1")).toBeFocused(); await page.keyboard.type("111");
+  await add.click(); await expect(page.getByLabel("Role ID 2")).toBeFocused(); await page.keyboard.type("222");
+  await page.getByRole("button", { name: "Remove role grant 1" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByPlaceholder("Role ID")).toHaveCount(1);
+  await expect(page.getByPlaceholder("Role ID")).toBeFocused();
+  await expect(page.getByPlaceholder("Role ID")).toHaveValue("222");
+  await page.getByRole("button", { name: "Remove role grant 1" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(add).toBeFocused();
+  await page.getByRole("button", { name: "Cancel" }).click();
+
+  await page.getByRole("button", { name: "Accounts", exact: true }).click();
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await page.getByLabel("Username").fill("owner"); await page.getByLabel("Password").fill(password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.getByRole("heading", { name: "Control room", level: 1 })).toBeVisible();
+});
