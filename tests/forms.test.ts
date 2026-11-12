@@ -194,7 +194,7 @@ describe("schema-driven validation", () => {
       "Choose a date and time.",
     );
     expect(validate("poll", { ...examples.poll, endsAt: 1, options: ["Only one"] }).options).toBe(
-      "Add at least 2 choices.",
+      "Add at least 2 options.",
     );
   });
 
