@@ -4,7 +4,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import type { ConfigDocument } from "../../server/domain/catalog.ts";
-import type { Row, Snapshot } from "../ui";
+import { formatBytes, type Row, type Snapshot } from "../ui";
 import { insertAt, LiveError, VariableButtons, type Described } from "./fields.tsx";
 import {
   describeRaw,
@@ -151,8 +151,7 @@ export function AssetPicker({
         <option value="">No {accept}</option>
         {assets.map((asset) => (
           <option key={String(asset.id)} value={String(asset.id)}>
-            {String(asset.name)} ({String(asset.format).toUpperCase()},{" "}
-            {Math.max(1, Math.round(Number(asset.bytes) / 1024))} KB)
+            {String(asset.name)} ({String(asset.format).toUpperCase()}, {formatBytes(asset.bytes)})
           </option>
         ))}
         {current && !known && <option value={current}>Missing file ({current})</option>}

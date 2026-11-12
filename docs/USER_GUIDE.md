@@ -41,7 +41,7 @@ The complete [account guide](ACCOUNTS.md) covers claim, invitation acceptance, t
 
 ## Find your way around
 
-**Control room** opens with live status (stream, Kick, media player and background work), a **Needs attention** list with direct **Approve**/**Reject** and **Mark fulfilled**/**Reject and refund** buttons (the same labels as **Media** and **Points & rewards**), a **Setup checklist** whose **Set up** buttons open each step, and **Recent activity** written as sentences. **Connections** holds owner-only provider configuration. Other panels cover Commands, Timers, Alerts, Media, Moderation, Goals, Points & rewards, Polls & raffles, Widgets, Analytics, Accounts and Maintenance. Available controls depend on your role.
+**Control room** opens with live status (stream, Kick, media player and background work), a **Needs attention** list with direct **Approve**/**Reject** and **Mark fulfilled**/**Reject and refund** buttons (the same labels as **Media** and **Points & rewards**), a **Setup checklist** whose **Set up** buttons open each step, and **Recent activity** written as sentences. The checklist appears only for accounts that can change configuration; moderators, read-only users and admins without `configure` see **What you can do**, with an **Open** button for each panel where their account can act. **Reject and refund** asks for confirmation first, with **Cancel** selected. **Connections** holds owner-only provider configuration. Other panels cover Commands, Timers, Alerts, Media, Moderation, Goals, Points & rewards, Polls & raffles, Widgets, Analytics, Accounts and Maintenance. Available controls depend on your role.
 
 Configuration cards describe each item in plain words, and the buttons on a card act on that item directly: you do not copy IDs or versions. If someone else changed the item first, KekBot reloads the latest state and says what changed; check it and try again. **Details** on a card shows its reference ID, which a widget target, Discord command or the API may still ask for. Problems appear as a sentence with a next step at the top of the page; the API keeps its error codes. Most edits take effect without restarting. On a phone, the panel list scrolls sideways under the KekBot name.
 
@@ -54,7 +54,7 @@ Use **Edit** to change a card and save the form. Use **Delete** only after revie
 1. Open **Commands → Add command**.
 2. Give it a name and lowercase trigger such as `!welcome`.
 3. Enter a response in **Response 1**: `Welcome, {user}!` is a simple first example. **Add response** adds more; one is picked at random. The **Insert** buttons add variables, and the preview under the list shows the reply with sample values.
-4. Add aliases (type one and press Enter), a group, **Allowed roles**, **Cooldown for everyone**/**Cooldown per viewer** and **When it works**. Leaving every role unticked allows viewers generally. Built-in or already-used triggers are flagged before you save.
+4. Add aliases (type one and press Enter), a group, **Allowed roles**, **Cooldown for everyone**/**Cooldown per viewer** and **When it works** (**Any time**, **Only while live** or **Only while offline**; live means KekBot has seen your stream go live). Leaving every role unticked allows viewers generally. Built-in or already-used triggers are flagged before you save.
 5. Save, then select **Preview responses**. Preview sends no chat and changes no counter/cooldown.
 6. Send the trigger in the configured creator's Kick chat and check its actual reply/delivery outcome.
 
@@ -168,7 +168,7 @@ Enable points in Maintenance and configure award amount/cadence/recent-chat acti
 
 Add rewards in **Points & rewards** with cost, description and manual/alert fulfillment. A redemption debits atomically. Moderators complete a fulfilled redemption or reject it for a single refund. Point adjustments need a reason. Balances/decisions survive restart; neither privacy erasure nor retention silently rewrites economic history.
 
-For a first reward, configure Name `Choose a topic`, Cost `100`, Fulfillment `manual`. Viewers use `!redeem Choose a topic` or the reward ID. In **Pending redemptions**, each row names the viewer and reward, with a reference ID that matches Discord notices. Perform the real promised action before **Mark fulfilled**. Choose **Reject and refund** when it cannot be fulfilled; repeat decisions are rejected. Alert fulfillment still needs moderator completion and uses enabled manual-alert configurations.
+For a first reward, configure Name `Choose a topic`, Cost `100`, Fulfillment `manual`. Viewers use `!redeem Choose a topic` or the reward ID. In **Pending redemptions**, each row names the viewer and reward, with a reference ID that matches Discord notices. Perform the real promised action before **Mark fulfilled**. Choose **Reject and refund** when it cannot be fulfilled and confirm in the dialog; the refund is final, and repeat decisions are rejected. Alert fulfillment still needs moderator completion and uses enabled manual-alert configurations.
 
 Pending redemptions are independent of **Recent redemptions**, which shows the latest 100 decisions/requests. The pending queue shows 50 waiting items per page; use **Older waiting items** until you reach the request, **Newest waiting items** to return, or **Refresh this page** to reload an older page. Fulfillment/refund refreshes that page. Older pending requests remain actionable even after hundreds of newer completed rewards. Read-only users can browse but cannot fulfill or refund.
 
@@ -182,7 +182,7 @@ In **Polls & raffles**, add an activity with a future deadline. Polls have 2–1
 
 ### Run a poll
 
-Create an enabled poll, enter 2–10 **Choices** (one per row; **Add choice** adds another) and a future **Voting closes** date and time, or use **Quick start**. Leave Status **Open for votes**. Announce option numbers starting at 1; viewers send `!vote 1`, for example. Enable **Let viewers change their vote** only if replacing a vote should be allowed. **Close poll** ends voting early; otherwise the deadline closes it. Repeating the same vote does not add another participant. A poll widget can select that poll so a later poll does not replace it on stream.
+Create an enabled poll, enter its **Question** and 2–10 **Options** (one per row; **Add option** adds another) and a future **Voting closes** date and time, or use **Quick start**. Leave Status **Open for votes**. Announce option numbers starting at 1; viewers send `!vote 1`, for example. Enable **Let viewers change their vote** only if replacing a vote should be allowed. **Close poll** ends voting early; otherwise the deadline closes it. Repeating the same vote does not add another participant. A poll widget can select that poll so a later poll does not replace it on stream.
 
 ### Run a raffle
 

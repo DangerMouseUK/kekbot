@@ -3,6 +3,7 @@
 // this file only describes presentation. Hidden fields keep their stored values.
 import { widgetAccents, widgetThemes, type Kind } from "../../server/domain/catalog.ts";
 import type { DurationUnit } from "./time.ts";
+import { commandAvailability } from "./availability.ts";
 
 export type Data = Record<string, unknown>;
 export type Option = { value: string; label: string; help?: string };
@@ -12,6 +13,8 @@ export type Control =
   | { type: "textarea"; rows?: number; placeholder?: string }
   | { type: "toggle" }
   | { type: "select"; options: Option[] }
+  /** Command "When it works": one choice stored as `condition` plus `streamOnly`. */
+  | { type: "availability" }
   | { type: "number"; suffix?: string; step?: number }
   | { type: "duration"; base: DurationUnit }
   | { type: "datetime"; optional: boolean }
@@ -31,6 +34,8 @@ export type Control =
 
 export type FieldSpec = {
   key: string;
+  /** Other stored fields this control edits, so they are not listed again under "Other settings". */
+  also?: string[];
   label: string | ((data: Data) => string);
   help?: string | ((data: Data) => string);
   control: Control;
@@ -299,21 +304,13 @@ export const layouts: Record<Kind, Section[]> = {
         },
         {
           key: "condition",
+          also: ["streamOnly"],
           label: "When it works",
-          control: {
-            type: "select",
-            options: [
-              { value: "always", label: "Any time" },
-              { value: "live", label: "Only while live" },
-              { value: "offline", label: "Only while offline" },
-            ],
-          },
-        },
-        {
-          key: "streamOnly",
-          label: "Require a live stream",
-          help: "Also requires KekBot to have seen your stream go live. Works together with the setting above.",
-          control: { type: "toggle" },
+          help: (data) =>
+            commandAvailability(data) === "never"
+              ? "This command was saved needing both a live stream and an offline stream, so it never runs. Choose when it should work."
+              : "Live means KekBot has seen your stream go live on Kick.",
+          control: { type: "availability" },
         },
         {
           key: "cooldown",
@@ -941,13 +938,16 @@ export const layouts: Record<Kind, Section[]> = {
     {
       title: "Poll",
       fields: [
-        name("The question, e.g. Which game next?"),
+        {
+          ...name("What viewers are voting on, e.g. Which game next?"),
+          label: "Question",
+        },
         enabled("A disabled poll ignores votes."),
         {
           key: "options",
-          label: "Choices",
+          label: "Options",
           help: "Viewers vote with !vote 1, !vote 2 and so on, in this order.",
-          control: { type: "list", item: "Choice", add: "Add choice", multiline: false },
+          control: { type: "list", item: "Option", add: "Add option", multiline: false },
           wide: true,
         },
       ],
