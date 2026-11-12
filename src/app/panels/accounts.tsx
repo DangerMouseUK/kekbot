@@ -4,10 +4,19 @@ import { permissionLabels, roleLabel } from "../messages";
 import { CopyField, formatTime, permitted, text } from "../ui";
 import type { PanelProps } from "./types";
 
+const roleHelp: Record<string, string> = {
+  readonly:
+    "Can look at everything but cannot change anything. Good for a helper who only watches.",
+  moderator:
+    "Can moderate chat, manage media requests, run timers, alerts and goals, and handle points, polls and raffles. Cannot change settings or configuration.",
+  admin: "Can do only what you tick below.",
+};
+
 export default function AccountsPanel({ snapshot: s, auth, run, busy, confirm }: PanelProps) {
   const owner = auth.actor?.role === "owner",
     can = (permission: Parameters<typeof permitted>[1]) => permitted(auth.actor, permission);
   const [invitation, setInvitation] = useState<{ token: string; role: string }>();
+  const [role, setRole] = useState("readonly");
   if (!can("invite")) return null;
   return (
     <>
@@ -33,7 +42,7 @@ export default function AccountsPanel({ snapshot: s, auth, run, busy, confirm }:
         <h2>Invite an operator</h2>
         <label>
           Role
-          <select name="role">
+          <select name="role" value={role} onChange={(event) => setRole(event.target.value)}>
             <option value="readonly">Read-only</option>
             {(owner ||
               (["operate", "moderate", "media", "engage"] as const).every((permission) =>
@@ -42,21 +51,22 @@ export default function AccountsPanel({ snapshot: s, auth, run, busy, confirm }:
             <option value="admin">Admin</option>
           </select>
         </label>
-        <fieldset>
-          <legend>
-            Admin permissions (ignored for other roles; owner powers cannot be delegated)
-          </legend>
-          <div className="checks">
-            {(["configure", "operate", "moderate", "media", "engage", "invite"] as const)
-              .filter((permission) => owner || (permission !== "invite" && can(permission)))
-              .map((permission) => (
-                <label key={permission} className="check">
-                  <input name="permissions" type="checkbox" value={permission} />
-                  {permissionLabels[permission]}
-                </label>
-              ))}
-          </div>
-        </fieldset>
+        <p className="help">{roleHelp[role]}</p>
+        {role === "admin" && (
+          <fieldset>
+            <legend>Admin permissions (owner powers cannot be delegated)</legend>
+            <div className="checks">
+              {(["configure", "operate", "moderate", "media", "engage", "invite"] as const)
+                .filter((permission) => owner || (permission !== "invite" && can(permission)))
+                .map((permission) => (
+                  <label key={permission} className="check">
+                    <input name="permissions" type="checkbox" value={permission} />
+                    {permissionLabels[permission]}
+                  </label>
+                ))}
+            </div>
+          </fieldset>
+        )}
         <button disabled={busy}>Create one-day invitation</button>
       </form>
       {invitation && (

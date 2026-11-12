@@ -20,7 +20,7 @@ Install/claim KekBot and connect the relevant [providers](PROVIDERS.md) first. F
 ## Create a source
 
 1. Sign in as the owner and open **Widgets → Add widget**.
-2. Choose a name, **Type**, **Theme**, **Width**, **Height** and **Limit**. Optionally adjust accent, text size, alignment, backdrop, layout and the show/hide options described in [themes and presentation options](#themes-and-presentation-options). Enable **Reduced motion** when desired. Save the widget.
+2. Choose a **Name**, what it shows under **What it shows**, a **Theme**, **Width**, **Height** and, for list types, **Items to show**. Optionally adjust **Accent colour**, **Text size**, **Alignment**, **Background**, **Spacing** and the show/hide options described in [themes and presentation options](#themes-and-presentation-options). Turn on **Reduce motion** when desired. Select **Save widget**.
 3. Select **Create OBS source URL** on its card. Copy the private URL immediately; its token is shown once. Store it privately.
 4. In OBS Studio, choose **Sources → + → Browser**, create a source and paste the URL. Keep **Local file** off. Set width/height to match the widget.
 5. Confirm the source is visible, updates and recovers after a network interruption. A disabled widget renders empty; some types are empty until an event or target exists.
@@ -29,7 +29,7 @@ OBS documents its [Browser Source properties](https://obsproject.com/kb/browser-
 
 URLs contain scoped credentials. Keep source properties, scene exports, screenshots and logs private. Owner sessions and moderator permissions are unnecessary in an OBS source. Widget read tokens authorize only their named source; the player also has a separate acknowledgement token in the URL fragment. Preserve the complete URL including that fragment.
 
-To revoke a leaked source, open **Maintenance → Source and API tokens**, revoke its read token and, for a player, its player token. Create a new source URL and replace it in OBS. Revoking only the read token does not revoke the independent player credential.
+To revoke a leaked source, open **Widgets**, find the widget's card and use **Revoke** under **Source URLs issued** for its **Display URL** and, for a media player, its **Playback credential**. URLs whose widget was deleted are listed under **Source URLs for deleted widgets** on the same page. Create a new source URL and replace it in OBS. Revoking only the display URL does not revoke the independent playback credential.
 
 ## Source types
 

@@ -41,7 +41,7 @@ The complete [account guide](ACCOUNTS.md) covers claim, invitation acceptance, t
 
 ## Find your way around
 
-**Control room** opens with live status (stream, Kick, media player and background work), a **Needs attention** list with direct **Approve**/**Reject** and **Fulfilled**/**Refund** buttons, a **Setup checklist** whose **Set up** buttons open each step, and **Recent activity** written as sentences. **Connections** holds owner-only provider configuration. Other panels cover Commands, Timers, Alerts, Media, Moderation, Goals, Points & rewards, Polls & raffles, Widgets, Analytics, Accounts and Maintenance. Available controls depend on your role.
+**Control room** opens with live status (stream, Kick, media player and background work), a **Needs attention** list with direct **Approve**/**Reject** and **Mark fulfilled**/**Reject and refund** buttons (the same labels as **Media** and **Points & rewards**), a **Setup checklist** whose **Set up** buttons open each step, and **Recent activity** written as sentences. **Connections** holds owner-only provider configuration. Other panels cover Commands, Timers, Alerts, Media, Moderation, Goals, Points & rewards, Polls & raffles, Widgets, Analytics, Accounts and Maintenance. Available controls depend on your role.
 
 Configuration cards describe each item in plain words, and the buttons on a card act on that item directly: you do not copy IDs or versions. If someone else changed the item first, KekBot reloads the latest state and says what changed; check it and try again. **Details** on a card shows its reference ID, which a widget target, Discord command or the API may still ask for. Problems appear as a sentence with a next step at the top of the page; the API keeps its error codes. Most edits take effect without restarting. On a phone, the panel list scrolls sideways under the KekBot name.
 
@@ -62,7 +62,7 @@ Templates support `{user}`, `{args}`, `{channel}`, `{counter}`, `{points}` as pl
 
 | Built-in | Use | Example reply |
 | --- | --- | --- |
-| `!kekbot` | Foundation proof response | `KekBot foundation proof: verified event, durable receipt, real reply.` |
+| `!kekbot` | Check that KekBot is answering | `KekBot is online and listening. Type !commands to see what you can use.` |
 | `!commands` | Grouped list of commands for enabled modules | `Commands — Info: !uptime !rules !watchtime \| Points: !points !top \| Music: !sr !queue !nowplaying · Details: !commands <group>` |
 | `!commands <group>` | One group with short usage, e.g. `!commands music` | `Music: !sr <YouTube link> — request a song · !queue — next songs · !nowplaying — current song` |
 | `!uptime` | Observed stream uptime | `The stream has been live for 1 hour 5 minutes.` |
@@ -98,7 +98,7 @@ An enabled custom command selects one response randomly. Aliases use the same re
 
 `{channel}` is the configured instance name; `{user}` is the sender display name. `{args}` is text after the trigger, bounded to 200 characters. Unknown variables show an unavailable marker. Turn Counter on before relying on `{counter}`. Preview substitutes a sample viewer and does not establish real delivery. Custom trigger/alias names must be unique and cannot replace built-ins.
 
-Most built-ins have a five-second per-viewer cooldown; `!kekbot` additionally has a ten-second installation-wide proof cooldown. `!so`/`!skip` need an observed Kick moderator/broadcaster. `!redeem` accepts a reward ID or full name. `!vote`/`!enter` use the latest open activity of that type; keep only one open poll and raffle at a time to avoid ambiguity. `!vote` without a number lists the options instead of recording a vote. `!commands` lists enabled commands, not a guarantee that the caller meets their restrictions. Every reply is capped at 500 characters.
+Most built-ins have a five-second per-viewer cooldown; `!kekbot` additionally has a ten-second installation-wide proof cooldown. `!so`/`!skip` need an observed Kick moderator/broadcaster. `!redeem` accepts a reward ID or full name; `!redeem` on its own lists the enabled rewards and their costs. With points off, `!points`, `!top` and `!redeem` reply that points aren't enabled. `!vote`/`!enter` use the latest open activity of that type; keep only one open poll and raffle at a time to avoid ambiguity. `!vote` without a number lists the options instead of recording a vote. `!commands` lists enabled commands, not a guarantee that the caller meets their restrictions. Every reply is capped at 500 characters.
 
 The five-second guard applies per viewer and command, including error replies for invalid input or missing permission. Rapid repeated invalid `!sr` or forbidden `!skip` requests produce one explanation rather than a reply for every message. The guard survives restart; wait five seconds before trying again. Custom command cooldown settings remain separate.
 

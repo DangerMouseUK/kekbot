@@ -1,6 +1,12 @@
 "use client";
 import { useState } from "react";
-import { describeError, jobKindLabels, permissionLabels, statusLabel } from "../messages";
+import {
+  describeError,
+  jobKindLabels,
+  kickEventLabels,
+  permissionLabels,
+  statusLabel,
+} from "../messages";
 import {
   CopyField,
   Table,
@@ -35,7 +41,9 @@ function Diagnostics({ snapshot: s, auth, run, busy }: PanelProps) {
     ["Stream status", d.stream === "true" ? "Live" : d.stream === "false" ? "Offline" : "Unknown"],
     [
       "Last verified event",
-      last ? `${text(last.eventType)} · ${formatTime(last.receivedAt)}` : "None yet",
+      last
+        ? `${kickEventLabels[String(last.eventType)] ?? text(last.eventType)} · ${formatTime(last.receivedAt)}`
+        : "None yet",
     ],
     ["Deliveries", jobs || "None yet"],
     ["Public callback URL", d.callbacksConfigured ? "Configured" : "Not configured"],
