@@ -64,6 +64,17 @@ test("owner setup, command editor, CSRF denial and read-only permissions work in
     await operation(request, csrf, "config.save", { kind: "command", id: greeting.id, version: greeting.version, data: { ...greeting.data, name: "Reconnected greeting" } });
     await member.setOffline(false);
     await expect(memberPage.getByRole("heading", { name: "Reconnected greeting" })).toBeVisible();
+    // A change whose follow-up fetch fails (a network blip with the event stream still open) is fetched again.
+    let dropped = false;
+    await memberPage.route("**/api/control", (route) => {
+      if (dropped || route.request().method() !== "GET") return route.continue();
+      dropped = true; return route.abort("internetdisconnected");
+    });
+    const reconnected = (await (await request.get("/api/control")).json()).documents.find((doc: { id: string }) => doc.id === greeting.id);
+    await operation(request, csrf, "config.save", { kind: "command", id: reconnected.id, version: reconnected.version, data: { ...reconnected.data, name: "Retried greeting" } });
+    await expect(memberPage.getByRole("heading", { name: "Retried greeting" })).toBeVisible();
+    expect(dropped).toBe(true);
+    await memberPage.unroute("**/api/control");
     await operation(request, csrf, "account.disable", { id: session.actor.id, disabled: true });
     await expect(memberPage.getByRole("heading", { name: "Welcome back" })).toBeVisible();
   } finally { await member.close(); }
