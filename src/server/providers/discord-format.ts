@@ -268,7 +268,8 @@ export const staleCodes = new Set([
 
 export function describeError(code: string) {
   return (
-    errors[code] ?? `KekBot couldn't do that. Share the code below with the installation owner.`
+    errors[code] ??
+    "KekBot couldn't do that. Try again in a moment, or tell the streamer if it keeps happening."
   );
 }
 export function knownErrorCodes() {
@@ -282,6 +283,15 @@ function zodDetail(error: ZodError) {
   return `Check \`${escape(field)}\`: ${issue.message.slice(0, 200)}`;
 }
 
+/** The refusal's code for server-side records; member-facing replies never show it. */
+export function errorCode(error: unknown) {
+  return error instanceof ZodError
+    ? "invalid_command_input"
+    : isAppError(error)
+      ? error.code
+      : "invalid_command_input";
+}
+
 export function errorMessage(error: unknown): Message {
   if (error instanceof ZodError)
     return message([
@@ -289,7 +299,6 @@ export function errorMessage(error: unknown): Message {
         title: "That didn't work",
         description: zodDetail(error),
         color: colors.error,
-        footer: { text: "Code: invalid_command_input" },
       },
     ]);
   const code = isAppError(error) ? error.code : "invalid_command_input";
@@ -299,7 +308,6 @@ export function errorMessage(error: unknown): Message {
         code.endsWith("_denied") || code === "owner_required" ? "Not allowed" : "That didn't work",
       description: describeError(code),
       color: colors.error,
-      footer: { text: `Code: ${code}` },
     },
   ]);
 }

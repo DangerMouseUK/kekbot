@@ -255,6 +255,7 @@ Owner-only singleton, ID `instance`. Open **Maintenance → Edit settings**. [JS
 | `socials` | Empty | `!socials` response and source text, ≤500 characters |
 | `mediaEnabled` | `false` | Enable request module; still needs YouTube/provider/player setup |
 | `autoApprove` | `false` | Approve viewer requests after successful metadata/rule validation |
+| `mediaDecisionReplies` | `false` | Off until the owner turns it on in **Media requests → Tell viewers in chat when their request is approved or rejected** (shown once **Allow media requests** is on). Boolean; when a moderator approves or rejects a viewer's waiting request from the dashboard, Discord or the API, send one Kick chat reply such as `@name, your request #4 "Song title" was approved and is 2nd in line.` Removing a request or reordering the queue sends nothing. Off sends nothing |
 | `maxDuration` | `600` | Maximum video seconds, 1–43200 |
 | `capacity` | `50` | Active validating/pending/approved/playing items, 1–500 |
 | `perUser` | `3` | Active requests per viewer, 1–50 |
@@ -268,10 +269,13 @@ Owner-only singleton, ID `instance`. Open **Maintenance → Edit settings**. [JS
 | `pointsAmount` | `10` | Award per eligible cadence bucket, 1–1000 |
 | `pointsInterval` | `300` | Points and estimated-watchtime cadence seconds, 60–3600 |
 | `activeWindow` | `300` | Recent-chat eligibility seconds for points and watchtime, 60–3600 |
+| `raffleChatAnnouncements` | `false` | Off until the owner turns it on in **Chat announcements → Announce raffle winners in chat**. Boolean; announce each drawn or redrawn raffle winner once in Kick chat, for example `Congratulations @name, you won the "Giveaway" raffle!` Off sends nothing |
 | `chatDays` | `7` | Chat-body retention days, 0–30; 0 removes bodies after processing |
 | `receiptDays` | `30` | Receipt/deduplication retention days, 2–90; unfinished work preserved |
 | `summaryDays` | `90` | Observation retention days, 1–3650 |
 | `auditDays` | `365` | Audit/incident retention days, 30–3650 |
+
+Chat announcements recheck their switch and the moderator's current permission when they are delivered: turning a switch off cancels announcements that have not been sent yet (recorded as `chat_announcement_turned_off`). A viewer whose Kick username is not a plain name (letters, digits and underscores) is not @mentioned; the message names the request or raffle instead. Fixture mode records the delivery without sending anything to Kick.
 
 Moderator-added media bypasses the per-user limit/cooldown and auto-approves after validation; capacity, duplicate, metadata and content rules still apply. Points/watchtime need observed live state and recent chat, not silent viewing. Review [retention limits](OPERATIONS.md#privacy-and-retention) before changing data policies.
 

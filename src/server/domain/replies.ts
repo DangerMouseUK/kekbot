@@ -146,6 +146,13 @@ export function requestRejected(username: string | undefined, position: number, 
   return address(username, `Request ${requestNumber(position)} wasn't added. ${reason}`);
 }
 
+/** A moderator's decision on a viewer's waiting request. Sent once per request. */
+export function requestDecided(username: string | undefined, position: number, title: string | null, approved: boolean, place?: number) {
+  const what = `request ${requestNumber(position)} ${quoted(title)}`;
+  const outcome = approved ? `was approved${place ? ` and is ${ordinal(place)} in line` : ""}.` : "wasn't approved.";
+  return safeUsername(username) ? address(username, `Your ${what} ${outcome}`) : fit(`R${what.slice(1)} ${outcome}`);
+}
+
 export type QueueEntry = { position: number; title: string | null; requester?: string };
 
 function entry(item: QueueEntry, titleMax: number) {
@@ -234,6 +241,13 @@ export function voted(username: string | undefined, choice: number, option: stri
 
 export function entered(username: string | undefined, raffle: string) {
   return address(username, `You're entered in the ${quoted(raffle)} raffle. Good luck!`);
+}
+
+export function raffleWinner(username: string | undefined, raffle: string, reroll: boolean) {
+  const safe = safeUsername(username);
+  const name = quoted(raffle);
+  if (!safe) return fit(reroll ? `The ${name} raffle was redrawn and has a new winner. Congratulations!` : `The ${name} raffle has a winner. Congratulations!`);
+  return fit(reroll ? `The ${name} raffle was redrawn. Congratulations @${safe}, you won!` : `Congratulations @${safe}, you won the ${name} raffle!`);
 }
 
 // !commands ---------------------------------------------------------------------

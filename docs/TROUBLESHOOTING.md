@@ -86,7 +86,8 @@ Record the first failing boundary and time. Avoid changing several unrelated set
 | Refresh needs consent | Reauthorize the intended creator after revocation/invalid grant; do not loop on the same invalid refresh |
 | Discord endpoint rejected | Save matching application ID/public key first, verify exact HTTPS path and signed PING; check proxy preserves request bytes |
 | Discord command missing | Install to the intended guild, save enabled guild routing, then register commands; repeat registration after enabling or disabling media or points |
-| Discord command denied (`Code: discord_permission_denied`) | Check exact guild/channel and current role/user mapping for the grant the [command needs](USER_GUIDE.md#discord-controls); local account roles do not transfer |
+| Discord command replies **Not allowed** | Check exact guild/channel and current role/user mapping for the grant the [command needs](USER_GUIDE.md#discord-controls); local account roles do not transfer |
+| Discord says *KekBot isn't set up for this channel* | The server or channel has no enabled route. Add it in **Connections → Discord servers** with the exact server and channel IDs, then register commands |
 | Discord suggestions are empty | The member lacks the command's grant, the channel is not a configured route, or nothing matches (for example no pending requests). Chat-message suggestions need retained chat (chat retention above 0 days) |
 | Discord reply says **This changed** | Someone else acted first, or the button was rendered for an older version. Nothing was changed; read the current state in the reply and act again if still needed |
 | Discord notification shows only a headline, or no buttons | Give the bot **Embed Links** in the channel. Buttons appear only while a request or redemption is still waiting when the notice is sent, and only for IDs short enough for Discord's 100-character button limit |

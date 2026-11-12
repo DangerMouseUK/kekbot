@@ -177,6 +177,13 @@ export class Runtime {
           this.bot.state.assertActor(input.actor, input.permission);
         if (job.id.startsWith("timer:") && !this.bot.automation.timerDeliveryAllowed(input))
           throw new AppError("timer_no_longer_eligible", 409);
+        // Optional announcements recheck the owner's switch when they are delivered, not only when queued.
+        const settings = this.bot.state.settings;
+        if (
+          (job.id.startsWith("media-decision:") && !settings.mediaDecisionReplies) ||
+          (job.id.startsWith("raffle-winner:") && !settings.raffleChatAnnouncements)
+        )
+          throw new AppError("chat_announcement_turned_off", 409);
         if (this.config.mode === "fixture") {
           this.repository.store.sqlite
             .transaction(() => {

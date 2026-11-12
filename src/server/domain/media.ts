@@ -4,7 +4,12 @@ import { AppError } from "../errors.ts";
 import type { Actor } from "../auth.ts";
 import { State } from "./state.ts";
 import { PresentationService } from "./presentation.ts";
-import { requestAwaitingApproval, requestQueued, requestRejected } from "./replies.ts";
+import {
+  requestAwaitingApproval,
+  requestDecided,
+  requestQueued,
+  requestRejected,
+} from "./replies.ts";
 
 export type MediaItem = {
   id: string;
@@ -334,7 +339,34 @@ export class MediaService {
           .prepare("UPDATE media SET status=?,version=version+1 WHERE id=? AND version=?")
           .run(status, id, version);
         this.state.audit(actor.id, `media.${action}`, id);
-        return this.item(id)!;
+        const updated = this.item(id)!;
+        // Tell the viewer once about a decision on their waiting request. The effect ID is durable,
+        // so a retried action or job cannot announce the same request twice. Reorders stay silent.
+        if (
+          item.status === "pending" &&
+          action !== "remove" &&
+          this.state.settings.mediaDecisionReplies &&
+          /^\d{1,24}$/.test(item.requester)
+        )
+          this.state.repository.withViewers([item.requester], () =>
+            this.state.effect(
+              `media-decision:${id}`,
+              "kick.reply",
+              {
+                requester: item.requester,
+                text: requestDecided(
+                  this.state.viewerName(item.requester),
+                  updated.position,
+                  updated.title,
+                  action === "approve",
+                  action === "approve" ? this.placeInLine(updated) : undefined,
+                ),
+              },
+              actor,
+              "media",
+            ),
+          );
+        return updated;
       })
       .immediate();
   }
