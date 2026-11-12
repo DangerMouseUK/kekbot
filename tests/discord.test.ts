@@ -49,7 +49,7 @@ async function run(discord: DiscordService, bot: BotService, interaction: { id: 
   const job = bot.state.db.prepare("SELECT * FROM jobs WHERE id=?").get(`discord:${interaction.id}`) as Job & { kind: string };
   expect(job.kind).toBe("discord.interaction");
   await discord.execute(job, (actor, name, input, id) => bot.action(actor, name, input, id));
-  return JSON.parse(bot.state.repository.setting(`discord_result:${interaction.id}`)!) as { reply: Message; update?: unknown[] };
+  return JSON.parse(bot.state.repository.setting(`discord_result:${interaction.id}`)!) as { reply: Message; update?: unknown[]; code?: string };
 }
 function suggest(discord: DiscordService, interaction: unknown) {
   const payload = signed(interaction);
@@ -101,7 +101,7 @@ describe("Discord command tree", () => {
     for (const kind of ["goal", "poll", "raffle"]) codes.add(`${kind}_not_found`);
     const known = new Set(knownErrorCodes());
     expect([...codes].filter((code) => !unreachable.has(code) && !known.has(code))).toEqual([]);
-    expect(describeError("never_seen_code")).toContain("Share the code");
+    expect(describeError("never_seen_code")).toBe("KekBot couldn't do that. Try again in a moment, or tell the streamer if it keeps happening.");
   });
 });
 
@@ -119,7 +119,7 @@ describe("signed Discord interactions with real SQLite", () => {
     const again = await run(discord, bot, command(["media", "approve"], { request: "#41" }));
     expect(again.reply.embeds![0].title).toBe("This changed"); expect(replyText(again.reply)).toContain("queued");
     const missing = await run(discord, bot, command(["media", "approve"], { request: "#999" }));
-    expect(missing.reply.embeds![0].footer!.text).toBe("Code: media_not_found");
+    expect(missing.code).toBe("media_not_found");
     const status = await run(discord, bot, command(["status"]));
     expect(status.reply.embeds![0].title).toBe("KekBot status"); expect(replyText(status.reply)).toContain("#41 · Synthetic song 41");
     expect(replyText(status.reply)).not.toContain('\\"version\\"');
@@ -138,7 +138,7 @@ describe("signed Discord interactions with real SQLite", () => {
     expect((await run(discord, bot, command(["media", "skip"]))).reply.embeds![0].description).toContain("Now playing #");
     expect((await run(discord, bot, command(["media", "volume"], { level: 35 }))).reply.embeds![0].title).toBe("Volume set to 35%");
     const refused = await run(discord, bot, command(["media", "clear"], { confirm: false }));
-    expect(refused.reply.embeds![0].footer!.text).toBe("Code: operator_acknowledgement_required");
+    expect(refused.code).toBe("operator_acknowledgement_required");
     expect((await run(discord, bot, command(["media", "clear"], { confirm: true }))).reply.embeds![0].description).toContain("Removed 1 request");
   });
 
@@ -150,7 +150,7 @@ describe("signed Discord interactions with real SQLite", () => {
     bot.engagement.vote(poll.id, "456", 2);
     const closed = await run(discord, bot, command(["poll", "close"], { poll: "Pick a map" }));
     expect(closed.reply.embeds![1].description).toContain("South"); expect(closed.reply.embeds![1].footer!.text).toBe("1 vote · closed");
-    expect((await run(discord, bot, command(["poll", "create"], { question: "Bad", options: "Only one" }))).reply.embeds![0].footer!.text).toBe("Code: invalid_poll_options");
+    expect((await run(discord, bot, command(["poll", "create"], { question: "Bad", options: "Only one" }))).code).toBe("invalid_poll_options");
     await run(discord, bot, command(["raffle", "create"], { name: "Prize draw" }));
     const raffle = bot.state.list("raffle").find((doc) => doc.data.name === "Prize draw")!;
     bot.engagement.enter(raffle.id, "456", "viewer");
@@ -159,7 +159,7 @@ describe("signed Discord interactions with real SQLite", () => {
     expect((await run(discord, bot, command(["raffle", "draw"], { raffle: "Prize draw" }))).reply.embeds![0].title).toBe("Winner: Fixture viewer");
     const points = await run(discord, bot, command(["points"], { viewer: "fixture VIEWER" }));
     expect(points.reply.embeds![0].title).toBe("Fixture viewer"); expect(points.reply.embeds![0].fields![0]).toMatchObject({ name: "Points", value: "100" });
-    expect((await run(discord, bot, command(["points"], { viewer: "Nobody here" }))).reply.embeds![0].footer!.text).toBe("Code: viewer_not_found");
+    expect((await run(discord, bot, command(["points"], { viewer: "Nobody here" }))).code).toBe("viewer_not_found");
   });
 
   it("queues moderation for a named viewer and supports incident mode, timers and alerts", async () => {
@@ -168,7 +168,7 @@ describe("signed Discord interactions with real SQLite", () => {
     expect(timeout.reply.embeds![0].title).toBe("15-minute timeout for Fixture viewer sent to Kick");
     const action = repo.store.sqlite.prepare("SELECT payload FROM jobs WHERE kind='kick.action'").get() as { payload: string };
     expect(JSON.parse(action.payload)).toMatchObject({ action: "timeout", userId: 456, duration: 15 });
-    expect((await run(discord, bot, command(["mod", "ban"], { viewer: "456", reason: "Synthetic", confirm: false }))).reply.embeds![0].footer!.text).toBe("Code: operator_acknowledgement_required");
+    expect((await run(discord, bot, command(["mod", "ban"], { viewer: "456", reason: "Synthetic", confirm: false }))).code).toBe("operator_acknowledgement_required");
     expect((await run(discord, bot, command(["mod", "incident-start"], { preset: "links", minutes: 30, confirm: true }))).reply.embeds![0].title).toBe("Incident mode on");
     expect(JSON.parse(repo.setting("incident_mode")!).preset).toBe("links");
     await run(discord, bot, command(["mod", "incident-stop"]));
@@ -176,13 +176,28 @@ describe("signed Discord interactions with real SQLite", () => {
     expect((await run(discord, bot, command(["alert", "send"], { text: "Synthetic alert" }))).reply.embeds![0].title).toBe("Alert sent");
   });
 
+  it("queues one viewer chat reply for a Discord decision when the owner turned it on", async () => {
+    const { bot, owner } = await setup(), discord = new DiscordService(bot.state);
+    const doc = bot.state.document("instance")!;
+    bot.state.save(owner, "settings", "instance", { ...doc.data, mediaDecisionReplies: true }, doc.version);
+    bot.state.db.prepare("INSERT OR REPLACE INTO viewers(id,name,role,last_seen) VALUES('456','FixtureViewer','viewer',?)").run(Date.now());
+    addMedia(bot, "song-a", 5);
+    await run(discord, bot, command(["media", "approve"], { request: "#5" }));
+    const row = bot.state.db.prepare("SELECT payload FROM jobs WHERE id='media-decision:song-a'").get() as { payload: string };
+    expect(JSON.parse(row.payload)).toMatchObject({ text: '@FixtureViewer, your request #5 "Synthetic song 5" was approved and is 1st in line.', permission: "media", actor: { id: "discord:100:400" } });
+    expect((await run(discord, bot, command(["media", "approve"], { request: "#5" }))).reply.embeds![0].title).toBe("This changed");
+    expect(bot.state.db.prepare("SELECT count(*) AS n FROM jobs WHERE id LIKE 'media-decision:%'").get()).toEqual({ n: 1 });
+  });
+
   it("denies members without the command's grant before resolving targets or acting", async () => {
     const { bot, owner } = await setup(), discord = new DiscordService(bot.state);
     addMedia(bot, "song-a", 7);
     const denied = await run(discord, bot, command(["media", "approve"], { request: "#7" }, { roles: ["301"] }));
-    expect(denied.reply.embeds![0]).toMatchObject({ title: "Not allowed", footer: { text: "Code: discord_permission_denied" } });
+    expect(denied.reply.embeds![0]).toMatchObject({ title: "Not allowed", description: describeError("discord_permission_denied") });
+    // The code stays in the server-side result record; members never see it.
+    expect(denied.code).toBe("discord_permission_denied"); expect(denied.reply.embeds![0].footer).toBeUndefined(); expect(JSON.stringify(denied.reply)).not.toContain("discord_permission_denied");
     expect(media(bot, "song-a").status).toBe("pending");
-    expect((await run(discord, bot, command(["status"], {}, { roles: [] }))).reply.embeds![0].footer!.text).toBe("Code: discord_permission_denied");
+    expect((await run(discord, bot, command(["status"], {}, { roles: [] }))).code).toBe("discord_permission_denied");
     // A grant removed after intake is enforced when the deferred job runs.
     const pending = command(["media", "approve"], { request: "#7" }), payload = signed(pending);
     discord.intake(payload.body, payload.headers, credentials);
@@ -280,7 +295,7 @@ describe("Discord notification buttons", () => {
     const { bot } = await setup(), discord = new DiscordService(bot.state);
     addMedia(bot, "song-a", 3);
     const denied = await run(discord, bot, click("kb1:ma:1:song-a", ["301"]));
-    expect(denied.reply.embeds![0].footer!.text).toBe("Code: discord_permission_denied"); expect(denied.update).toBeUndefined();
+    expect(denied.code).toBe("discord_permission_denied"); expect(denied.update).toBeUndefined();
     expect(media(bot, "song-a").status).toBe("pending");
     const interaction = click("kb1:ma:1:song-a"), payload = signed(interaction);
     discord.intake(payload.body, payload.headers, credentials); discord.intake(payload.body, payload.headers, credentials);
@@ -326,7 +341,7 @@ describe("Discord notification buttons", () => {
     const legacy = { ...command(["timers", "pause"]), data: { name: "kekbot", options: [{ name: "action", value: "timers.pause" }] } };
     // Arriving now (old registration still in Discord): refused without acting.
     const refused = await run(discord, bot, legacy);
-    expect(refused.reply.embeds![0].footer!.text).toBe("Code: discord_commands_outdated"); expect(bot.state.settings.timersPaused).toBe(false);
+    expect(refused.code).toBe("discord_commands_outdated"); expect(bot.state.settings.timersPaused).toBe(false);
     // Queued by the previous release: its payload has no format marker.
     const queued = { ...legacy, id: String(sequence++) };
     const job = { id: `discord:${queued.id}`, kind: "discord.interaction", payload: JSON.stringify({ encrypted: encrypt(JSON.stringify({ interaction: queued, expires: Date.now() + 60000 }), config.key, "discord.interaction") }) } as Job;
@@ -369,9 +384,9 @@ describe("slash commands act on what the member submitted", () => {
   it("resolves names at intake but reveals a missing target only to permitted members", async () => {
     const { bot } = await setup(), discord = new DiscordService(bot.state);
     const missing = await run(discord, bot, command(["media", "approve"], { request: "#404" }));
-    expect(missing.reply.embeds![0].footer!.text).toBe("Code: media_not_found");
+    expect(missing.code).toBe("media_not_found");
     const hidden = await run(discord, bot, command(["media", "approve"], { request: "#404" }, { roles: ["301"] }));
-    expect(hidden.reply.embeds![0].footer!.text).toBe("Code: discord_permission_denied");
+    expect(hidden.code).toBe("discord_permission_denied");
   });
 
   it("refuses reward and points commands, buttons and suggestions while points are disabled", async () => {
@@ -380,7 +395,7 @@ describe("slash commands act on what the member submitted", () => {
     const settings = bot.state.document("instance")!;
     bot.state.save(owner, "settings", "instance", { ...settings.data, pointsEnabled: false }, settings.version);
     for (const interaction of [command(["reward", "pending"]), command(["points"], { viewer: "456" }), click("kb1:rc:0:redemption:off", ["301"])])
-      expect((await run(discord, bot, interaction)).reply.embeds![0].footer!.text).toBe("Code: points_disabled");
+      expect((await run(discord, bot, interaction)).code).toBe("points_disabled");
     expect(bot.state.db.prepare("SELECT status FROM redemptions WHERE id='redemption:off'").get()).toEqual({ status: "pending" });
     expect(suggest(discord, command(["reward", "complete"], { redemption: "" }, { focused: "redemption" })).data.choices).toEqual([]);
   });
@@ -397,7 +412,7 @@ describe("engage can create polls and raffles (deliberate permission change)", (
   it("allows Discord engage grants, moderators and engage API tokens, and refuses everyone else", async () => {
     const { bot, owner } = await setup(), discord = new DiscordService(bot.state);
     expect((await run(discord, bot, command(["poll", "create"], { question: "Engage poll", options: "A, B" }, { roles: ["301"] }))).reply.embeds![0].title).toBe("Poll started: Engage poll");
-    expect((await run(discord, bot, command(["raffle", "create"], { name: "Media raffle" }, { roles: ["300"] }))).reply.embeds![0].footer!.text).toBe("Code: discord_permission_denied");
+    expect((await run(discord, bot, command(["raffle", "create"], { name: "Media raffle" }, { roles: ["300"] }))).code).toBe("discord_permission_denied");
     expect((await bot.action(account(bot, "moderator"), "poll.create", poll, "moderator-request")) as { id: string }).toMatchObject({ id: "poll-moderator-request", kind: "poll" });
     await expect(bot.action(account(bot, "readonly"), "raffle.create", { name: "Nope" }, "readonly-request")).rejects.toThrow("permission_denied");
     const read = bot.presentation.issueToken(owner, "Reader", "api", ["read"]), engage = bot.presentation.issueToken(owner, "Engage", "api", ["engage"]);
@@ -427,7 +442,7 @@ describe("engage can create polls and raffles (deliberate permission change)", (
     const open = () => [...bot.state.list("poll"), ...bot.state.list("raffle")].filter((doc) => doc.data.status === "open").length;
     for (let i = 0; open() < 10; i++) await bot.action(moderator, "raffle.create", { name: `Raffle ${i}` }, `fill-${i}`);
     await expect(bot.action(moderator, "raffle.create", { name: "Eleventh" }, "eleventh")).rejects.toThrow("open_activity_limit");
-    expect((await run(discord, bot, command(["poll", "create"], { question: "Too many", options: "A,B" }))).reply.embeds![0].footer!.text).toBe("Code: open_activity_limit");
+    expect((await run(discord, bot, command(["poll", "create"], { question: "Too many", options: "A,B" }))).code).toBe("open_activity_limit");
     expect(await bot.action(moderator, "poll.create", poll, "retry-me")).toEqual(first);
   });
 });

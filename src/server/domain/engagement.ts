@@ -5,6 +5,7 @@ import { AppError } from "../errors.ts";
 import { State } from "./state.ts";
 import { configSchemas } from "./catalog.ts";
 import { PresentationService } from "./presentation.ts";
+import { raffleWinner } from "./replies.ts";
 
 export class EngagementService {
   readonly state: State;
@@ -138,7 +139,12 @@ export class EngagementService {
       this.state.observe(`draw:${id}:${winner}`, "raffles.draws");
       const winnerName = this.state.viewerName(winner) ?? "Viewer name unavailable";
       // Associate the notice with the winner so viewer erasure scrubs it.
-      this.state.repository.withViewers([winner], () => this.state.notify("engagement", `${raffle.name}: winner ${winnerName} (${winner})`, `draw:${id}:${winner}`));
+      this.state.repository.withViewers([winner], () => {
+        this.state.notify("engagement", `${raffle.name}: winner ${winnerName} (${winner})`, `draw:${id}:${winner}`);
+        // One chat announcement per drawn winner; the durable ID stops a retry from repeating it.
+        if (this.state.settings.raffleChatAnnouncements && /^\d{1,24}$/.test(winner))
+          this.state.effect(`raffle-winner:${id}:${winner}`, "kick.reply", { viewer: winner, text: raffleWinner(this.state.viewerName(winner), raffle.name, reroll) }, actor, "engage");
+      });
       return { winner, winnerName };
     }).immediate();
   }

@@ -52,7 +52,8 @@ const interactionSchema = z.object({
   message: z.object({ id: snowflake, flags: z.number().int().optional() }).optional(),
 });
 type Interaction = z.infer<typeof interactionSchema>;
-type Stored = { reply?: Message; update?: Row[]; delivered?: boolean };
+/** `code` is the refusal's error code, kept server-side for diagnosis and never sent to Discord. */
+type Stored = { reply?: Message; update?: Row[]; delivered?: boolean; code?: string };
 
 /** Interaction types and callback types: https://docs.discord.com/developers/interactions/receiving-and-responding */
 const PING = 1,
@@ -60,6 +61,9 @@ const PING = 1,
   COMPONENT = 3,
   AUTOCOMPLETE = 4;
 const EPHEMERAL = 64;
+/** Shown privately to members who use KekBot where the owner has not added a route. */
+export const UNROUTED =
+  "KekBot isn't set up for this channel. Ask the streamer to add it in KekBot under Connections → Discord servers.";
 /** Interaction job payload format; absent on jobs queued by the single-command release. */
 const PAYLOAD_FORMAT = 2;
 
@@ -115,6 +119,18 @@ export class DiscordService {
         user: member.user.id,
       },
     };
+  }
+
+  /** Whether this interaction comes from a server and channel that has an enabled route. */
+  private routed(interaction: Interaction) {
+    try {
+      this.actor(interaction);
+      return true;
+    } catch (error) {
+      if (error instanceof AppError && error.code === "discord_guild_or_channel_not_allowed")
+        return false;
+      throw error;
+    }
   }
 
   /** Synchronous HTTP entry: everything here must finish well inside Discord's 3-second deadline. */
@@ -183,7 +199,13 @@ export class DiscordService {
         : interaction.type !== COMPONENT || !format.parseCustomId(interaction.data?.custom_id ?? "")
     )
       throw new AppError("unsupported_discord_interaction", 400);
-    this.actor(interaction);
+    // A verified request from a server or channel without a route gets a private explanation
+    // instead of Discord's generic "interaction failed". It reveals no configuration and queues nothing.
+    if (!this.routed(interaction))
+      return {
+        type: 4,
+        data: { flags: EPHEMERAL, content: UNROUTED, allowed_mentions: { parse: [] } },
+      };
     this.state.db
       .transaction(() => {
         const id = `discord:${interaction.id}`;
@@ -411,7 +433,7 @@ export class DiscordService {
     const key = `discord_result:${interaction.id}`;
     let result = this.stored(key);
     if (!result) {
-      let outcome: Outcome;
+      let outcome: Outcome & { code?: string };
       const ctx = { actor, state: this.state, action, id: interaction.id, prepared: data.prepared };
       try {
         outcome =
@@ -420,7 +442,7 @@ export class DiscordService {
             : // Payloads without a format marker were queued before the subcommand tree.
               await runCommand(ctx, interaction.data?.options, data.format === undefined);
       } catch (error) {
-        outcome = { reply: format.errorMessage(error) };
+        outcome = { reply: format.errorMessage(error), code: format.errorCode(error) };
       }
       const editable =
         interaction.type === COMPONENT &&
@@ -429,6 +451,7 @@ export class DiscordService {
       result = {
         reply: outcome.reply,
         ...(editable && outcome.update ? { update: outcome.update } : {}),
+        ...(outcome.code ? { code: outcome.code } : {}),
       };
       // Commit the outcome before any delivery so a retried job never repeats the action.
       this.state.repository.set(key, JSON.stringify(result));
@@ -452,8 +475,11 @@ export class DiscordService {
           body: JSON.stringify({ components: result.update }),
         }).catch(() => undefined);
     }
-    // Keep only a marker once delivered, so viewer names in replies are not retained.
-    this.state.repository.set(key, JSON.stringify({ delivered: true }));
+    // Keep only a marker (and any refusal code) once delivered, so viewer names in replies are not retained.
+    this.state.repository.set(
+      key,
+      JSON.stringify({ delivered: true, ...(result.code ? { code: result.code } : {}) }),
+    );
   }
 
   commands() {

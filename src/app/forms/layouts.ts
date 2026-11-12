@@ -1164,6 +1164,14 @@ export const layouts: Record<Kind, Section[]> = {
           visible: (data) => data.mediaEnabled === true,
         },
         {
+          key: "mediaDecisionReplies",
+          label: "Tell viewers in chat when their request is approved or rejected",
+          help: 'Off by default. Example: @name, your request #4 "Song title" was approved and is 2nd in line. Sent once, only for requests that waited for a moderator; removing or reordering sends nothing.',
+          control: { type: "toggle" },
+          visible: (data) => data.mediaEnabled === true,
+          wide: true,
+        },
+        {
           key: "allowDuplicates",
           label: "Allow the same video twice in the queue",
           control: { type: "toggle" },
@@ -1242,6 +1250,20 @@ export const layouts: Record<Kind, Section[]> = {
           help: "Silent viewers do not earn points.",
           control: { type: "duration", base: "seconds" },
           visible: (data) => data.pointsEnabled === true,
+        },
+      ],
+    },
+    {
+      title: "Chat announcements",
+      description:
+        "Optional KekBot messages in your Kick chat that mention the viewer they are about. Off until you turn them on; each is sent at most once. The song request one is under Media requests.",
+      fields: [
+        {
+          key: "raffleChatAnnouncements",
+          label: "Announce raffle winners in chat",
+          help: 'Off by default. Example: Congratulations @name, you won the "Giveaway" raffle! Sent once when you draw or redraw a winner.',
+          control: { type: "toggle" },
+          wide: true,
         },
       ],
     },
