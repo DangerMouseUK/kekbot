@@ -184,14 +184,45 @@ export default function Dashboard() {
   }, []);
   useEffect(() => {
     if (!auth?.actor?.id) return;
-    let active = true;
+    let active = true,
+      retry: ReturnType<typeof setTimeout> | undefined,
+      delay = 1000,
+      behind = false;
     const events = new EventSource("/api/events");
+    // A change notice can arrive while the network is briefly down, so the follow-up fetch
+    // fails even though the event stream stays open. Keep fetching until it succeeds instead
+    // of leaving the page stale until the next change.
+    const sync = () => {
+      if (!active) return;
+      clearTimeout(retry);
+      retry = undefined;
+      refresh().then(
+        () => {
+          delay = 1000;
+          if (active && behind) {
+            behind = false;
+            setConnected(true);
+          }
+        },
+        () => {
+          if (!active) return;
+          behind = true;
+          setConnected(false);
+          retry = setTimeout(sync, delay);
+          delay = Math.min(delay * 2, 15000);
+        },
+      );
+    };
     const changed = () => {
       if (active) {
         setConnected(true);
-        void refresh();
+        sync();
       }
     };
+    const online = () => {
+      if (behind) sync();
+    };
+    window.addEventListener("online", online);
     events.addEventListener("snapshot", changed);
     events.addEventListener("change", changed);
     events.onopen = () => setConnected(true);
@@ -216,6 +247,8 @@ export default function Dashboard() {
     };
     return () => {
       active = false;
+      clearTimeout(retry);
+      window.removeEventListener("online", online);
       invalidateRequests();
       events.close();
     };
