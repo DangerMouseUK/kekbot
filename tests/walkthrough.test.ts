@@ -35,6 +35,7 @@ describe("walkthrough wording", () => {
     expect(kickEventLabels["chat.message.sent"]).toBe("Chat message");
     expect(formatBytes(400 * 1024 ** 3)).toBe("400.0 GB");
     expect(formatBytes(5 * 1024 * 1024)).toBe("5.0 MB");
+    expect(formatBytes(70)).toBe("70 B");
   });
 
   it("pluralises goal progress without truncating the word", () => {

@@ -17,6 +17,10 @@ async function operation(request: APIRequestContext, csrf: string, action: strin
 }
 test("owner setup, command editor, CSRF denial and read-only permissions work in production", async ({ page, request, browser }) => {
   await page.goto("/"); await expect(page.getByRole("heading", { name: "Claim this installation" })).toBeVisible();
+  // Token instructions cover every install path, not only a source checkout.
+  await page.getByText("Where is my setup token?").click();
+  for (const path of ["KekBot installer or launcher", "Docker Compose set up by hand", "Running from source with pnpm"]) await expect(page.getByText(path, { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Step-by-step renewal" })).toHaveAttribute("href", /ACCOUNTS\.md#if-the-token-expired-before-your-first-login$/);
   await page.getByLabel("Setup token").fill(readFileSync(join(root(), "fixture/secrets/setup.token"), "utf8").trim());
   await page.getByLabel("Username", { exact: true }).fill("owner"); await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Create owner account" }).click(); await expect(page.getByRole("heading", { name: "Control room" })).toBeVisible();
@@ -32,9 +36,13 @@ test("owner setup, command editor, CSRF denial and read-only permissions work in
   await page.getByLabel("Add alias").fill("Hey"); await page.getByLabel("Add alias").press("Enter");
   await expect(page.getByRole("button", { name: "Remove !hey" })).toBeVisible();
   await page.getByLabel("Response 1", { exact: true }).fill("Hello {user}");
+  // One "When it works" choice replaces the separate "Require a live stream" switch.
+  await expect(page.getByLabel("Require a live stream")).toHaveCount(0);
+  await page.getByLabel("When it works", { exact: true }).selectOption("live");
   await expect(page.getByRole("group", { name: "command preview" })).toContainText("Hello Preview viewer");
   await page.getByRole("button", { name: "Save command" }).click();
   await expect(page.getByRole("heading", { name: "Browser greeting" })).toBeVisible();
+  await expect(page.locator("article").filter({ has: page.getByRole("heading", { name: "Browser greeting" }) })).toContainText("only while live");
   const csrf = await login(request);
   expect((await request.post("/api/control", { headers: { Origin: origin }, data: { action: "timers.pause" } })).status()).toBe(403);
   expect((await request.post("/api/control", { headers: { Origin: "https://untrusted.example", "X-CSRF-Token": csrf }, data: { action: "timers.pause" } })).status()).toBe(403);
@@ -45,6 +53,10 @@ test("owner setup, command editor, CSRF denial and read-only permissions work in
     const session = await (await member.request.get("/api/auth")).json();
     expect((await member.request.post("/api/control", { headers: { Origin: origin, "X-CSRF-Token": session.csrf }, data: { action: "timers.pause" } })).status()).toBe(403);
     const memberPage = await member.newPage(); await memberPage.goto("/"); await expect(memberPage.getByRole("heading", { name: "Control room" })).toBeVisible();
+    // The owner's setup checklist is for accounts that can configure; a reader is told what they can do.
+    await expect(memberPage.getByRole("heading", { name: "What you can do" })).toBeVisible();
+    await expect(memberPage.getByRole("heading", { name: "Setup checklist" })).toHaveCount(0);
+    await expect(memberPage.getByText(/ask the owner\s+for a moderator account/)).toBeVisible();
     await memberPage.getByRole("button", { name: "Commands", exact: true }).click();
     await expect(memberPage.getByRole("heading", { name: "Browser greeting" })).toBeVisible();
     await member.setOffline(true);
@@ -266,6 +278,18 @@ test("older unresolved deliveries and rewards stay actionable through bounded pa
     await oldReward.getByRole("button", { name: "Mark fulfilled", exact: true }).click();
     await expect(oldReward).toHaveCount(0);
     expect(db.prepare("SELECT status FROM redemptions WHERE id='browser-waiting-reward-000'").get()).toEqual({ status: "completed" });
+    // Refunding is final, so it asks first and a stray Enter cancels.
+    const refunded = rewards.locator("article").filter({ hasText: "browser-waiting-reward-002" });
+    await refunded.getByRole("button", { name: "Reject and refund", exact: true }).click();
+    const refund = page.getByRole("dialog", { name: "Reject and refund this redemption?" });
+    await expect(refund.getByRole("button", { name: "Cancel" })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(refund).toHaveCount(0);
+    expect(db.prepare("SELECT status FROM redemptions WHERE id='browser-waiting-reward-002'").get()).toEqual({ status: "pending" });
+    await refunded.getByRole("button", { name: "Reject and refund", exact: true }).click();
+    await refund.getByRole("button", { name: "Reject and refund" }).click();
+    await expect(refunded).toHaveCount(0);
+    expect(db.prepare("SELECT status FROM redemptions WHERE id='browser-waiting-reward-002'").get()).toEqual({ status: "refunded" });
 
     const token = await operation(request, csrf, "token.create", { name: "Waiting work read", kind: "api", scopes: ["read"] });
     const headers = { Authorization: `Bearer ${token.token}` };
@@ -308,7 +332,8 @@ test("editor date-times accept a year typed digit by digit and a version conflic
     expect((await context.request.post("/api/auth", { headers: { Origin: origin }, data: { action: "login", username: "owner", password } })).ok()).toBe(true);
     const page = await context.newPage(); await page.goto("/");
     await page.getByRole("button", { name: "Polls & raffles", exact: true }).click(); await page.getByRole("button", { name: "Add poll" }).click();
-    await page.getByLabel("Name", { exact: true }).fill("Typed deadline poll");
+    // The quick start and the editor both say "Question", so target the editor.
+    await page.locator(".editor").getByLabel("Question", { exact: true }).fill("Typed deadline poll");
     const closes = page.getByLabel("Voting closes", { exact: true });
     if (browserName === "firefox") {
       // Firefox's segmented field does not take keys after a programmatic focus in CI; the

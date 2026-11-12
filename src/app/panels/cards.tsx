@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ConfigDocument, Kind } from "../../server/domain/catalog.ts";
+import { availabilityPhrase, commandAvailability } from "../forms/availability";
 import { widgetThemeOptions } from "../forms/layouts";
 import { eventLabels, statusLabel } from "../messages";
 import {
@@ -103,7 +104,8 @@ export function cardSummary(kind: Kind, doc: ConfigDocument, snapshot: Snapshot)
   switch (kind) {
     case "command": {
       const responses = list(d.responses);
-      return `${d.trigger}${list(d.aliases).length ? ` (also ${list(d.aliases).join(", ")})` : ""} · ${quote(responses[0])}${responses.length > 1 ? ` and ${responses.length - 1} more` : ""}`;
+      const when = availabilityPhrase[commandAvailability(d)];
+      return `${d.trigger}${list(d.aliases).length ? ` (also ${list(d.aliases).join(", ")})` : ""} · ${quote(responses[0])}${responses.length > 1 ? ` and ${responses.length - 1} more` : ""}${when ? ` · ${when}` : ""}`;
     }
     case "timer":
       return `Every ${interval(d.interval)}${Number(d.minMessages) ? ` · needs ${d.minMessages} chat messages in between` : ""}${d.streamOnly ? " · only while live" : ""}${d.quietStart !== null && d.quietEnd !== null ? ` · quiet ${d.quietStart}:00–${d.quietEnd}:00 ${d.timezone}` : ""}`;

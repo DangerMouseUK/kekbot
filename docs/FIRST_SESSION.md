@@ -22,7 +22,7 @@ Fixture installations simulate effects. On a live installation, the command and 
 
 ## 1. Check the starting state
 
-Sign in at the exact configured origin. **Control room** should show **Background work: Running**, and its **Setup checklist** links to each step below. Open **Maintenance → Diagnostics** and check storage/worker errors before adding features. Owner-only **Connections** should show the expected integrations. “Offline” or “unavailable” stream state can be correct for a channel that has not streamed.
+Sign in at the exact configured origin. **Control room** should show **Background work: Running**, and its **Setup checklist** links to each step below (accounts that cannot change configuration see **What you can do** instead). Open **Maintenance → Diagnostics** and check storage/worker errors before adding features. Owner-only **Connections** should show the expected integrations. “Offline” or “unavailable” stream state can be correct for a channel that has not streamed.
 
 For live use, finish [Kick setup](PROVIDERS.md#kick) first. Confirm the authorized account is the creator whose chat you intend to serve. A developer application's display name does not choose the reply sender.
 
@@ -38,7 +38,6 @@ Open **Commands → Add command** and set the values below. If you used `fixture
 | Response 1 | `Welcome, {user}! Thanks for visiting {channel}.` |
 | Allowed roles | None ticked |
 | When it works | Any time |
-| Require a live stream | Off |
 | Cooldown for everyone / Cooldown per viewer | `10` / `30` seconds |
 
 The preview under the response shows the reply with sample values while you type. Save, then choose **Preview responses** on the card. Expect substituted example text with no delivery, counter or cooldown change. On live Kick, send `!welcome` in **the configured creator's chat**, wait for the reply, and check **Maintenance → Delivery outcomes**. Allow the cooldown before repeating. In a demo, stop at the preview: it shows the response without sending to Kick. The developer CLI's `fixture-event` checks only the built-in `!kekbot` path, rather than arbitrary custom commands.
