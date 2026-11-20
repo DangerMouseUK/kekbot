@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="440" viewBox="0 0 1280 440" role="img" aria-labelledby="title desc">
+  <title id="title">KekBot</title>
+  <desc id="desc">KekBot banner: your Kick chat, Discord team and OBS overlays in one self-hosted control room. An illustration shows a chat window with viewer commands, an on-stream follower alert, a live poll and a Discord approval command. All names are made up.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c120f"/>
+      <stop offset="1" stop-color="#15221b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.78" cy="0.45" r="0.55">
+      <stop offset="0" stop-color="#83db9d" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#83db9d" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d2f58b"/>
+      <stop offset="1" stop-color="#5fc882"/>
+    </linearGradient>
+    <linearGradient id="alert" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f3a2a"/>
+      <stop offset="1" stop-color="#16271d"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#83db9d" stroke-opacity="0.05" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+    <clipPath id="frame"><rect width="1280" height="440" rx="24"/></clipPath>
+  </defs>
+  <style>
+    .sans { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    .mono { font-family: "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace; }
+  </style>
+
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="440" fill="url(#bg)"/>
+    <rect width="1280" height="440" fill="url(#grid)"/>
+    <rect width="1280" height="440" fill="url(#glow)"/>
+  </g>
+  <rect x="0.5" y="0.5" width="1279" height="439" rx="24" fill="none" stroke="#2c3b32"/>
+
+  <!-- Logo mark and wordmark -->
+  <g transform="translate(72 96)">
+    <rect width="92" height="92" rx="24" fill="url(#mark)"/>
+    <path d="M22 26h48a8 8 0 0 1 8 8v26a8 8 0 0 1-8 8H44l-14 12v-12h-8a8 8 0 0 1-8-8V34a8 8 0 0 1 8-8z" fill="#0f1b14"/>
+    <path d="M38 36v24M38 48l14-12M42 45l11 15" stroke="#d2f58b" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="64" cy="52" r="4" fill="#83db9d"/>
+  </g>
+  <text x="186" y="168" class="sans" font-size="78" font-weight="800" fill="#eef4ef" letter-spacing="-2">KekBot</text>
+
+  <text class="sans" font-size="25" fill="#c3d3c8">
+    <tspan x="74" y="246">Your Kick chat, Discord team and</tspan>
+    <tspan x="74" y="280">OBS overlays in one self-hosted</tspan>
+    <tspan x="74" y="314">control room.</tspan>
+  </text>
+
+  <g class="sans" font-size="15" font-weight="600">
+    <rect x="74" y="346" width="118" height="34" rx="17" fill="#1c2c22" stroke="#3c6249"/>
+    <text x="133" y="368" text-anchor="middle" fill="#a0e6b1">Self-hosted</text>
+    <rect x="204" y="346" width="122" height="34" rx="17" fill="#1c2c22" stroke="#3c6249"/>
+    <text x="265" y="368" text-anchor="middle" fill="#a0e6b1">MIT licensed</text>
+    <rect x="338" y="346" width="186" height="34" rx="17" fill="#1c2c22" stroke="#3c6249"/>
+    <text x="431" y="368" text-anchor="middle" fill="#a0e6b1">Kick · Discord · OBS</text>
+  </g>
+
+  <!-- Chat window -->
+  <g filter="url(#shadow)">
+    <rect x="690" y="58" width="340" height="236" rx="16" fill="#141c17" stroke="#34443a"/>
+  </g>
+  <path d="M690 74a16 16 0 0 1 16-16h308a16 16 0 0 1 16 16v20H690z" fill="#1b261f"/>
+  <circle cx="712" cy="76" r="5" fill="#e0796b"/>
+  <circle cx="730" cy="76" r="5" fill="#e3c26a"/>
+  <circle cx="748" cy="76" r="5" fill="#83db9d"/>
+  <text x="770" y="81" class="sans" font-size="14" font-weight="600" fill="#a2b5a9">Kick chat</text>
+  <g class="mono" font-size="14">
+    <text x="710" y="128"><tspan fill="#83db9d" font-weight="700">pixel_pal</tspan><tspan fill="#d7e2da"> !sr youtu.be/…</tspan></text>
+    <text x="710" y="160"><tspan fill="#d2f58b" font-weight="700">KekBot</tspan><tspan fill="#d7e2da"> Checking request #12</tspan></text>
+    <text x="710" y="192"><tspan fill="#8fc3f0" font-weight="700">nova_fan</tspan><tspan fill="#d7e2da"> !vote 2</tspan></text>
+    <text x="710" y="224"><tspan fill="#d2f58b" font-weight="700">KekBot</tspan><tspan fill="#d7e2da"> Vote saved.</tspan></text>
+    <text x="710" y="256"><tspan fill="#e3a7e8" font-weight="700">moon_mod</tspan><tspan fill="#d7e2da"> !so pixel_pal</tspan></text>
+  </g>
+
+  <!-- On-stream alert -->
+  <g filter="url(#shadow)">
+    <rect x="986" y="34" width="252" height="120" rx="16" fill="url(#alert)" stroke="#5fc882" stroke-opacity="0.7"/>
+  </g>
+  <text x="1008" y="66" class="sans" font-size="12" font-weight="700" letter-spacing="2" fill="#83db9d">NEW FOLLOWER</text>
+  <text x="1008" y="106" class="sans" font-size="32" font-weight="800" fill="#eef4ef">nova_fan</text>
+  <text x="1008" y="134" class="sans" font-size="16" fill="#b3c3b8">just followed!</text>
+  <path d="M1206 52l4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#d2f58b"/>
+
+  <!-- Live poll -->
+  <g filter="url(#shadow)">
+    <rect x="1004" y="178" width="234" height="134" rx="16" fill="#141c17" stroke="#34443a"/>
+  </g>
+  <text x="1024" y="208" class="sans" font-size="15" font-weight="700" fill="#eef4ef">Next game?</text>
+  <g class="sans" font-size="13">
+    <rect x="1024" y="222" width="194" height="26" rx="7" fill="#1e2a23"/>
+    <rect x="1024" y="222" width="120" height="26" rx="7" fill="#3f8a59"/>
+    <text x="1034" y="240" fill="#eef4ef">1 · Racing</text>
+    <text x="1208" y="240" text-anchor="end" fill="#eef4ef" font-weight="700">62%</text>
+    <rect x="1024" y="258" width="194" height="26" rx="7" fill="#1e2a23"/>
+    <rect x="1024" y="258" width="74" height="26" rx="7" fill="#2c4a37"/>
+    <text x="1034" y="276" fill="#d7e2da">2 · Puzzle</text>
+    <text x="1208" y="276" text-anchor="end" fill="#d7e2da" font-weight="700">38%</text>
+  </g>
+  <text x="1024" y="302" class="sans" font-size="11" fill="#7f978a">Closes in 01:42</text>
+
+  <!-- Discord command -->
+  <g filter="url(#shadow)">
+    <rect x="712" y="320" width="456" height="80" rx="16" fill="#1a1f2b" stroke="#353d52"/>
+  </g>
+  <text x="734" y="352" class="mono" font-size="14"><tspan fill="#a9b4f5" font-weight="700">/kekbot</tspan><tspan fill="#d7dcef"> media approve</tspan><tspan fill="#8e97b8"> request:</tspan><tspan fill="#d7dcef"> #12</tspan></text>
+  <text x="734" y="380" class="sans" font-size="13" fill="#8e97b8">Discord · private reply to moderators</text>
+  <rect x="1046" y="341" width="104" height="38" rx="9" fill="#83db9d"/>
+  <text x="1098" y="365" text-anchor="middle" class="sans" font-size="15" font-weight="700" fill="#102519">Approve</text>
+</svg>

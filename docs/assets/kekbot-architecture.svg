@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="350" viewBox="0 0 1280 350" role="img" aria-labelledby="title desc">
+  <title id="title">How KekBot fits together</title>
+  <desc id="desc">You and your moderators use the dashboard in a web browser, and OBS loads alerts, overlays and the player. Both reach your Linux server through a Caddy HTTPS proxy, which forwards to the KekBot container: dashboard, chat bot, and jobs and timers. KekBot keeps a SQLite database and local uploads on the same server. It connects to Kick for chat, events and replies, and optionally to Discord and YouTube.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c120f"/>
+      <stop offset="1" stop-color="#15221b"/>
+    </linearGradient>
+    <linearGradient id="core" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f3a2a"/>
+      <stop offset="1" stop-color="#16271d"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d2f58b"/>
+      <stop offset="1" stop-color="#5fc882"/>
+    </linearGradient>
+    <marker id="end" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#83db9d"/>
+    </marker>
+    <marker id="start" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M10 0L0 5L10 10z" fill="#83db9d"/>
+    </marker>
+  </defs>
+  <style>
+    .sans { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    .title { font-size: 17px; font-weight: 700; fill: #eef4ef; }
+    .note { font-size: 13px; fill: #a2b5a9; }
+    .card { fill: #141c17; stroke: #34443a; }
+    .link { fill: none; stroke: #83db9d; stroke-width: 2.5; }
+    .optional { stroke-dasharray: 6 6; }
+  </style>
+
+  <rect width="1280" height="350" rx="24" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="1279" height="349" rx="24" fill="none" stroke="#2c3b32"/>
+
+  <!-- People and OBS -->
+  <rect class="card" x="40" y="72" width="250" height="84" rx="14"/>
+  <text x="62" y="106" class="sans title">You and your mods</text>
+  <text x="62" y="130" class="sans note">Dashboard in a web browser</text>
+  <rect class="card" x="40" y="194" width="250" height="84" rx="14"/>
+  <text x="62" y="228" class="sans title">OBS Studio</text>
+  <text x="62" y="252" class="sans note">Alerts, overlays and the player</text>
+
+  <!-- Server boundary -->
+  <rect x="330" y="30" width="620" height="292" rx="22" fill="#101813" stroke="#3c6249" stroke-dasharray="8 7"/>
+  <text x="354" y="60" class="sans" font-size="12" font-weight="700" letter-spacing="2.5" fill="#83db9d">YOUR LINUX SERVER</text>
+
+  <rect class="card" x="360" y="114" width="160" height="96" rx="14"/>
+  <text x="440" y="155" text-anchor="middle" class="sans title">Caddy</text>
+  <text x="440" y="179" text-anchor="middle" class="sans note">HTTPS proxy</text>
+
+  <rect x="580" y="84" width="330" height="140" rx="16" fill="url(#core)" stroke="#5fc882" stroke-opacity="0.8"/>
+  <rect x="602" y="104" width="36" height="36" rx="10" fill="url(#mark)"/>
+  <path d="M613 114v16M613 122l9-8M615.5 120.5l7 9.5" stroke="#0f1b14" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <text x="652" y="129" class="sans" font-size="19" font-weight="800" fill="#eef4ef">KekBot container</text>
+  <g class="sans" font-size="13" font-weight="600">
+    <rect x="602" y="160" width="92" height="30" rx="15" fill="#1c2c22" stroke="#3c6249"/>
+    <text x="648" y="180" text-anchor="middle" fill="#a0e6b1">Dashboard</text>
+    <rect x="704" y="160" width="84" height="30" rx="15" fill="#1c2c22" stroke="#3c6249"/>
+    <text x="746" y="180" text-anchor="middle" fill="#a0e6b1">Chat bot</text>
+    <rect x="798" y="160" width="92" height="30" rx="15" fill="#1c2c22" stroke="#3c6249"/>
+    <text x="844" y="180" text-anchor="middle" fill="#a0e6b1">Jobs, timers</text>
+  </g>
+
+  <!-- Database cylinder -->
+  <path d="M665 258v36c0 9 36 16 80 16s80-7 80-16v-36" fill="#141c17" stroke="#34443a"/>
+  <ellipse cx="745" cy="258" rx="80" ry="14" fill="#1c2c22" stroke="#34443a"/>
+  <text x="745" y="291" text-anchor="middle" class="sans" font-size="14" font-weight="700" fill="#eef4ef">SQLite + uploads</text>
+
+  <!-- Providers -->
+  <rect class="card" x="990" y="44" width="250" height="78" rx="14"/>
+  <text x="1012" y="76" class="sans title">Kick</text>
+  <text x="1012" y="100" class="sans note">Chat, events and replies</text>
+  <rect class="card" x="990" y="136" width="250" height="78" rx="14"/>
+  <text x="1012" y="168" class="sans title">Discord <tspan class="note" font-weight="400">(optional)</tspan></text>
+  <text x="1012" y="192" class="sans note">Notifications and /kekbot</text>
+  <rect class="card" x="990" y="228" width="250" height="78" rx="14"/>
+  <text x="1012" y="260" class="sans title">YouTube <tspan class="note" font-weight="400">(optional)</tspan></text>
+  <text x="1012" y="284" class="sans note">Song request checks</text>
+
+  <!-- Connections -->
+  <path class="link" d="M290 114C326 114 326 148 356 148" marker-end="url(#end)"/>
+  <path class="link" d="M290 236C326 236 326 176 356 176" marker-end="url(#end)"/>
+  <path class="link" d="M520 162H576" marker-end="url(#end)"/>
+  <path class="link" d="M745 224V242" marker-end="url(#end)"/>
+  <path class="link" d="M914 126C950 126 950 83 986 83" marker-start="url(#start)" marker-end="url(#end)"/>
+  <path class="link optional" d="M914 156C950 156 950 175 986 175" marker-start="url(#start)" marker-end="url(#end)"/>
+  <path class="link optional" d="M986 267C950 267 950 192 914 192" marker-end="url(#end)"/>
+</svg>

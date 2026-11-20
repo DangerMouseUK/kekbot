@@ -8,6 +8,7 @@ This is the contributor/maintainer guide to the documentation set. Readers shoul
 - [Structure and ownership](#structure-and-ownership)
 - [Writing a task guide](#writing-a-task-guide)
 - [Source-of-truth map](#source-of-truth-map)
+- [Screenshots and graphics](#screenshots-and-graphics)
 - [Verification checklist](#verification-checklist)
 - [Reviewing quality](#reviewing-quality)
 - [Handbook verification record](#handbook-verification-record)
@@ -57,6 +58,15 @@ Do not imply an installer, published image, default account, email-reset flow or
 | Source/player behavior | Presentation/media services and widget pages | OBS, fields, API, recovery |
 | Backup/schema/import | Maintenance, migrations, operations service | Recovery, CLI, configuration, API and release compatibility |
 | Script/check/release gate | `package.json`, scripts, workflow, release policy | Contributing, testing, releasing, evidence/readiness |
+
+## Screenshots and graphics
+
+The root README uses two kinds of image in `docs/assets/`:
+
+- **Illustrations** (`kekbot-*.svg`): hand-drawn SVGs in the dashboard palette with made-up names. Each has Markdown alt text plus an SVG `<title>` and `<desc>`. They depict implemented behaviour only. Third-party products appear as text labels, never as logos.
+- **OBS overlay captures** (`obs-*.png`): the only real screenshots allowed in Git. Capture them from a **fixture installation** with a fresh external data root, synthetic viewers and signed fixture events, never from a live installation. Crop each to the overlay, 800×300, over a plain stand-in background, with no URL bar, token, address, path or dashboard visible. Check that the PNG holds only image data chunks (`IHDR`, `IDAT`, `IEND`), and caption them in the README as demo captures. Recapture them when the overlay design changes noticeably.
+
+Dashboard screenshots, browser traces and any capture of a live installation stay out of Git unless the owner explicitly approves a specific image. Keep capture scripts, demo data and generated credentials outside the repository.
 
 ## Verification checklist
 

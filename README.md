@@ -1,8 +1,6 @@
 <div align="center">
 
-# KekBot
-
-**Your Kick chat, Discord team and OBS overlays in one self-hosted control room.**
+![KekBot: your Kick chat, Discord team and OBS overlays in one self-hosted control room](docs/assets/kekbot-banner.svg)
 
 [![CI](https://github.com/DangerMouseUK/kekbot/actions/workflows/ci.yml/badge.svg)](https://github.com/DangerMouseUK/kekbot/actions/workflows/ci.yml) [![Latest release](https://img.shields.io/github/v/release/DangerMouseUK/kekbot?include_prereleases&label=latest%20release)](https://github.com/DangerMouseUK/kekbot/releases) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -17,9 +15,13 @@ You run it yourself, on your own Linux server. There is no KekBot account to sig
 > [!IMPORTANT]
 > **KekBot is in evaluation beta.** The latest published version is [v0.1.0-beta.4](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.4) (2026-10-10). Every feature below is implemented and covered by automated tests that use simulated providers. Real Kick, Discord and OBS delivery, public certificate renewal and installs by independent operators have **not** yet passed live acceptance, and there is no stable release. Start with a test installation and keep backups. [What beta means →](docs/BETA.md)
 
-<!-- Screenshot placeholder: add a synthetic fixture capture of the dashboard Control room here once the owner approves an image. It must contain no real accounts, addresses, paths or tokens. -->
+<!-- The banner, song-request and architecture graphics in docs/assets are hand-drawn SVG illustrations with made-up names. The obs-*.png files are the only real captures: cropped OBS source renders from a fixture installation. AGENTS.md and docs/DOCUMENTATION.md describe the narrow rule for those; dashboard screenshots still need an explicit owner decision. -->
 
 ## What KekBot does
+
+Here is the kind of workflow KekBot runs for you, end to end:
+
+![A song request in three steps: a viewer types !sr in Kick chat, a moderator approves it from the dashboard or Discord, and it plays on stream in an OBS Browser Source](docs/assets/kekbot-song-request.svg)
 
 ### 💬 Chat
 
@@ -46,6 +48,14 @@ You run it yourself, on your own Linux server. There is no KekBot account to sig
 - **18 Browser Source types**, including alerts with your own images and sounds, chat, event feed, goals, polls, raffles, leaderboards, countdowns, shoutouts and the media player.
 - Each source has a private URL that you can revoke at any time. Built-in themes let you change the look without writing CSS.
 
+| Follower alert | Live poll |
+| --- | --- |
+| ![A follower alert reading "Thanks for the follow, starlit_sam!"](docs/assets/obs-alert.png) | ![A live poll, "What should we play next?", with Racing at 50%, Puzzle at 33% and Horror at 17% of six votes](docs/assets/obs-poll.png) |
+| **Recent supporters** | **Chat with role badges** |
+| ![A recent-supporters feed listing a follow, a six-month resub, three gifted subs and a new sub](docs/assets/obs-supporters.png) | ![Stream chat with SUB, MOD and VIP badges, showing !vote, !enter and !so commands alongside normal messages](docs/assets/obs-chat.png) |
+
+<sub>Real captures of KekBot's OBS sources from a demo installation with made-up viewers, shown over a plain background because OBS sources are transparent. They show the redesigned overlays on `main`, which are coming in the next beta.</sub>
+
 ### 🤝 Your team and Discord
 
 - **Local accounts** with owner, admin, moderator and read-only roles, single-use invitations and scoped API tokens.
@@ -56,7 +66,9 @@ You run it yourself, on your own Linux server. There is no KekBot account to sig
 - **Analytics** for observed streams, with CSV and JSON exports.
 - **Retention settings**, per-viewer erasure, configuration export and import, snapshots before every update, and backup and restore tools.
 
-The [user guide](docs/USER_GUIDE.md) explains each module. The [OBS guide](docs/OBS.md) covers sources and themes, and [release readiness](docs/RELEASE_READINESS.md) records what has been tested and how. Some dashboard, OBS and Discord improvements on `main` are newer than beta 4. They are listed under **Unreleased** in the [changelog](CHANGELOG.md).
+The [user guide](docs/USER_GUIDE.md) explains each module. The [OBS guide](docs/OBS.md) covers sources and themes, and [release readiness](docs/RELEASE_READINESS.md) records what has been tested and how.
+
+**Coming in the next beta:** since beta 4, `main` has gained a friendlier dashboard with one-click actions on every card, plain-English editor forms, redesigned OBS sources with seven theme packs, grouped Discord commands with Approve and Reject buttons, natural chat replies and a rebuilt Analytics panel. These aren't in a published release yet. See **Unreleased** in the [changelog](CHANGELOG.md).
 
 ## Why self-hosted
 
@@ -119,20 +131,9 @@ Need a custom version, an existing reverse proxy or manual Docker Compose? Use [
 
 ## How it fits together
 
-```mermaid
-flowchart LR
-  subgraph host["Your Linux server"]
-    proxy["Caddy HTTPS proxy"] --> app["KekBot container<br/>dashboard, bot and jobs"]
-    app --> db[("SQLite database<br/>and local uploads")]
-  end
-  browser["You and your moderators<br/>(web browser)"] --> proxy
-  obs["OBS Browser Sources"] --> proxy
-  kick["Kick chat and events"] <--> app
-  discord["Discord (optional)"] <--> app
-  youtube["YouTube (optional)"] --> app
-```
+![Diagram: your browser and OBS reach your Linux server through a Caddy HTTPS proxy; the KekBot container stores data in SQLite and local uploads, and connects to Kick, plus optionally Discord and YouTube](docs/assets/kekbot-architecture.svg)
 
-KekBot runs as **one application container** on a Linux x86-64 server. Docker runs it, and the installer handles the normal Docker setup for you. A bundled Caddy proxy can provide HTTPS for the dashboard and for provider callbacks. OBS shows KekBot pages through private Browser Source URLs.
+KekBot runs as **one application container** on a Linux x86-64 server. Docker runs it, and the installer handles the normal Docker setup for you. A bundled Caddy proxy can provide HTTPS for the dashboard and for provider callbacks, or you can use your own proxy. OBS shows KekBot pages through private Browser Source URLs.
 
 ARM64, native Windows or macOS hosting, databases on network disks and multiple copies of the app are not supported. [Hosting details →](docs/INSTALLER.md#before-you-start) · [Architecture →](docs/ARCHITECTURE.md)
 

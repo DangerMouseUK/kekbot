@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="330" viewBox="0 0 1280 330" role="img" aria-labelledby="title desc">
+  <title id="title">A song request, start to finish</title>
+  <desc id="desc">Three steps: 1, a viewer asks in Kick chat with !sr and KekBot checks the request. 2, a moderator approves it from the dashboard or Discord. 3, it plays on stream through an OBS Browser Source, with the requester shown. All names are made up.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0c120f"/>
+      <stop offset="1" stop-color="#15221b"/>
+    </linearGradient>
+    <linearGradient id="badge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d2f58b"/>
+      <stop offset="1" stop-color="#5fc882"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f3a2a"/>
+      <stop offset="1" stop-color="#101a14"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#83db9d"/>
+    </marker>
+    <clipPath id="frame"><rect width="1280" height="330" rx="24"/></clipPath>
+  </defs>
+  <style>
+    .sans { font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    .mono { font-family: "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace; }
+  </style>
+
+  <rect width="1280" height="330" rx="24" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="1279" height="329" rx="24" fill="none" stroke="#2c3b32"/>
+  <text x="40" y="36" class="sans" font-size="13" font-weight="700" letter-spacing="2.5" fill="#83db9d">A SONG REQUEST, START TO FINISH</text>
+
+  <!-- Arrows -->
+  <path d="M400 176H456" stroke="#83db9d" stroke-width="3" stroke-dasharray="6 6" marker-end="url(#arrow)"/>
+  <path d="M824 176H880" stroke="#83db9d" stroke-width="3" stroke-dasharray="6 6" marker-end="url(#arrow)"/>
+
+  <!-- Step 1: Kick chat -->
+  <rect x="40" y="56" width="352" height="248" rx="18" fill="#141c17" stroke="#34443a"/>
+  <circle cx="76" cy="92" r="18" fill="url(#badge)"/>
+  <text x="76" y="99" text-anchor="middle" class="sans" font-size="18" font-weight="800" fill="#102519">1</text>
+  <text x="106" y="91" class="sans" font-size="20" font-weight="700" fill="#eef4ef">A viewer asks in chat</text>
+  <text x="106" y="114" class="sans" font-size="14" fill="#a2b5a9">In your Kick chat</text>
+  <rect x="62" y="138" width="308" height="144" rx="12" fill="#101612" stroke="#2a382f"/>
+  <g class="mono" font-size="14">
+    <text x="80" y="174"><tspan fill="#83db9d" font-weight="700">pixel_pal</tspan><tspan fill="#d7e2da"> !sr youtu.be/…</tspan></text>
+    <text x="80" y="206"><tspan fill="#d2f58b" font-weight="700">KekBot</tspan><tspan fill="#d7e2da"> Checking request #12</tspan></text>
+  </g>
+  <rect x="80" y="230" width="272" height="32" rx="8" fill="#1c2c22"/>
+  <text x="96" y="251" class="sans" font-size="13" fill="#a0e6b1">✓ Length, limits and cooldowns checked</text>
+
+  <!-- Step 2: approval -->
+  <rect x="464" y="56" width="352" height="248" rx="18" fill="#141c17" stroke="#34443a"/>
+  <circle cx="500" cy="92" r="18" fill="url(#badge)"/>
+  <text x="500" y="99" text-anchor="middle" class="sans" font-size="18" font-weight="800" fill="#102519">2</text>
+  <text x="530" y="91" class="sans" font-size="20" font-weight="700" fill="#eef4ef">A moderator approves</text>
+  <text x="530" y="114" class="sans" font-size="14" fill="#a2b5a9">From the dashboard or Discord</text>
+  <rect x="486" y="138" width="308" height="144" rx="12" fill="#101612" stroke="#2a382f"/>
+  <text x="504" y="172" class="sans" font-size="16" font-weight="700" fill="#eef4ef">#12 · Lo-fi study beats</text>
+  <text x="504" y="196" class="sans" font-size="13" fill="#a2b5a9">pixel_pal · 3:24 · waiting for approval</text>
+  <rect x="504" y="222" width="128" height="40" rx="9" fill="#83db9d"/>
+  <text x="568" y="247" text-anchor="middle" class="sans" font-size="15" font-weight="700" fill="#102519">Approve</text>
+  <rect x="644" y="222" width="128" height="40" rx="9" fill="none" stroke="#617268"/>
+  <text x="708" y="247" text-anchor="middle" class="sans" font-size="15" font-weight="600" fill="#c1d8c8">Reject</text>
+
+  <!-- Step 3: OBS playback -->
+  <rect x="888" y="56" width="352" height="248" rx="18" fill="#141c17" stroke="#34443a"/>
+  <circle cx="924" cy="92" r="18" fill="url(#badge)"/>
+  <text x="924" y="99" text-anchor="middle" class="sans" font-size="18" font-weight="800" fill="#102519">3</text>
+  <text x="954" y="91" class="sans" font-size="20" font-weight="700" fill="#eef4ef">It plays on stream</text>
+  <text x="954" y="114" class="sans" font-size="14" fill="#a2b5a9">In an OBS Browser Source</text>
+  <rect x="910" y="138" width="308" height="144" rx="12" fill="url(#screen)" stroke="#2f5a3d"/>
+  <text x="928" y="166" class="sans" font-size="11" font-weight="700" letter-spacing="2" fill="#83db9d">NOW PLAYING</text>
+  <text x="928" y="194" class="sans" font-size="19" font-weight="800" fill="#eef4ef">Lo-fi study beats</text>
+  <text x="928" y="216" class="sans" font-size="13" fill="#b3c3b8">Requested by pixel_pal</text>
+  <rect x="928" y="236" width="272" height="6" rx="3" fill="#2a3d31"/>
+  <rect x="928" y="236" width="96" height="6" rx="3" fill="#83db9d"/>
+  <text x="928" y="265" class="sans" font-size="12" fill="#a2b5a9">1:12 / 3:24</text>
+  <text x="1200" y="265" text-anchor="end" class="sans" font-size="12" fill="#a2b5a9">2 more in the queue</text>
+</svg>
