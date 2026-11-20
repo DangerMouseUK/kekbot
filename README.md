@@ -15,7 +15,7 @@ You run it yourself, on your own Linux server. There is no KekBot account to sig
 > [!IMPORTANT]
 > **KekBot is in evaluation beta.** The latest published version is [v0.1.0-beta.4](https://github.com/DangerMouseUK/kekbot/releases/tag/v0.1.0-beta.4) (2026-10-10). Every feature below is implemented and covered by automated tests that use simulated providers. Real Kick, Discord and OBS delivery, public certificate renewal and installs by independent operators have **not** yet passed live acceptance, and there is no stable release. Start with a test installation and keep backups. [What beta means →](docs/BETA.md)
 
-<!-- The graphics in docs/assets are hand-drawn SVG illustrations with made-up names, not screenshots. AGENTS.md keeps browser screenshots out of Git; adding real dashboard captures needs an explicit owner decision and synthetic fixture data only. -->
+<!-- The banner, song-request and architecture graphics in docs/assets are hand-drawn SVG illustrations with made-up names. The obs-*.png files are the only real captures: cropped OBS source renders from a fixture installation. AGENTS.md and docs/DOCUMENTATION.md describe the narrow rule for those; dashboard screenshots still need an explicit owner decision. -->
 
 ## What KekBot does
 
@@ -47,6 +47,14 @@ Here is the kind of workflow KekBot runs for you, end to end:
 
 - **18 Browser Source types**, including alerts with your own images and sounds, chat, event feed, goals, polls, raffles, leaderboards, countdowns, shoutouts and the media player.
 - Each source has a private URL that you can revoke at any time. Built-in themes let you change the look without writing CSS.
+
+| Follower alert | Live poll |
+| --- | --- |
+| ![A follower alert reading "Thanks for the follow, starlit_sam!"](docs/assets/obs-alert.png) | ![A live poll, "What should we play next?", with Racing at 50%, Puzzle at 33% and Horror at 17% of six votes](docs/assets/obs-poll.png) |
+| **Recent supporters** | **Chat with role badges** |
+| ![A recent-supporters feed listing a follow, a six-month resub, three gifted subs and a new sub](docs/assets/obs-supporters.png) | ![Stream chat with SUB, MOD and VIP badges, showing !vote, !enter and !so commands alongside normal messages](docs/assets/obs-chat.png) |
+
+<sub>Real captures of KekBot's OBS sources from a demo installation with made-up viewers, shown over a plain background because OBS sources are transparent. They show the redesigned overlays on `main`, which are coming in the next beta.</sub>
 
 ### 🤝 Your team and Discord
 
